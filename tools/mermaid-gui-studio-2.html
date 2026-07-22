@@ -8,17 +8,17 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/favicon-16x16.png">
 <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
-<meta name="description" content="Mermaidのフローチャートとシーケンス図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
+<meta name="description" content="Mermaidのフローチャート・シーケンス図・状態遷移図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
 <link rel="canonical" href="https://tossie85.site/tools/mermaid-gui-studio-2.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="tossie85 lab">
 <meta property="og:title" content="Mermaid GUI Studio 2">
-<meta property="og:description" content="Mermaidのフローチャートとシーケンス図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
+<meta property="og:description" content="Mermaidのフローチャート・シーケンス図・状態遷移図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
 <meta property="og:url" content="https://tossie85.site/tools/mermaid-gui-studio-2.html">
 <meta property="og:image" content="https://tossie85.site/assets/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Mermaid GUI Studio 2">
-<meta name="twitter:description" content="Mermaidのフローチャートとシーケンス図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
+<meta name="twitter:description" content="Mermaidのフローチャート・シーケンス図・状態遷移図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
 <meta name="twitter:image" content="https://tossie85.site/assets/og-default.png">
 <style>
   :root{
@@ -381,10 +381,10 @@
   /* プレビューの図形をクリックして選ばれた行 */
   .item-row.picked{ background:#FFF6DF; box-shadow: inset 0 0 0 2px var(--amber); }
   /* プレビュー上でビルダーに対応する図形は、クリックできることを示す（PREVIEW_PICK_SELECTORと対） */
-  #preview g.node, #preview g.cluster, #preview rect.node-bkg,
+  #preview g.node, #preview g.statediagram-cluster, #preview g.cluster, #preview rect.node-bkg,
   #preview rect.actor, #preview g.actor-man{ cursor:pointer; }
   /* 矢印・線（pickEdgeTargetsForTypeと対）。線は細いので、塗り無しでも線上を拾えるようにする */
-  #preview path.flowchart-link,
+  #preview path.flowchart-link, #preview path.transition,
   #preview line[class*="messageLine"], #preview text.messageText{ cursor:pointer; pointer-events:stroke; }
   #preview text.messageText{ pointer-events:auto; }
   /* シーケンス図のノート。文字はクリックを素通りさせ、下の枠(rect.note)へ判定を一本化する */
@@ -527,7 +527,7 @@
     <div class="brand-mark"></div>
     <div>
       <div class="brand-title">Mermaid GUI Studio 2</div>
-      <div class="brand-sub">Flowchart &amp; Sequence / with Import</div>
+      <div class="brand-sub">Flowchart / Sequence / State — with Import</div>
     </div>
   </div>
 
@@ -537,6 +537,7 @@
       <select id="diagramType">
         <option value="flowchart">フローチャート</option>
         <option value="sequence">シーケンス図</option>
+        <option value="state">状態遷移図</option>
       </select>
     </div>
 
@@ -635,13 +636,19 @@
       </p>
       <p>取り込めない代表的な記述は次のとおりです。</p>
       <ul style="margin:6px 0 0 18px; padding:0; line-height:1.9;">
-        <li><code>classDef</code> / <code>class</code> / <code>:::</code>（クラス定義）、<code>click</code>、<code>%%{init:…}%%</code>、フロントマター（<code>---</code>）</li>
+        <li><code>click</code>、<code>%%{init:…}%%</code>、フロントマター（<code>---</code>）</li>
+        <li>フローチャートの <code>classDef</code> / <code>class</code> / <code>:::</code>（クラス定義）<br>
+          <span class="hint">状態遷移図だけは事情が違います。Mermaidに状態の色を直接指定する書き方が無く、本ツールも <code>classDef</code> と <code>class</code> の組で色を出力しているため、この形（1つの状態に1つのクラスを割り当て、中身は塗りと枠線のみ）に限って取り込めます。</span></li>
         <li><code>A &amp; B --&gt; C</code> のまとめ書き、<code>subgraph</code> の入れ子、subgraphごとの <code>direction</code></li>
         <li>ビルダーに無い図形（台形など）、ハイフンを含むID</li>
         <li>シーケンス図の <code>autonumber</code> / <code>activate</code> / <code>box</code> / <code>rect</code> / <code>A-&gt;&gt;+B</code> の活性化指定</li>
+        <li>状態遷移図の <code>note</code> / <code>direction</code> / <code>&lt;&lt;fork&gt;&gt;</code>・<code>&lt;&lt;join&gt;&gt;</code>・<code>&lt;&lt;choice&gt;&gt;</code> / 並行処理の区切り（<code>--</code>）</li>
       </ul>
       <p class="hint" style="margin-top:12px;">
         逆に、<code>A --&gt; B --&gt; C</code> の連鎖、<code>A -- ラベル --&gt; B</code> の書き方、<code>---&gt;</code> のような長さ違いの矢印、<code>graph</code> 始まりの旧表記は、意味が同じなので正規の形に直して取り込みます。コメント行（<code>%%</code>）は保持できないため、取り込む前に確認を出します。
+      </p>
+      <p class="hint">
+        状態遷移図では、<code>state X { }</code> の中に書いた遷移も取り込めますが、再生成時はブロックの外にまとめて出力されます（Mermaidとしての意味は同じです）。
       </p>
       <p class="hint">取り込みは<strong>一方向</strong>です。取り込んだ後はGUI側が正となり、コードはGUIから再生成されます。</p>
     </div>
@@ -666,7 +673,7 @@
     </div>
     <div class="modal-body">
       <h3>Mermaid GUI Studio 2</h3>
-      <p>Mermaidのフローチャートとシーケンス図をGUIで組み立てられるツールです。既存のMermaidコードをGUIへ取り込む機能を備えています。ブラウザ単体で動作し、外部サーバーへの通信は行いません。</p>
+      <p>Mermaidのフローチャート・シーケンス図・状態遷移図をGUIで組み立てられるツールです。既存のMermaidコードをGUIへ取り込む機能を備えています。ブラウザ単体で動作し、外部サーバーへの通信は行いません。</p>
 
       <h3>使用ライブラリ</h3>
       <div class="credit-item">
@@ -754,6 +761,7 @@ mermaid.initialize({ startOnLoad:false, theme:'default', securityLevel:'loose', 
 /* ============ 各図の「空の状態」ファクトリ（初期化・クリアで共用） ============ */
 function emptyFlowchartState(){ return { direction:'TD', nodes:[], edges:[], subgraphs:[], editNodeIdx:null, editEdgeIdx:null, editSubIdx:null }; }
 function emptySequenceState(){ return { participants:[], messages:[], editPartIdx:null, editMsgIdx:null, editNoteIdx:null, editBlockIdx:null, editDivIdx:null }; }
+function emptyStateDiagState(){ return { nodes:[], edges:[], composites:[], editNodeIdx:null, editEdgeIdx:null, editCompositeIdx:null }; }
 
 const state = {
   diagramType: 'flowchart',
@@ -762,10 +770,13 @@ const state = {
   code: '',
   flowchart: emptyFlowchartState(),
   sequence: emptySequenceState(),
+  stateDiag: emptyStateDiagState(),
   nodeCounter: 1,
   edgeCounter: 1,
   subCounter: 1,
   partCounter: 1,
+  stCounter: 1,
+  compCounter: 1,
   msgCounter: 1,
 };
 
@@ -819,10 +830,36 @@ function sampleSequenceState(){
     ],
   });
 }
+function sampleStateDiagState(){
+  // 色分けした注文ステータスの状態遷移。「処理中」はサブステート（検証→実行）を持つ複合ステート
+  return Object.assign(emptyStateDiagState(), {
+    composites: [
+      { id:'Processing', label:'処理中', fill:'#BBDEFB', stroke:'#1565C0' },
+    ],
+    nodes: [
+      { id:'Pending', label:'保留中', compositeId:null, fill:'#FFF9C4', stroke:'#F9A825' },
+      { id:'Validating', label:'検証', compositeId:'Processing', fill:null, stroke:null },
+      { id:'Executing', label:'実行', compositeId:'Processing', fill:null, stroke:null },
+      { id:'Completed', label:'完了', compositeId:null, fill:'#C8E6C9', stroke:'#2E7D32' },
+      { id:'Failed', label:'失敗', compositeId:null, fill:'#FFCDD2', stroke:'#C62828' },
+    ],
+    edges: [
+      { from:'[*]', to:'Pending', label:'' },
+      { from:'Pending', to:'Processing', label:'開始' },
+      { from:'Validating', to:'Executing', label:'' },
+      { from:'Processing', to:'Completed', label:'成功' },
+      { from:'Processing', to:'Failed', label:'エラー' },
+      { from:'Failed', to:'Processing', label:'再試行' },
+      { from:'Completed', to:'[*]', label:'' },
+    ],
+  });
+}
+
 // 図の種類ごとに「stateのキー」「空/サンプルの作り方」「比較対象フィールド」「読み込み後のカウンタ初期値」をまとめる
 const DIAGRAM_META = {
   flowchart: { stateKey:'flowchart', empty:emptyFlowchartState, sample:sampleFlowchartState, contentFields:['direction','nodes','edges','subgraphs'], resetCounters(){ state.nodeCounter=1; state.subCounter=1; }, sampleCounters(){ state.nodeCounter=5; state.subCounter=3; } },
   sequence:  { stateKey:'sequence',  empty:emptySequenceState,  sample:sampleSequenceState,  contentFields:['participants','messages'], resetCounters(){ state.partCounter=1; }, sampleCounters(){ state.partCounter=5; } },
+  state:     { stateKey:'stateDiag', empty:emptyStateDiagState, sample:sampleStateDiagState, contentFields:['nodes','edges','composites'], resetCounters(){ state.stCounter=1; state.compCounter=1; }, sampleCounters(){ state.stCounter=6; state.compCounter=2; } },
 };
 
 function extractDiagramContent(obj, fields){
@@ -1094,10 +1131,76 @@ function genSequenceCode(){
   return lines.join('\n');
 }
 
+function genStateCode(){
+  const { nodes, edges, composites } = state.stateDiag;
+  const lines = ['stateDiagram-v2'];
+
+  const membersByComposite = new Map();
+  const topNodes = [];
+  nodes.forEach(n=>{
+    if(n.compositeId){
+      if(!membersByComposite.has(n.compositeId)) membersByComposite.set(n.compositeId, []);
+      membersByComposite.get(n.compositeId).push(n);
+    }else{
+      topNodes.push(n);
+    }
+  });
+
+  topNodes.forEach(n=>{
+    if(n.label && n.label !== n.id){
+      lines.push(`    state ${quoteLabel(n.label)} as ${n.id}`);
+    }
+  });
+
+  composites.forEach(c=>{
+    if(c.label && c.label !== c.id){
+      lines.push(`    state ${quoteLabel(c.label)} as ${c.id}`);
+    }
+    const members = membersByComposite.get(c.id) || [];
+    // 空の複合ステートはMermaidがエラーになるため、メンバーが無い間は通常の状態として扱う
+    if(members.length===0) return;
+    lines.push(`    state ${c.id} {`);
+    members.forEach(n=>{
+      // 複合ステート内では、ラベル=IDのメンバーも素のIDを出力しないと
+      // 内部遷移で参照されない限り図に現れず、全メンバーがそうなると空ブロックになる
+      if(n.label && n.label !== n.id){
+        lines.push(`        state ${quoteLabel(n.label)} as ${n.id}`);
+      }else{
+        lines.push(`        ${n.id}`);
+      }
+    });
+    lines.push(`    }`);
+  });
+
+  edges.forEach(e=>{
+    const labelPart = e.label ? ` : ${e.label}` : '';
+    lines.push(`    ${e.from} --> ${e.to}${labelPart}`);
+  });
+
+  const styleLines = [];
+  [...nodes, ...composites].forEach(n=>{
+    if(n.fill || n.stroke){
+      const cls = `${n.id}Style`;
+      const parts = [];
+      parts.push(`fill:${n.fill || 'transparent'}`);
+      parts.push(`stroke:${n.stroke || '#333333'},stroke-width:2px`);
+      styleLines.push(`    classDef ${cls} ${parts.join(',')}`);
+      styleLines.push(`    class ${n.id} ${cls}`);
+    }
+  });
+  // 注: stateDiagram-v2はMermaid側にlinkStyle相当の遷移線カラー指定が無いため、遷移（エッジ）の色は付与しない
+  if(styleLines.length){ lines.push(...styleLines); }
+  if(nodes.length===0 && edges.length===0 && composites.length===0){
+    lines.push('    %% 左側の「状態を追加」からブロックを組み立ててください');
+  }
+  return lines.join('\n');
+}
+
 function regenerateCode(){
   if(state.manualMode) return;
   if(state.diagramType==='flowchart') state.code = genFlowchartCode();
   else if(state.diagramType==='sequence') state.code = genSequenceCode();
+  else if(state.diagramType==='state') state.code = genStateCode();
   document.getElementById('codeArea').value = state.code;
   refreshGutter();
   renderPreview();
@@ -1137,7 +1240,7 @@ function scheduleRender(){
    「既知の接頭辞を外す」「末尾の連番 -N を1回だけ外す」で元IDへ一意に戻せる。
    シーケンス図だけはid属性を持たず、rect.actor の name 属性がIDになっている。 */
 /* クリック対象にする図形。CSSのカーソル指定（#preview 配下）と対で管理する */
-const PREVIEW_PICK_SELECTOR = 'g.node, g.cluster, rect.node-bkg, rect.actor, g.actor-man';
+const PREVIEW_PICK_SELECTOR = 'g.node, g.statediagram-cluster, g.cluster, rect.node-bkg, rect.actor, g.actor-man';
 
 /* 接頭辞は図種ごとだけでなく、同じ図種の中でも種類ごとに異なる
    （例: フローチャートのノードは flowchart、サブグラフは接頭辞なし）。 */
@@ -1146,6 +1249,10 @@ function pickTargetsForType(type){
     case 'flowchart': return [
       { prefix:'flowchart', listId:'fcNodeList', list:()=>state.flowchart.nodes,     pick(i){ state.flowchart.editNodeIdx=i; fcFillNodeForm(state.flowchart.nodes[i]); } },
       { prefix:'',          listId:'fcSubList',  list:()=>state.flowchart.subgraphs, pick(i){ state.flowchart.editSubIdx=i;  fcFillSubForm(state.flowchart.subgraphs[i]); } },
+    ];
+    case 'state': return [
+      { prefix:'state', listId:'stNodeList', list:()=>state.stateDiag.nodes,      pick(i){ state.stateDiag.editNodeIdx=i;      stFillNodeForm(state.stateDiag.nodes[i]); } },
+      { prefix:'state', listId:'stCompList', list:()=>state.stateDiag.composites, pick(i){ state.stateDiag.editCompositeIdx=i; stFillCompForm(state.stateDiag.composites[i]); } },
     ];
     case 'sequence': return [
       { byName:true, listId:'sqPartList', list:()=>state.sequence.participants, pick(i){ state.sequence.editPartIdx=i; sqFillPartForm(state.sequence.participants[i]); } },
@@ -1162,6 +1269,10 @@ function pickEdgeTargetsForType(type){
     case 'flowchart': return [
       { sel:'path.flowchart-link', listId:'fcEdgeList', list:()=>state.flowchart.edges,
         pick(i){ state.flowchart.editEdgeIdx=i; fcFillEdgeForm(state.flowchart.edges[i]); } },
+    ];
+    case 'state': return [
+      { sel:'path.transition', byIdIndex:true, listId:'stEdgeList', list:()=>state.stateDiag.edges,
+        pick(i){ state.stateDiag.editEdgeIdx=i; stFillEdgeForm(state.stateDiag.edges[i]); } },
     ];
     case 'sequence': {
       // メッセージ一覧にはノートやブロックも混ざるので、矢印として描かれる要素だけを対応づける
@@ -1189,6 +1300,13 @@ function mermaidIdFromEl(el, renderId, group){
 /* クリックされたエッジ要素が、配列の何番目にあたるかを返す。特定できなければ -1。 */
 function edgeIndexFromEl(el, svg, conf){
   const arr = conf.list();
+  // 状態遷移図の遷移線は id が edge0/edge1… と配列添字そのものなので、描画順より確実
+  if(conf.byIdIndex){
+    const m = /edge(\d+)$/.exec(el.id || '');
+    if(!m) return -1;
+    const i = Number(m[1]);
+    return i < arr.length ? i : -1;
+  }
   const cohort = [...svg.querySelectorAll(conf.sel)];
   const pos = cohort.indexOf(el);
   if(pos < 0) return -1;
@@ -1306,6 +1424,7 @@ function cancelBuilderEditing(type){
   switch(type){
     case 'flowchart': fcResetNodeForm(); fcResetSubForm(); fcResetEdgeForm(); break;
     case 'sequence':  sqResetPartForm(); sqResetMsgForm(); sqResetNoteForm(); sqResetBlockForm(); break;
+    case 'state':     stResetNodeForm(); stResetCompForm(); stResetEdgeForm(); break;
   }
   document.querySelectorAll('.item-row.picked').forEach(r=>r.classList.remove('picked'));
 }
@@ -2218,6 +2337,308 @@ function refreshSequenceLists(){
   }, isValidSequenceOrder);
 }
 
+/* ============ ビルダーUI: 状態遷移図 ============ */
+const STATE_START_END = { id:'[*]', label:'開始/終了 [*]' };
+
+function renderStateBuilder(container){
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <h2>状態遷移図 ビルダー</h2>
+    <p class="hint">状態と遷移をフォームで追加します。開始/終了は from・to に「開始/終了 [*]」を選ぶだけで表現できます。</p>
+
+    <div class="card">
+      <div class="card-title">サブステート (複合ステート) を追加</div>
+      <p class="hint" style="margin:0 0 10px;">複数の状態を1つの枠にまとめ、内部の遷移を表現できます。下の「状態を追加」で所属先を選べます。</p>
+      <div class="row">
+        <div class="field"><label for="stCompId">ID</label><input type="text" id="stCompId"></div>
+        <div class="field"><label for="stCompLabel">表示名</label><input type="text" id="stCompLabel" placeholder="例: 処理中"></div>
+      </div>
+      <label class="toggle-edit" style="margin-bottom:8px;"><input type="checkbox" id="stCompColorEnable">色を指定する</label>
+      <div class="row" id="stCompColorRow" style="display:none;">
+        <div class="field"><label for="stCompFill">塗りつぶし</label><input type="color" id="stCompFill" value="#e8f4fb">${colorPresetsHtml('stCompFill', 'fill')}</div>
+        <div class="field"><label for="stCompStroke">枠線</label><input type="color" id="stCompStroke" value="#16304f">${colorPresetsHtml('stCompStroke', 'stroke')}</div>
+      </div>
+      <button class="add-row-btn" id="stAddComp">＋ サブステートを追加</button>
+      <button class="add-row-btn" id="stCompCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <div class="item-list" id="stCompList"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">状態を追加</div>
+      <div class="row">
+        <div class="field"><label for="stNodeId">ID</label><input type="text" id="stNodeId"></div>
+        <div class="field"><label for="stNodeLabel">表示名</label><input type="text" id="stNodeLabel" placeholder="例: 実行中"></div>
+      </div>
+      <div class="field" style="margin-bottom:8px;"><label for="stNodeComposite">所属サブステート</label>
+        <select id="stNodeComposite"><option value="">（なし）</option></select>
+      </div>
+      <label class="toggle-edit" style="margin-bottom:8px;"><input type="checkbox" id="stNodeColorEnable">色を指定する</label>
+      <div class="row" id="stNodeColorRow" style="display:none;">
+        <div class="field"><label for="stNodeFill">塗りつぶし</label><input type="color" id="stNodeFill" value="#e8f4fb">${colorPresetsHtml('stNodeFill', 'fill')}</div>
+        <div class="field"><label for="stNodeStroke">枠線</label><input type="color" id="stNodeStroke" value="#16304f">${colorPresetsHtml('stNodeStroke', 'stroke')}</div>
+      </div>
+      <button class="add-row-btn" id="stAddNode">＋ 状態を追加</button>
+      <button class="add-row-btn" id="stNodeCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <div class="item-list" id="stNodeList"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">遷移を追加</div>
+      <div class="row">
+        <div class="field"><label for="stEdgeFrom">from</label><select id="stEdgeFrom"></select></div>
+        <div class="field"><label for="stEdgeTo">to</label><select id="stEdgeTo"></select></div>
+      </div>
+      <div class="field" style="margin-bottom:8px;"><label for="stEdgeLabel">条件・ラベル（任意）</label><input type="text" id="stEdgeLabel" placeholder="例: start"></div>
+      <button class="add-row-btn" id="stAddEdge">＋ 遷移を追加</button>
+      <button class="add-row-btn" id="stEdgeCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <div class="item-list" id="stEdgeList"></div>
+    </div>
+  `;
+  container.innerHTML='';
+  container.appendChild(wrap);
+
+  document.getElementById('stNodeColorEnable').addEventListener('change', e=>{
+    document.getElementById('stNodeColorRow').style.display = e.target.checked ? 'flex' : 'none';
+  });
+  document.getElementById('stCompColorEnable').addEventListener('change', e=>{
+    document.getElementById('stCompColorRow').style.display = e.target.checked ? 'flex' : 'none';
+  });
+
+  document.getElementById('stAddComp').addEventListener('click', ()=>{
+    const idInput = document.getElementById('stCompId');
+    const labelInput = document.getElementById('stCompLabel');
+    const colorOn = document.getElementById('stCompColorEnable').checked;
+    const fill = colorOn ? document.getElementById('stCompFill').value : null;
+    const stroke = colorOn ? document.getElementById('stCompStroke').value : null;
+    let id = idInput.value.trim() || ('CS' + state.compCounter);
+    id = sanitizeMermaidId(id, 'CS');
+
+    // 同じ図の中でIDが衝突すると、参照が別の要素に付け替わってしまう
+    if(!checkDuplicateId(id, [...state.stateDiag.nodes, ...state.stateDiag.composites].map(x=>x.id), state.stateDiag.editCompositeIdx !== null ? state.stateDiag.composites[state.stateDiag.editCompositeIdx].id : null)) return;
+    const label = labelInput.value.trim() || id;
+
+    if(state.stateDiag.editCompositeIdx !== null){
+      const idx = state.stateDiag.editCompositeIdx;
+      const oldId = state.stateDiag.composites[idx].id;
+      if(oldId !== id){
+        state.stateDiag.nodes.forEach(n=>{ if(n.compositeId===oldId) n.compositeId = id; });
+        state.stateDiag.edges.forEach(e=>{
+          if(e.from===oldId) e.from = id;
+          if(e.to===oldId) e.to = id;
+        });
+      }
+      state.stateDiag.composites[idx] = { id, label, fill, stroke };
+    }else{
+      state.stateDiag.composites.push({ id, label, fill, stroke });
+      state.compCounter++;
+    }
+    stResetCompForm();
+    refreshStateLists();
+    regenerateCode();
+  });
+  document.getElementById('stCompCancel').addEventListener('click', stResetCompForm);
+
+  document.getElementById('stAddNode').addEventListener('click', ()=>{
+    const idInput = document.getElementById('stNodeId');
+    const labelInput = document.getElementById('stNodeLabel');
+    const compositeId = document.getElementById('stNodeComposite').value || null;
+    const colorOn = document.getElementById('stNodeColorEnable').checked;
+    const fill = colorOn ? document.getElementById('stNodeFill').value : null;
+    const stroke = colorOn ? document.getElementById('stNodeStroke').value : null;
+    let id = idInput.value.trim() || ('S' + state.stCounter);
+    id = sanitizeMermaidId(id, 'S');
+
+    // 同じ図の中でIDが衝突すると、参照が別の要素に付け替わってしまう
+    if(!checkDuplicateId(id, [...state.stateDiag.nodes, ...state.stateDiag.composites].map(x=>x.id), state.stateDiag.editNodeIdx !== null ? state.stateDiag.nodes[state.stateDiag.editNodeIdx].id : null)) return;
+    const label = labelInput.value.trim() || id;
+
+    if(state.stateDiag.editNodeIdx !== null){
+      const idx = state.stateDiag.editNodeIdx;
+      const oldId = state.stateDiag.nodes[idx].id;
+      if(oldId !== id){
+        state.stateDiag.edges.forEach(e=>{
+          if(e.from===oldId) e.from = id;
+          if(e.to===oldId) e.to = id;
+        });
+      }
+      state.stateDiag.nodes[idx] = { id, label, compositeId, fill, stroke };
+    }else{
+      state.stateDiag.nodes.push({ id, label, compositeId, fill, stroke });
+      state.stCounter++;
+    }
+    stResetNodeForm();
+    refreshStateLists();
+    regenerateCode();
+  });
+  document.getElementById('stNodeCancel').addEventListener('click', stResetNodeForm);
+
+  document.getElementById('stAddEdge').addEventListener('click', ()=>{
+    const from = document.getElementById('stEdgeFrom').value;
+    const to = document.getElementById('stEdgeTo').value;
+    const label = document.getElementById('stEdgeLabel').value.trim();
+    if(!from || !to) return;
+
+    if(state.stateDiag.editEdgeIdx !== null){
+      state.stateDiag.edges[state.stateDiag.editEdgeIdx] = { from, to, label };
+    }else{
+      state.stateDiag.edges.push({ from, to, label });
+    }
+    stResetEdgeForm();
+    refreshStateLists();
+    regenerateCode();
+  });
+  document.getElementById('stEdgeCancel').addEventListener('click', stResetEdgeForm);
+
+  refreshStateLists();
+}
+
+function stFillNodeForm(n){
+  document.getElementById('stNodeId').value = n.id;
+  document.getElementById('stNodeLabel').value = n.label;
+  document.getElementById('stNodeComposite').value = n.compositeId || '';
+  const hasColor = !!(n.fill || n.stroke);
+  document.getElementById('stNodeColorEnable').checked = hasColor;
+  document.getElementById('stNodeColorRow').style.display = hasColor ? 'flex' : 'none';
+  document.getElementById('stNodeFill').value = n.fill || '#e8f4fb';
+  document.getElementById('stNodeStroke').value = n.stroke || '#16304f';
+  document.getElementById('stAddNode').textContent = '✓ 状態を更新';
+  document.getElementById('stNodeCancel').style.display = 'block';
+}
+function stResetNodeForm(){
+  document.getElementById('stNodeId').value='';
+  document.getElementById('stNodeLabel').value='';
+  document.getElementById('stNodeComposite').value='';
+  document.getElementById('stNodeColorEnable').checked=false;
+  document.getElementById('stNodeColorRow').style.display='none';
+  state.stateDiag.editNodeIdx = null;
+  document.getElementById('stAddNode').textContent = '＋ 状態を追加';
+  document.getElementById('stNodeCancel').style.display = 'none';
+}
+function stFillCompForm(c){
+  document.getElementById('stCompId').value = c.id;
+  document.getElementById('stCompLabel').value = c.label;
+  const hasColor = !!(c.fill || c.stroke);
+  document.getElementById('stCompColorEnable').checked = hasColor;
+  document.getElementById('stCompColorRow').style.display = hasColor ? 'flex' : 'none';
+  document.getElementById('stCompFill').value = c.fill || '#e8f4fb';
+  document.getElementById('stCompStroke').value = c.stroke || '#16304f';
+  document.getElementById('stAddComp').textContent = '✓ サブステートを更新';
+  document.getElementById('stCompCancel').style.display = 'block';
+}
+function stResetCompForm(){
+  document.getElementById('stCompId').value='';
+  document.getElementById('stCompLabel').value='';
+  document.getElementById('stCompColorEnable').checked=false;
+  document.getElementById('stCompColorRow').style.display='none';
+  state.stateDiag.editCompositeIdx = null;
+  document.getElementById('stAddComp').textContent = '＋ サブステートを追加';
+  document.getElementById('stCompCancel').style.display = 'none';
+}
+function stFillEdgeForm(e){
+  document.getElementById('stEdgeFrom').value = e.from;
+  document.getElementById('stEdgeTo').value = e.to;
+  document.getElementById('stEdgeLabel').value = e.label || '';
+  document.getElementById('stAddEdge').textContent = '✓ 遷移を更新';
+  document.getElementById('stEdgeCancel').style.display = 'block';
+}
+function stResetEdgeForm(){
+  document.getElementById('stEdgeLabel').value='';
+  state.stateDiag.editEdgeIdx = null;
+  document.getElementById('stAddEdge').textContent = '＋ 遷移を追加';
+  document.getElementById('stEdgeCancel').style.display = 'none';
+}
+
+function refreshStateLists(){
+  const compList = document.getElementById('stCompList');
+  const nodeList = document.getElementById('stNodeList');
+  const edgeList = document.getElementById('stEdgeList');
+  const nodeCompSel = document.getElementById('stNodeComposite');
+  const fromSel = document.getElementById('stEdgeFrom');
+  const toSel = document.getElementById('stEdgeTo');
+  if(!nodeList) return;
+
+  compList.innerHTML = state.stateDiag.composites.length ? '' : '<div class="empty-note">まだサブステートがありません</div>';
+  state.stateDiag.composites.forEach((c,i)=>{
+    const row = document.createElement('div');
+    row.className='item-row';
+    const swatch = c.fill ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${c.fill};border:1px solid ${c.stroke||'#999'};flex-shrink:0;"></span>` : '';
+    row.innerHTML = `${swatch}<span class="item-text">${c.id}: ${c.label}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+    row.querySelector('.edit-btn').addEventListener('click', ()=>{
+      state.stateDiag.editCompositeIdx = i;
+      stFillCompForm(state.stateDiag.composites[i]);
+    });
+    row.querySelector('.del-btn').addEventListener('click', ()=>{
+      const removedId = state.stateDiag.composites[i].id;
+      state.stateDiag.composites.splice(i,1);
+      state.stateDiag.nodes.forEach(n=>{ if(n.compositeId===removedId) n.compositeId = null; });
+      state.stateDiag.edges = state.stateDiag.edges.filter(e=>e.from!==removedId && e.to!==removedId);
+      if(state.stateDiag.editCompositeIdx===i) stResetCompForm();
+      refreshStateLists(); regenerateCode();
+    });
+    compList.appendChild(row);
+  });
+  makeSortable(compList, state.stateDiag.composites, ()=>{
+    stResetCompForm();
+    refreshStateLists(); regenerateCode();
+  });
+
+  const compOpts = state.stateDiag.composites.map(c=>`<option value="${c.id}">${c.id} (${c.label})</option>`).join('');
+  nodeCompSel.innerHTML = '<option value="">（なし）</option>' + compOpts;
+
+  nodeList.innerHTML = state.stateDiag.nodes.length ? '' : '<div class="empty-note">まだ状態がありません</div>';
+  state.stateDiag.nodes.forEach((n,i)=>{
+    const row = document.createElement('div');
+    row.className='item-row';
+    const swatch = n.fill ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${n.fill};border:1px solid ${n.stroke||'#999'};flex-shrink:0;"></span>` : '';
+    const comp = n.compositeId ? state.stateDiag.composites.find(c=>c.id===n.compositeId) : null;
+    const groupTag = comp ? `<span class="key-badge fk">${comp.label}</span>` : '';
+    row.innerHTML = `${swatch}${groupTag}<span class="item-text">${n.id}: ${n.label}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+    row.querySelector('.edit-btn').addEventListener('click', ()=>{
+      state.stateDiag.editNodeIdx = i;
+      stFillNodeForm(state.stateDiag.nodes[i]);
+    });
+    row.querySelector('.del-btn').addEventListener('click', ()=>{
+      const removedId = state.stateDiag.nodes[i].id;
+      state.stateDiag.nodes.splice(i,1);
+      state.stateDiag.edges = state.stateDiag.edges.filter(e=>e.from!==removedId && e.to!==removedId);
+      if(state.stateDiag.editNodeIdx===i) stResetNodeForm();
+      refreshStateLists(); regenerateCode();
+    });
+    nodeList.appendChild(row);
+  });
+  // 状態の並び順は宣言順としてMermaidのレイアウトに反映されるため、D&Dで入れ替えられるようにする
+  makeSortable(nodeList, state.stateDiag.nodes, ()=>{
+    stResetNodeForm();
+    refreshStateLists(); regenerateCode();
+  });
+
+  const nodeOpts = [STATE_START_END, ...state.stateDiag.nodes].map(n=>`<option value="${n.id}">${n.id}${n.label && n.label!==n.id ? ' ('+n.label+')' : ''}</option>`).join('');
+  const compOptsForEdge = state.stateDiag.composites.map(c=>`<option value="${c.id}">${c.id} (${c.label})</option>`).join('');
+  const edgeOpts = `<optgroup label="状態">${nodeOpts}</optgroup>` + (compOptsForEdge ? `<optgroup label="サブステート">${compOptsForEdge}</optgroup>` : '');
+  fromSel.innerHTML = edgeOpts; toSel.innerHTML = edgeOpts;
+
+  edgeList.innerHTML = state.stateDiag.edges.length ? '' : '<div class="empty-note">まだ遷移がありません</div>';
+  state.stateDiag.edges.forEach((e,i)=>{
+    const row = document.createElement('div');
+    row.className='item-row';
+    row.innerHTML = `<span class="item-text">${e.from} → ${e.to}${e.label?' ['+e.label+']':''}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+    row.querySelector('.edit-btn').addEventListener('click', ()=>{
+      state.stateDiag.editEdgeIdx = i;
+      stFillEdgeForm(state.stateDiag.edges[i]);
+    });
+    row.querySelector('.del-btn').addEventListener('click', ()=>{
+      state.stateDiag.edges.splice(i,1);
+      if(state.stateDiag.editEdgeIdx===i) stResetEdgeForm();
+      refreshStateLists(); regenerateCode();
+    });
+    edgeList.appendChild(row);
+  });
+  makeSortable(edgeList, state.stateDiag.edges, ()=>{
+    stResetEdgeForm();
+    refreshStateLists(); regenerateCode();
+  });
+}
+
 function switchDiagramType(type){
   state.diagramType = type;
   state.manualMode = false;
@@ -2226,6 +2647,7 @@ function switchDiagramType(type){
 
   const panel = document.getElementById('builderPanel');
   if(type==='sequence') renderSequenceBuilder(panel);
+  else if(type==='state') renderStateBuilder(panel);
   else renderFlowchartBuilder(panel);
   regenerateCode();
   updateImportStatus();
@@ -2254,13 +2676,17 @@ function buildStateSnapshot(){
     diagramType: state.diagramType,
     flowchart: state.flowchart,
     sequence: state.sequence,
+    stateDiag: state.stateDiag,
     nodeCounter: state.nodeCounter,
     subCounter: state.subCounter,
     partCounter: state.partCounter,
+    stCounter: state.stCounter,
+    compCounter: state.compCounter,
   }));
   // 編集中インデックスはリセットしてから保存する
   if(snap.flowchart){ snap.flowchart.editNodeIdx=null; snap.flowchart.editEdgeIdx=null; snap.flowchart.editSubIdx=null; }
   if(snap.sequence){ snap.sequence.editPartIdx=null; snap.sequence.editMsgIdx=null; snap.sequence.editNoteIdx=null; snap.sequence.editBlockIdx=null; snap.sequence.editDivIdx=null; }
+  if(snap.stateDiag){ snap.stateDiag.editNodeIdx=null; snap.stateDiag.editEdgeIdx=null; snap.stateDiag.editCompositeIdx=null; }
   return snap;
 }
 
@@ -2305,12 +2731,19 @@ function restoreSnapshot(snapshot){
     // 旧形式（actor選択機能追加前）は全員 participant 扱い
     (state.sequence.participants || []).forEach(p=>{ if(!p.kind) p.kind = 'participant'; });
   }
+  if(snapshot.stateDiag){
+    state.stateDiag = snapshot.stateDiag;
+    // 旧形式（サブステート機能追加前）のプロジェクトファイルとの後方互換
+    if(!Array.isArray(state.stateDiag.composites)) state.stateDiag.composites = [];
+  }
   state.nodeCounter = snapshot.nodeCounter || state.nodeCounter;
   state.subCounter = snapshot.subCounter || state.subCounter;
   state.partCounter = snapshot.partCounter || state.partCounter;
+  state.stCounter = snapshot.stCounter || state.stCounter;
+  state.compCounter = snapshot.compCounter || state.compCounter;
 
   // MGS(無印)のプロジェクトファイルは他の図種も含むが、本ツールが扱えるのはこの2種のみ
-  const type = (snapshot.diagramType === 'sequence') ? 'sequence' : 'flowchart';
+  const type = ['sequence','state'].includes(snapshot.diagramType) ? snapshot.diagramType : 'flowchart';
   document.getElementById('diagramType').value = type;
   state.diagramType = type;
   state.manualMode = false;
@@ -2319,6 +2752,7 @@ function restoreSnapshot(snapshot){
 
   const panel = document.getElementById('builderPanel');
   if(type==='sequence') renderSequenceBuilder(panel);
+  else if(type==='state') renderStateBuilder(panel);
   else renderFlowchartBuilder(panel);
   regenerateCode();
 }
@@ -2660,6 +3094,138 @@ function importSequence(lines, rep){
   return sq;
 }
 
+/* 状態遷移図。図形も矢印も1種類しかないぶん、他の2つより素直に読める。
+   ただし色だけは Mermaid に linkStyle 相当が無く、生成側も classDef と class の
+   2行に分けて出している。フローチャートでは classDef を一律で拒否しているが、
+   ここで同じことをすると自分が出力したコードを読み戻せないので、
+   「classDef で定義し、class で1つの状態に割り当てる」形だけを解釈する。 */
+const STATE_STAR = '[*]';
+
+function importStateDiagram(lines, rep){
+  const sd = emptyStateDiagState();
+  const byId = new Map();
+  const compOrder = [];
+  const compIds = new Set();
+  const aliasLabel = new Map();
+  const classDefs = new Map();
+  const classAssign = [];
+  const stack = [];
+  let headerSeen = false;
+
+  const ensureNode = (id)=>{
+    let n = byId.get(id);
+    if(!n){
+      n = { id, label:id, compositeId: stack.length ? stack[stack.length-1] : null, fill:null, stroke:null };
+      byId.set(id, n);
+      sd.nodes.push(n);
+    }else if(stack.length && !n.compositeId){
+      // 遷移だけで先に作られていた状態が、後からブロックの中で宣言された場合の補正
+      n.compositeId = stack[stack.length-1];
+    }
+    return n;
+  };
+
+  lines.forEach((raw, i)=>{
+    const lineNo = i + 1;
+    const line = raw.trim();
+    if(!line) return;
+    if(line.startsWith('%%')){
+      if(line.startsWith('%%{')) blockLine(rep, lineNo, line, 'ディレクティブ（%%{init:…}）はビルダーで保持できません');
+      else dropLine(rep, lineNo, line, 'コメント行');
+      return;
+    }
+    if(!headerSeen){
+      if(!/^stateDiagram(-v2)?$/i.test(line)){ blockLine(rep, lineNo, line, '先頭が stateDiagram の宣言ではありません'); return; }
+      headerSeen = true;
+      return;
+    }
+    if(line === '}'){
+      if(!stack.length){ blockLine(rep, lineNo, line, '対応する state ブロックがありません'); return; }
+      stack.pop();
+      return;
+    }
+    if(/^direction\b/i.test(line)){ blockLine(rep, lineNo, line, 'direction はビルダーで表現できません'); return; }
+    if(/^note\b/i.test(line)){ blockLine(rep, lineNo, line, 'note はビルダーで保持できません'); return; }
+    if(line === '--'){ blockLine(rep, lineNo, line, '並行処理の区切り（--）はビルダーで表現できません'); return; }
+    if(/<<(fork|join|choice)>>/i.test(line)){ blockLine(rep, lineNo, line, 'fork / join / choice はビルダーで表現できません'); return; }
+
+    // classDef と class は、色付けの組み合わせのときだけ受け入れる
+    const cd = /^classDef\s+(\S+)\s+(.+)$/.exec(line);
+    if(cd){
+      const props = parseStyleProps(cd[2], ['fill','stroke','stroke-width']);
+      if(!props){ blockLine(rep, lineNo, line, 'ビルダーが保持できるのは塗り（fill）と枠線（stroke）だけです'); return; }
+      classDefs.set(cd[1], props);
+      return;
+    }
+    const ca = /^class\s+(\S+)\s+(\S+)$/.exec(line);
+    if(ca){ classAssign.push({ lineNo, line, id:ca[1], cls:ca[2] }); return; }
+    if(/^class\b/.test(line)){ blockLine(rep, lineNo, line, 'class は「class 状態名 クラス名」の形だけ解釈できます'); return; }
+
+    // state ID {  … 複合ステートの始まり
+    const open = /^state\s+(\S+)\s*\{$/.exec(line);
+    if(open){
+      if(stack.length){ blockLine(rep, lineNo, line, '複合ステートの入れ子はビルダーで表現できません'); return; }
+      const id = open[1];
+      if(!IMPORT_ID_RE.test(id)){ blockLine(rep, lineNo, line, `状態のID「${id}」に使えない文字が含まれています`); return; }
+      if(!compIds.has(id)){ compIds.add(id); compOrder.push(id); }
+      stack.push(id);
+      return;
+    }
+    // state "表示名" as ID
+    const alias = /^state\s+"([^"]*)"\s+as\s+(\S+)$/.exec(line);
+    if(alias){
+      const id = alias[2];
+      if(!IMPORT_ID_RE.test(id)){ blockLine(rep, lineNo, line, `状態のID「${id}」に使えない文字が含まれています`); return; }
+      aliasLabel.set(id, alias[1]);
+      ensureNode(id);
+      return;
+    }
+    if(/^state\b/.test(line)){ blockLine(rep, lineNo, line, 'state の書き方を解釈できません'); return; }
+
+    // 遷移: A --> B / A --> B : ラベル
+    const tr = /^(\S+)\s*-->\s*(\S+?)\s*(?::\s*([\s\S]*))?$/.exec(line);
+    if(tr){
+      const [, from, to, label] = tr;
+      for(const t of [from, to]){
+        if(t === STATE_STAR) continue;
+        if(!IMPORT_ID_RE.test(t)){ blockLine(rep, lineNo, line, `状態のID「${t}」に使えない文字が含まれています`); return; }
+      }
+      if(from !== STATE_STAR) ensureNode(from);
+      if(to !== STATE_STAR) ensureNode(to);
+      sd.edges.push({ from, to, label:(label || '').trim() });
+      return;
+    }
+    // ブロックの中に素のIDだけ書かれている（メンバー宣言）
+    if(IMPORT_ID_RE.test(line)){ ensureNode(line); return; }
+    blockLine(rep, lineNo, line, '解釈できない行です');
+  });
+
+  if(stack.length) blockLine(rep, lines.length, '', '} で閉じられていない state ブロックがあります');
+  if(!headerSeen) blockLine(rep, 1, '', 'stateDiagram の宣言が見つかりません');
+
+  // ブロックを持つIDは状態ではなくサブステート。宣言の並び順で作り直す
+  compOrder.forEach(id=>{
+    sd.composites.push({ id, label: aliasLabel.has(id) ? aliasLabel.get(id) : id, fill:null, stroke:null });
+  });
+  sd.nodes = sd.nodes.filter(n=>{
+    if(compIds.has(n.id)){ byId.delete(n.id); return false; }
+    if(aliasLabel.has(n.id)) n.label = aliasLabel.get(n.id);
+    return true;
+  });
+
+  // 色の割り当て。fill:transparent は「塗りなし」を表すための出力なので戻す
+  const compById = new Map(sd.composites.map(c=>[c.id, c]));
+  classAssign.forEach(a=>{
+    const props = classDefs.get(a.cls);
+    if(!props){ blockLine(rep, a.lineNo, a.line, `classDef ${a.cls} が見つかりません`); return; }
+    const target = byId.get(a.id) || compById.get(a.id);
+    if(!target){ blockLine(rep, a.lineNo, a.line, `class の対象「${a.id}」が見つかりません`); return; }
+    if(props.fill) target.fill = (props.fill === 'transparent') ? null : props.fill;
+    if(props.stroke) target.stroke = props.stroke;
+  });
+  return sd;
+}
+
 /* 取り込みの入口。成功なら { ok:true, type, data }、失敗なら理由の一覧を rep に詰めて返す */
 function tryImportCode(rawCode){
   const rep = newImportReport();
@@ -2670,12 +3236,13 @@ function tryImportCode(rawCode){
     return { ok:false, rep };
   }
   const type = detectDiagramType(code);
-  if(type !== 'flowchart' && type !== 'sequence'){
-    blockLine(rep, 1, code.split('\n')[0], 'このツールが取り込めるのは flowchart / graph と sequenceDiagram だけです');
+  const importers = { flowchart:importFlowchart, sequence:importSequence, state:importStateDiagram };
+  if(!importers[type]){
+    blockLine(rep, 1, code.split('\n')[0], 'このツールが取り込めるのは flowchart / graph、sequenceDiagram、stateDiagram だけです');
     return { ok:false, rep };
   }
   const lines = code.split('\n');
-  const data = type === 'flowchart' ? importFlowchart(lines, rep) : importSequence(lines, rep);
+  const data = importers[type](lines, rep);
   if(rep.blocked.length) return { ok:false, rep, type };
   return { ok:true, type, data, rep };
 }
@@ -2694,6 +3261,10 @@ function applyImport(type, data){
     state.flowchart = data;
     state.nodeCounter = nextCounter(data.nodes.map(n=>n.id), 'N');
     state.subCounter = nextCounter(data.subgraphs.map(s=>s.id), 'SG');
+  }else if(type === 'state'){
+    state.stateDiag = data;
+    state.stCounter = nextCounter(data.nodes.map(n=>n.id), 'S');
+    state.compCounter = nextCounter(data.composites.map(c=>c.id), 'CS');
   }else{
     state.sequence = data;
     state.partCounter = nextCounter(data.participants.map(p=>p.id), 'P');
@@ -2718,6 +3289,7 @@ function detectDiagramType(code){
   const firstLine = (body.trim().split('\n')[0] || '').trim().toLowerCase();
   if(firstLine.startsWith('flowchart') || firstLine.startsWith('graph')) return 'flowchart';
   if(firstLine.startsWith('sequencediagram')) return 'sequence';
+  if(firstLine.startsWith('statediagram')) return 'state';
   return null;
 }
 
