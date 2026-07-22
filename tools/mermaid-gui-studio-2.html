@@ -1,0 +1,3135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mermaid GUI Studio 2</title>
+<link rel="icon" href="../assets/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../assets/favicon-16x16.png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<meta name="description" content="Mermaidのフローチャートとシーケンス図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
+<link rel="canonical" href="https://tossie85.site/tools/mermaid-gui-studio-2.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="tossie85 lab">
+<meta property="og:title" content="Mermaid GUI Studio 2">
+<meta property="og:description" content="Mermaidのフローチャートとシーケンス図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
+<meta property="og:url" content="https://tossie85.site/tools/mermaid-gui-studio-2.html">
+<meta property="og:image" content="https://tossie85.site/assets/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Mermaid GUI Studio 2">
+<meta name="twitter:description" content="Mermaidのフローチャートとシーケンス図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
+<meta name="twitter:image" content="https://tossie85.site/assets/og-default.png">
+<style>
+  :root{
+    --ink-900:#0A1830;
+    --ink-800:#10233F;
+    --ink-700:#16304F;
+    --ink-line:#2B4364;
+    --cyan:#4FD1E8;
+    --cyan-dim:#3AA8BC;
+    --amber:#F2B84B;
+    --paper:#F3F5F8;
+    --paper-line: rgba(79,209,232,0.14);
+    --text-ink:#16233A;
+    --text-soft:#5B6B84;
+    --danger:#E8637A;
+    --font-sans: "Segoe UI", "Yu Gothic UI", "Meiryo UI", "Hiragino Kaku Gothic ProN", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    --font-display: "Segoe UI Semibold", "Segoe UI", "Yu Gothic UI", "Meiryo UI", sans-serif;
+    --font-mono: Consolas, "Cascadia Mono", "SF Mono", "Yu Gothic UI", "Courier New", monospace;
+  }
+  *{box-sizing:border-box;}
+  /* .btn などが display を指定していると hidden 属性が効かなくなるので、明示的に打ち消す */
+  [hidden]{ display:none !important; }
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--ink-900);
+    color:var(--text-ink);
+    font-family:var(--font-sans);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  h1,h2,h3,.display{font-family:var(--font-display);}
+  ::selection{background:var(--cyan); color:var(--ink-900);}
+
+  /* ---------- TOP BAR ---------- */
+  header{
+    background:var(--ink-800);
+    border-bottom:1px solid var(--ink-line);
+    padding:10px 18px;
+    display:flex;
+    align-items:center;
+    gap:18px;
+    flex-shrink:0;
+    flex-wrap:wrap;
+    position:relative;
+  }
+  .brand{display:flex; align-items:center; gap:10px; margin-right:6px;}
+  .brand-mark{
+    width:30px; height:30px; border-radius:7px;
+    background:linear-gradient(135deg, var(--cyan), var(--cyan-dim));
+    position:relative;
+    flex-shrink:0;
+  }
+  .brand-mark::before, .brand-mark::after{
+    content:"";
+    position:absolute; background:var(--ink-900);
+  }
+  .brand-mark::before{ top:8px; left:5px; right:5px; height:2px; }
+  .brand-mark::after{ top:16px; left:5px; right:9px; height:2px; }
+  .brand-title{color:#fff; font-size:16px; font-weight:700; letter-spacing:0.2px;}
+  .brand-sub{color:var(--cyan); font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; font-weight:600;}
+
+  .field-group{display:flex; flex-direction:column; gap:3px;}
+  .field-group label{font-size:10px; color:#9AB0C9; text-transform:uppercase; letter-spacing:0.8px; font-weight:600;}
+  select, .btn, input[type=text]{
+    font-family:var(--font-sans);
+    font-size:13px;
+  }
+  select{
+    background:var(--ink-700);
+    color:#fff;
+    border:1px solid var(--ink-line);
+    border-radius:6px;
+    padding:6px 10px;
+    outline:none;
+    cursor:pointer;
+  }
+  .header-controls{
+    display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+    flex:1; min-width:0;
+  }
+  .header-toggle-bar{ display:none; }
+  .toolbar-spacer{flex:1;}
+  .btn{
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--ink-700);
+    color:#EAF2FA;
+    border:1px solid var(--ink-line);
+    border-radius:6px;
+    padding:7px 12px;
+    cursor:pointer;
+    transition:border-color .15s, color .15s, transform .05s;
+    white-space:nowrap;
+  }
+  .btn:hover{border-color:var(--cyan); color:var(--cyan);}
+  .btn:active{transform:translateY(1px);}
+  .btn-accent{
+    background:var(--amber);
+    border-color:var(--amber);
+    color:var(--ink-900);
+    font-weight:600;
+  }
+  .btn-accent:hover{ color:var(--ink-900); border-color:#fff; }
+  .btn-ghost{ background:transparent; }
+  .btn-sm{ padding:5px 9px; font-size:12px; border-radius:5px;}
+  .btn-danger{ color:var(--danger); }
+  .btn-danger:hover{ border-color:var(--danger); color:var(--danger); }
+  .btn-import{ border-color:var(--cyan-dim); color:var(--cyan); }
+
+  /* 取り込み結果（取り込めなかった行の一覧） */
+  .import-lead{ margin:0 0 12px; line-height:1.7; }
+  .import-issues{ margin:0; padding:0; list-style:none; }
+  .import-issues li{
+    border-left:3px solid var(--danger); padding:6px 0 6px 10px; margin-bottom:10px;
+  }
+  .import-issues li.drop{ border-left-color:var(--amber); }
+  .import-issues li[data-line]{ cursor:pointer; border-radius:0 5px 5px 0; }
+  .import-issues li[data-line]:hover{ background:#F5F8FC; }
+  .import-issues .import-line{
+    display:inline-block; min-width:64px; font-family:var(--font-mono);
+    font-size:11.5px; color:var(--text-soft);
+  }
+  .import-issues pre{
+    margin:5px 0 0; padding:6px 8px; border-radius:5px;
+    background:#F0F3F7; border:1px solid #DCE3EC;
+    font-family:var(--font-mono); font-size:11.5px; white-space:pre-wrap; word-break:break-all;
+  }
+
+  /* ---------- MAIN LAYOUT ---------- */
+  .main{
+    flex:1;
+    display:flex;
+    min-height:0;
+  }
+  .panel-builder{
+    width:360px;
+    flex-shrink:0;
+    background:var(--paper);
+    border-right:1px solid var(--ink-line);
+    overflow-y:auto;
+    padding:18px;
+  }
+  .panel-preview{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+  }
+  .panel-resizer{ display:none; }
+  .canvas-wrap{
+    flex:1;
+    overflow:auto;
+    position:relative;
+    background-color:#FBFCFE;
+    background-image:
+      linear-gradient(var(--paper-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--paper-line) 1px, transparent 1px);
+    background-size:26px 26px;
+    padding:30px;
+  }
+  .canvas-corner{
+    position:absolute; width:14px; height:14px;
+    border-color:var(--cyan-dim); opacity:.55;
+  }
+  .canvas-corner.tl{top:10px; left:10px; border-top:2px solid; border-left:2px solid;}
+  .canvas-corner.tr{top:10px; right:10px; border-top:2px solid; border-right:2px solid;}
+  .canvas-corner.bl{bottom:10px; left:10px; border-bottom:2px solid; border-left:2px solid;}
+  .canvas-corner.br{bottom:10px; right:10px; border-bottom:2px solid; border-right:2px solid;}
+
+  #preview{
+    display:flex; align-items:flex-start; justify-content:center;
+    min-height:100%;
+  }
+  #preview svg{ max-width:100%; height:auto; }
+  .preview-placeholder{
+    margin:auto; text-align:center; color:var(--text-soft); font-size:13.5px; max-width:320px;
+  }
+  .preview-error{
+    margin:20px auto; max-width:520px;
+    background:#FFF1F3; border:1px solid var(--danger); color:#9B2C43;
+    padding:12px 14px; border-radius:8px; font-size:12.5px; white-space:pre-wrap;
+    font-family:var(--font-mono);
+  }
+
+  /* ---------- CODE DRAWER ---------- */
+  .code-drawer{
+    flex-shrink:0;
+    background:var(--ink-900);
+    border-top:1px solid var(--ink-line);
+    display:flex;
+    flex-direction:column;
+    height:230px;
+    transition:height .18s ease;
+  }
+  .code-drawer.collapsed{ height:38px; }
+  .code-drawer-bar{
+    display:flex; align-items:center; gap:10px;
+    padding:7px 14px;
+    flex-shrink:0;
+    border-bottom:1px solid var(--ink-line);
+  }
+  .code-drawer-bar .title{color:#EAF2FA; font-size:12.5px; font-weight:600; letter-spacing:.3px;}
+  .toggle-edit{
+    display:flex; align-items:center; gap:6px;
+    color:#9AB0C9; font-size:11.5px; cursor:pointer; user-select:none;
+  }
+  .toggle-edit input{ accent-color:var(--cyan); }
+  /* 手編集中のコードが取り込めるかどうかの表示 */
+  .import-status{ font-size:11.5px; color:#9AB0C9; }
+  .import-status.ready{ color:var(--cyan); }
+  .import-status.ng{ color:#F2A0B0; }
+  /* 行番号の桁と本文は、字送り・行送り・上下パディングを完全に揃える必要がある。
+     ずれると番号と行が食い違い、エラー箇所の案内がかえって害になる。
+     揃えるべき値は --code-* にまとめ、両方から参照する。 */
+  .code-editor{
+    flex:1; display:flex; min-height:0;
+    --code-font-size:12.5px;
+    --code-line-height:1.6;
+    --code-pad-y:12px;
+  }
+  #codeGutter{
+    flex-shrink:0;
+    padding:var(--code-pad-y) 8px var(--code-pad-y) 12px;
+    margin:0;
+    background:var(--ink-900);
+    border-right:1px solid var(--ink-line);
+    color:#4E6A88;
+    font-family:var(--font-mono);
+    font-size:var(--code-font-size);
+    line-height:var(--code-line-height);
+    text-align:right;
+    user-select:none;
+    overflow:hidden;
+    white-space:pre;
+  }
+  #codeGutter b{ display:block; font-weight:normal; }
+  /* 取り込めなかった行。番号だけで示し、本文には触れない */
+  #codeGutter b.err{ color:#FF8DA1; font-weight:600; }
+  #codeArea{
+    flex:1;
+    resize:none;
+    border:none;
+    outline:none;
+    background:var(--ink-900);
+    color:#D7E8F5;
+    font-family:var(--font-mono);
+    font-size:var(--code-font-size);
+    line-height:var(--code-line-height);
+    padding:var(--code-pad-y) 16px;
+    /* 折り返すと1行が2行に見えて番号とずれるので、横スクロールさせる */
+    white-space:pre;
+    overflow-x:auto;
+  }
+  #codeArea[readonly]{ color:#8FA6C2; }
+  #codeArea::selection{ background:#264866; }
+
+  /* ---------- BUILDER PANEL CONTENTS ---------- */
+  .panel-builder h2{
+    font-size:14px; margin:0 0 2px; color:var(--ink-800);
+  }
+  .panel-builder .hint{
+    font-size:11.5px; color:var(--text-soft); margin:0 0 16px; line-height:1.6;
+  }
+  .card{
+    background:#fff;
+    border:1px dashed #B9C7DA;
+    border-radius:9px;
+    padding:12px 13px;
+    margin-bottom:14px;
+  }
+  .card-title{
+    font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.7px;
+    color:var(--cyan-dim); margin-bottom:10px; display:flex; align-items:center; gap:6px;
+  }
+  .card-title::before{
+    content:""; width:6px; height:6px; border-radius:50%; background:var(--amber);
+  }
+  .row{ display:flex; gap:8px; margin-bottom:8px; }
+  .row > *{ flex:1; min-width:0; }
+  .field label{
+    display:block; font-size:10px; color:var(--text-soft); margin-bottom:3px;
+    text-transform:uppercase; letter-spacing:.5px; font-weight:600;
+  }
+  .field input[type=text], .field select{
+    width:100%;
+    padding:6px 8px;
+    border:1px solid #CBD6E4;
+    border-radius:5px;
+    background:#FAFBFD;
+    color:var(--text-ink);
+    font-size:12.5px;
+  }
+  .field input[type=text]:focus, .field select:focus{ outline:2px solid var(--cyan); outline-offset:0; border-color:var(--cyan); }
+  .field textarea, .field input[type=date]{
+    width:100%;
+    padding:6px 8px;
+    border:1px solid #CBD6E4;
+    border-radius:5px;
+    background:#FAFBFD;
+    color:var(--text-ink);
+    font-size:12px;
+    font-family:var(--font-mono);
+    resize:vertical;
+  }
+  .field textarea:focus, .field input[type=date]:focus{ outline:2px solid var(--cyan); outline-offset:0; border-color:var(--cyan); }
+
+  .field input[type=color]{
+    width:100%;
+    height:30px;
+    padding:2px;
+    border:1px solid #CBD6E4;
+    border-radius:5px;
+    background:#FAFBFD;
+    cursor:pointer;
+  }
+  .color-presets{ display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
+  .color-swatch{
+    width:18px; height:18px;
+    border-radius:4px;
+    border:1px solid #CBD6E4;
+    padding:0;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .color-swatch:hover{ border-color:var(--cyan); transform:scale(1.12); }
+
+  .add-row-btn{
+    width:100%; margin-top:2px;
+    background:var(--ink-800); color:#fff; border:none; border-radius:6px;
+    padding:8px; font-size:12.5px; font-weight:600; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .add-row-btn:hover{ background:var(--ink-700); }
+
+  .item-list{ margin-top:10px; display:flex; flex-direction:column; gap:6px; }
+  .item-row{
+    display:flex; align-items:center; gap:8px;
+    background:#FAFBFD; border:1px solid #E1E8F0; border-radius:6px;
+    padding:6px 8px; font-size:12px;
+  }
+  .item-row .item-text{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:var(--font-mono); font-size:11.5px; color:var(--ink-800);}
+  .item-row button{
+    background:none; border:none; color:var(--danger); cursor:pointer; font-size:15px;
+    line-height:1; padding:2px 5px; border-radius:4px;
+  }
+  .item-row button:hover{ background:#FFE7EB; }
+  .item-row button.edit-btn{ color:var(--cyan-dim); font-size:13px; }
+  .item-row button.edit-btn:hover{ background:#E3F6FA; }
+  .item-row.dragging{ opacity:0.4; }
+  .item-row.drag-over{ box-shadow: inset 0 2px 0 var(--cyan-dim); }
+  /* ブロック構造が崩れる移動を差し戻したときの合図 */
+  .item-row.drop-rejected{ animation: dropReject 0.6s ease-out; }
+  @keyframes dropReject{
+    0%, 60%{ background:#FDE7EA; box-shadow: inset 0 0 0 2px var(--danger); }
+    100%{ background:transparent; box-shadow:none; }
+  }
+  .item-row .drag-handle{ cursor:grab; color:var(--text-soft); font-size:13px; line-height:1; user-select:none; flex:none; }
+  .item-row .drag-handle:active{ cursor:grabbing; }
+  /* プレビューの図形をクリックして選ばれた行 */
+  .item-row.picked{ background:#FFF6DF; box-shadow: inset 0 0 0 2px var(--amber); }
+  /* プレビュー上でビルダーに対応する図形は、クリックできることを示す（PREVIEW_PICK_SELECTORと対） */
+  #preview g.node, #preview g.cluster, #preview rect.node-bkg,
+  #preview rect.actor, #preview g.actor-man{ cursor:pointer; }
+  /* 矢印・線（pickEdgeTargetsForTypeと対）。線は細いので、塗り無しでも線上を拾えるようにする */
+  #preview path.flowchart-link,
+  #preview line[class*="messageLine"], #preview text.messageText{ cursor:pointer; pointer-events:stroke; }
+  #preview text.messageText{ pointer-events:auto; }
+  /* シーケンス図のノート。文字はクリックを素通りさせ、下の枠(rect.note)へ判定を一本化する */
+  #preview rect.note{ cursor:pointer; }
+  #preview text.noteText{ pointer-events:none; }
+  /* シーケンス図の loop / alt ブロック（SEQ_BLOCK_SELECTORと対） */
+  #preview line.loopLine{ cursor:pointer; pointer-events:stroke; }
+  #preview polygon.labelBox, #preview text.labelText, #preview text.loopText{ cursor:pointer; }
+  .key-badge{
+    display:inline-block; font-size:9.5px; font-weight:700; letter-spacing:0.3px;
+    padding:1px 5px; border-radius:3px; margin-right:4px; flex-shrink:0;
+  }
+  .key-badge.pk{ background:#FBE7C6; color:#8A5A00; }
+  .key-badge.fk{ background:#D9E8FB; color:#1D4E89; }
+  .attr-active-note{
+    background:#EEF4FB; border:1px solid #D3E1EF; border-radius:8px;
+    padding:8px 10px; font-size:11.5px; color:#3C516C; margin-bottom:10px;
+  }
+  .empty-note{ font-size:11.5px; color:#A9B6C6; text-align:center; padding:8px 0; }
+
+  .template-note{
+    background:#EEF4FB; border:1px solid #D3E1EF; border-radius:8px;
+    padding:12px; font-size:12px; color:#3C516C; line-height:1.7;
+  }
+  .template-note code{
+    background:#fff; border:1px solid #D3E1EF; border-radius:4px; padding:1px 5px;
+    font-family:var(--font-mono); font-size:11px;
+  }
+  .chip-row{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+  .chip{
+    background:#fff; border:1px solid #CBD6E4; border-radius:14px;
+    padding:5px 11px; font-size:11.5px; cursor:pointer; color:var(--ink-800);
+  }
+  .chip:hover{ border-color:var(--cyan); color:var(--cyan-dim); }
+
+  ::-webkit-scrollbar{ width:10px; height:10px; }
+  ::-webkit-scrollbar-thumb{ background:#C7D2DF; border-radius:6px; }
+  .panel-builder::-webkit-scrollbar-thumb{ background:#CBD6E4; }
+
+  /* ---------- CREDITS MODAL ---------- */
+  .modal-overlay{
+    display:none;
+    position:fixed; inset:0; background:rgba(10,24,48,0.55);
+    z-index:1000;
+    align-items:center; justify-content:center;
+  }
+  .modal-overlay.open{ display:flex; }
+  .modal-box{
+    background:#fff; border-radius:10px; width:min(520px, 90vw);
+    max-height:80vh; display:flex; flex-direction:column;
+    box-shadow:0 20px 60px rgba(0,0,0,0.35);
+  }
+  .modal-header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 18px; border-bottom:1px solid #E1E8F0;
+    font-weight:700; font-size:14px; color:var(--ink-800);
+    flex-shrink:0;
+  }
+  .modal-close{
+    background:none; border:none; font-size:18px; cursor:pointer; color:var(--text-soft);
+    padding:2px 8px; border-radius:5px;
+  }
+  .modal-close:hover{ background:#F0F3F7; color:var(--ink-800); }
+  .modal-body{ padding:16px 18px; overflow-y:auto; font-size:12.5px; color:var(--text-ink); line-height:1.7; }
+  .modal-body h3{ font-size:12.5px; color:var(--ink-800); margin:16px 0 6px; }
+  .modal-body h3:first-child{ margin-top:0; }
+  .credit-item{
+    background:#F7F9FB; border:1px solid #E1E8F0; border-radius:8px; padding:10px 12px;
+  }
+  .credit-name{ font-weight:700; color:var(--ink-800); font-size:12.5px; }
+  .credit-version{ font-weight:400; color:var(--text-soft); font-size:11px; }
+  .credit-detail{ margin-top:4px; font-size:11.5px; color:var(--text-soft); }
+  .credit-link{ font-family:var(--font-mono); color:var(--cyan-dim); }
+  .credit-license{ margin-top:8px; }
+  .credit-license summary{ cursor:pointer; font-size:11px; color:var(--cyan-dim); }
+  .credit-license pre{
+    margin-top:6px; padding:10px; background:#fff; border:1px solid #E1E8F0; border-radius:6px;
+    font-family:var(--font-mono); font-size:10px; white-space:pre-wrap; color:var(--text-soft);
+    max-height:220px; overflow-y:auto;
+  }
+
+  /* ---------- RESPONSIVE（PCの狭いウィンドウ〜小型ノートPC向け。スマホの最適化は対象外） ---------- */
+  @media (max-width:1100px){
+    .panel-builder{
+      width:min(320px, 34vw);
+      padding:16px;
+    }
+    header{ padding:8px 14px; gap:12px; }
+    .btn{ padding:6px 9px; }
+  }
+
+  @media (max-width:760px){
+    body{ overflow:auto; }
+    .main{ flex-direction:column; min-height:0; }
+    .panel-builder{
+      width:100%;
+      max-height:42vh;
+      border-right:none;
+      border-bottom:none;
+      flex-shrink:0;
+    }
+    .panel-preview{ min-height:320px; }
+    .code-drawer{ height:180px; }
+    /* 図が縦長でもスクロールなしで全体が見えるよう、高さ方向にも収まるよう縮小する */
+    #preview svg{ max-height:32vh; width:auto; }
+
+    /* ビルダー/プレビューの境界をドラッグで上下できるハンドル */
+    .panel-resizer{
+      display:flex; align-items:center; justify-content:center;
+      height:16px; flex-shrink:0;
+      background:var(--paper);
+      border-top:1px solid var(--ink-line); border-bottom:1px solid var(--ink-line);
+      cursor:row-resize; touch-action:none;
+    }
+    .panel-resizer::before{
+      content:""; width:36px; height:4px; border-radius:2px; background:#CBD6E4;
+    }
+    .panel-resizer:hover::before, .panel-resizer.dragging::before{ background:var(--cyan-dim); }
+
+    /* ツールバー（種類・テーマ・保存系ボタン）を折りたたみ可能にして作業領域を確保する */
+    .header-controls{ flex-basis:100%; order:2; }
+    .header-controls.collapsed{ display:none; }
+    .header-toggle-bar{
+      display:block;
+      position:absolute; left:50%; bottom:-11px; transform:translateX(-50%);
+      width:34px; z-index:5;
+      background:var(--cyan-dim); color:#EAF2FA;
+      border:1px solid var(--cyan); border-radius:8px;
+      padding:2px 0; font-size:13px; line-height:1.3; text-align:center; cursor:pointer;
+      box-shadow:0 1px 4px rgba(10,24,48,0.35);
+    }
+    .header-toggle-bar:hover{ filter:brightness(1.15); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-mark"></div>
+    <div>
+      <div class="brand-title">Mermaid GUI Studio 2</div>
+      <div class="brand-sub">Flowchart &amp; Sequence / with Import</div>
+    </div>
+  </div>
+
+  <div class="header-controls" id="headerControls">
+    <div class="field-group">
+      <label for="diagramType">図の種類</label>
+      <select id="diagramType">
+        <option value="flowchart">フローチャート</option>
+        <option value="sequence">シーケンス図</option>
+      </select>
+    </div>
+
+    <div class="field-group">
+      <label for="themeSelect">テーマ</label>
+      <select id="themeSelect">
+        <option value="default">Default</option>
+        <option value="neutral">Neutral</option>
+        <option value="dark">Dark</option>
+        <option value="forest">Forest</option>
+      </select>
+    </div>
+
+    <button class="btn btn-sm" id="btnLoadSample">📋 サンプルを読み込む</button>
+    <button class="btn btn-sm btn-danger" id="btnClear">🗑️ クリア</button>
+
+    <div class="toolbar-spacer"></div>
+
+    <input type="file" id="fileInput" accept=".md,.mmd,.mermaid,.txt,.markdown" aria-label="ファイルを開く" tabindex="-1" style="display:none;">
+    <button class="btn btn-sm" id="btnOpenFile">📂 ファイルを開く</button>
+    <button class="btn btn-sm btn-import" id="btnImport" title="下のコード欄のMermaidコードをGUIへ取り込みます">⬇️ コードをGUIに取り込む</button>
+    <button class="btn btn-sm" id="btnCopyCode">コードをコピー</button>
+    <button class="btn btn-sm" id="btnCopyMd">Markdownとしてコピー</button>
+    <button class="btn btn-sm" id="btnDownloadMd">.md 保存</button>
+    <button class="btn btn-sm" id="btnDownloadSvg">.svg 保存</button>
+    <button class="btn btn-sm btn-accent" id="btnDownloadHtml">.html 保存</button>
+    <button class="btn btn-sm" id="btnDownloadProject">🗂️ プロジェクト保存</button>
+    <button class="btn btn-sm btn-ghost" id="btnHelp" title="保存・読み込み機能の説明">❓</button>
+    <button class="btn btn-sm btn-ghost" id="btnCredits" title="このツールについて / ライブラリのクレジット">ℹ️</button>
+  </div>
+
+  <button class="header-toggle-bar" id="btnToggleHeader" aria-expanded="true" aria-controls="headerControls" aria-label="ツールバーの表示切り替え">△</button>
+</header>
+
+<div class="modal-overlay" id="helpOverlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span>保存・読み込み機能について</span>
+      <button class="modal-close" id="btnCloseHelp">×</button>
+    </div>
+    <div class="modal-body">
+      <h3>保存（エクスポート）</h3>
+      <div class="credit-item">
+        <div class="credit-name">コードをコピー</div>
+        <div class="credit-detail">現在のMermaidコードをそのままクリップボードにコピーします。</div>
+      </div>
+      <div class="credit-item" style="margin-top:8px;">
+        <div class="credit-name">Markdownとしてコピー</div>
+        <div class="credit-detail"><code>```mermaid</code> で囲んだ形でコピーします。GitHubやNotion、Wikiなど、Mermaid対応のMarkdownにそのまま貼り付けられます。</div>
+      </div>
+      <div class="credit-item" style="margin-top:8px;">
+        <div class="credit-name">.md 保存</div>
+        <div class="credit-detail">「Markdownとしてコピー」と同じ内容をファイルとしてダウンロードします。共有や他ツールへの受け渡しに向いています（GUIの構造データは含みません）。</div>
+      </div>
+      <div class="credit-item" style="margin-top:8px;">
+        <div class="credit-name">.svg 保存</div>
+        <div class="credit-detail">現在プレビュー表示されている図を、画像（SVGファイル）として保存します。資料やスライドへの貼り付け用です。</div>
+      </div>
+      <div class="credit-item" style="margin-top:8px;">
+        <div class="credit-name">.html 保存</div>
+        <div class="credit-detail">この図単体を、ブラウザでそのまま開ける単独HTMLファイルとして保存します。Mermaid.js本体を埋め込んでいるため、インターネット接続がない環境でも表示できます。</div>
+      </div>
+      <div class="credit-item" style="margin-top:8px;">
+        <div class="credit-name">🗂️ プロジェクト保存</div>
+        <div class="credit-detail">
+          ノード・エッジ・色などGUIの全データをJSON化し、改ざん検知用のハッシュ値（SHA-256）と一緒に <code>.md</code> ファイルへ埋め込んで保存します。<br>
+          <strong>このツールで再度開くと、GUIの編集状態を完全に復元できます。</strong>通常のMarkdownとしても開けるよう、```mermaidブロックも一緒に出力されます。
+        </div>
+      </div>
+
+      <h3>読み込み（インポート）</h3>
+      <div class="credit-item">
+        <div class="credit-name">⬇️ コードをGUIに取り込む</div>
+        <div class="credit-detail">
+          下のコード欄にあるMermaidコードを解析し、<strong>GUIのフォームに載せ直します</strong>。他所で書いたコードやAIに生成させたコードを貼り付けて、続きをGUIで編集できます。
+        </div>
+      </div>
+      <div class="credit-item" style="margin-top:8px;">
+        <div class="credit-name">📂 ファイルを開く</div>
+        <div class="credit-detail">
+          選択したファイルの内容に応じて、自動的に次のいずれかの動作になります。
+          <ol style="margin:8px 0 0 18px; padding:0;">
+            <li>「🗂️ プロジェクト保存」で書き出したファイル → 埋め込まれたハッシュ値を検証し、一致すればGUIの編集状態を完全復元</li>
+            <li>ハッシュが一致しない（手編集・改ざんの可能性）→ 安全のためコードのみを読み込み、警告を表示</li>
+            <li>通常の <code>.md</code>（```mermaidブロックを自動検出）や <code>.mmd</code> などの生コードファイル → 上の「GUIに取り込む」と同じ処理を試みます</li>
+          </ol>
+        </div>
+      </div>
+
+      <h3>取り込みは「全部か、ゼロか」です</h3>
+      <p style="margin-top:0;">
+        ビルダーで表現できない記述が<strong>1つでも</strong>あれば、取り込み自体を中止し、何行目の何が原因かを一覧で表示します。その場合はコードのみの読み込み（「コードを直接編集する」がONの状態）になります。
+      </p>
+      <p>
+        中途半端に取り込むと、解釈できなかった記述が<strong>次にGUIを編集した瞬間、コード再生成で黙って消えます</strong>。それは利用者から見れば「ツールが図を壊した」ことに他ならないため、読めないものは読まない方針にしています。
+      </p>
+      <p>取り込めない代表的な記述は次のとおりです。</p>
+      <ul style="margin:6px 0 0 18px; padding:0; line-height:1.9;">
+        <li><code>classDef</code> / <code>class</code> / <code>:::</code>（クラス定義）、<code>click</code>、<code>%%{init:…}%%</code>、フロントマター（<code>---</code>）</li>
+        <li><code>A &amp; B --&gt; C</code> のまとめ書き、<code>subgraph</code> の入れ子、subgraphごとの <code>direction</code></li>
+        <li>ビルダーに無い図形（台形など）、ハイフンを含むID</li>
+        <li>シーケンス図の <code>autonumber</code> / <code>activate</code> / <code>box</code> / <code>rect</code> / <code>A-&gt;&gt;+B</code> の活性化指定</li>
+      </ul>
+      <p class="hint" style="margin-top:12px;">
+        逆に、<code>A --&gt; B --&gt; C</code> の連鎖、<code>A -- ラベル --&gt; B</code> の書き方、<code>---&gt;</code> のような長さ違いの矢印、<code>graph</code> 始まりの旧表記は、意味が同じなので正規の形に直して取り込みます。コメント行（<code>%%</code>）は保持できないため、取り込む前に確認を出します。
+      </p>
+      <p class="hint">取り込みは<strong>一方向</strong>です。取り込んだ後はGUI側が正となり、コードはGUIから再生成されます。</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="importOverlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span id="importTitle">GUIに取り込めませんでした</span>
+      <button class="modal-close" id="btnCloseImport">×</button>
+    </div>
+    <div class="modal-body" id="importBody"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="creditsOverlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span>このツールについて</span>
+      <button class="modal-close" id="btnCloseCredits">×</button>
+    </div>
+    <div class="modal-body">
+      <h3>Mermaid GUI Studio 2</h3>
+      <p>Mermaidのフローチャートとシーケンス図をGUIで組み立てられるツールです。既存のMermaidコードをGUIへ取り込む機能を備えています。ブラウザ単体で動作し、外部サーバーへの通信は行いません。</p>
+
+      <h3>使用ライブラリ</h3>
+      <div class="credit-item">
+        <div class="credit-name">Mermaid.js <span class="credit-version">v11.16.0</span></div>
+        <div class="credit-detail">Copyright (c) 2014-2022 Knut Sveidqvist<br>License: MIT License<br>Repository: <span class="credit-link">github.com/mermaid-js/mermaid</span></div>
+        <details class="credit-license">
+          <summary>MITライセンス全文を表示</summary>
+          <pre>The MIT License (MIT)
+
+Copyright (c) 2014 - 2022 Knut Sveidqvist
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</pre>
+        </details>
+      </div>
+
+      <h3>フォント</h3>
+      <p class="hint" style="margin:0;">OS標準搭載のフォント（Segoe UI / Yu Gothic UI / Meiryo など）を使用しており、外部のフォント配信サービスへの通信は行っていません。</p>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="panel-builder" id="builderPanel">
+    <!-- JS が種類ごとに描画 -->
+  </div>
+
+  <div class="panel-resizer" id="panelResizer" role="separator" aria-orientation="horizontal" aria-label="ビルダーとプレビューの境界（ドラッグで高さを調整）"></div>
+
+  <div class="panel-preview">
+    <div class="canvas-wrap">
+      <div class="canvas-corner tl"></div>
+      <div class="canvas-corner tr"></div>
+      <div class="canvas-corner bl"></div>
+      <div class="canvas-corner br"></div>
+      <div id="preview"><div class="preview-placeholder">ここにプレビューが表示されます</div></div>
+    </div>
+
+    <div class="code-drawer" id="codeDrawer">
+      <div class="code-drawer-bar">
+        <span class="title">Mermaid コード</span>
+        <label class="toggle-edit">
+          <input type="checkbox" id="editToggle">
+          コードを直接編集する
+        </label>
+        <!-- 手編集中のコードがGUIに載せられるかを、その場で知らせる -->
+        <span class="import-status" id="importStatus" hidden></span>
+        <button class="btn btn-sm btn-import" id="btnImportInline" hidden>⬇️ GUIに取り込む</button>
+        <button class="btn btn-sm btn-ghost" id="btnImportWhy" hidden>理由を見る</button>
+        <div class="toolbar-spacer"></div>
+        <button class="btn btn-ghost btn-sm" id="btnCollapse">折りたたむ ▾</button>
+      </div>
+      <div class="code-editor">
+        <div id="codeGutter" aria-hidden="true"></div>
+        <textarea id="codeArea" aria-label="Mermaid コード" readonly spellcheck="false" wrap="off"></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mermaid.js はサイト共通の assets/vendor/mermaid.min.js を参照する
+     （v11.16.0, MIT License, https://github.com/mermaid-js/mermaid）。
+     このツール単体では動作せず、サイト本体と一緒にデプロイする必要があります。 -->
+<script src="../assets/vendor/mermaid.min.js"></script>
+
+<script>
+mermaid.initialize({ startOnLoad:false, theme:'default', securityLevel:'loose', fontFamily:'Inter, sans-serif' });
+
+/* ============ 状態管理 ============ */
+/* ============ 各図の「空の状態」ファクトリ（初期化・クリアで共用） ============ */
+function emptyFlowchartState(){ return { direction:'TD', nodes:[], edges:[], subgraphs:[], editNodeIdx:null, editEdgeIdx:null, editSubIdx:null }; }
+function emptySequenceState(){ return { participants:[], messages:[], editPartIdx:null, editMsgIdx:null, editNoteIdx:null, editBlockIdx:null, editDivIdx:null }; }
+
+const state = {
+  diagramType: 'flowchart',
+  theme: 'default',
+  manualMode: false,
+  code: '',
+  flowchart: emptyFlowchartState(),
+  sequence: emptySequenceState(),
+  nodeCounter: 1,
+  edgeCounter: 1,
+  subCounter: 1,
+  partCounter: 1,
+  msgCounter: 1,
+};
+
+/* ============ サンプルデータ（「サンプルを読み込む」ボタン用） ============ */
+function sampleFlowchartState(){
+  // サブグループ・ノード色・エッジ色をひと通り使った「注文処理」のフロー例
+  return Object.assign(emptyFlowchartState(), {
+    subgraphs: [
+      { id:'FE', label:'フロントエンド', fill:'#E3F2FD', stroke:'#1565C0' },
+      { id:'BE', label:'バックエンド', fill:'#E8F5E9', stroke:'#2E7D32' },
+    ],
+    nodes: [
+      { id:'UI', label:'UI画面', shape:'rect', subgraphId:'FE', fill:'#90CAF9', stroke:'#1565C0' },
+      { id:'Validate', label:'入力チェック', shape:'rhombus', subgraphId:'FE', fill:'#FFE082', stroke:'#F9A825' },
+      { id:'API', label:'API', shape:'rect', subgraphId:'BE', fill:'#A5D6A7', stroke:'#2E7D32' },
+      { id:'DB', label:'データベース', shape:'cyl', subgraphId:'BE', fill:'#CE93D8', stroke:'#6A1B9A' },
+    ],
+    edges: [
+      { from:'UI', to:'Validate', arrow:'-->', label:'', color:null },
+      { from:'Validate', to:'API', arrow:'-->', label:'OK', color:'#2E7D32' },
+      { from:'Validate', to:'UI', arrow:'-.->', label:'NG', color:'#E53935' },
+      { from:'API', to:'DB', arrow:'-->', label:'', color:null },
+      { from:'FE', to:'BE', arrow:'==>', label:'', color:'#9C27B0' },
+    ],
+  });
+}
+function sampleSequenceState(){
+  // ログイン処理の一連のやり取りを4者間で表現
+  return Object.assign(emptySequenceState(), {
+    participants: [
+      { id:'User', label:'ユーザー', kind:'actor' },
+      { id:'Frontend', label:'フロントエンド', kind:'participant' },
+      { id:'API', label:'API', kind:'participant' },
+      { id:'DB', label:'データベース', kind:'participant' },
+    ],
+    messages: [
+      { from:'User', to:'Frontend', arrow:'->>', text:'ログイン開始' },
+      { from:'Frontend', to:'API', arrow:'->>', text:'認証リクエスト' },
+      { kind:'note', pos:'over', from:'API', to:'DB', text:'認証処理' },
+      { kind:'block-start', blockType:'loop', label:'接続成功まで(最大3回)' },
+      { from:'API', to:'DB', arrow:'->>', text:'ユーザー照会' },
+      { from:'DB', to:'API', arrow:'-->>', text:'ユーザー情報' },
+      { kind:'block-end' },
+      { kind:'block-start', blockType:'alt', label:'認証成功' },
+      { from:'API', to:'Frontend', arrow:'-->>', text:'認証成功' },
+      { from:'Frontend', to:'User', arrow:'-->>', text:'ダッシュボード表示' },
+      { kind:'block-div', keyword:'else', label:'認証失敗' },
+      { from:'API', to:'Frontend', arrow:'-->>', text:'エラー応答' },
+      { from:'Frontend', to:'User', arrow:'-->>', text:'エラー表示' },
+      { kind:'block-end' },
+    ],
+  });
+}
+// 図の種類ごとに「stateのキー」「空/サンプルの作り方」「比較対象フィールド」「読み込み後のカウンタ初期値」をまとめる
+const DIAGRAM_META = {
+  flowchart: { stateKey:'flowchart', empty:emptyFlowchartState, sample:sampleFlowchartState, contentFields:['direction','nodes','edges','subgraphs'], resetCounters(){ state.nodeCounter=1; state.subCounter=1; }, sampleCounters(){ state.nodeCounter=5; state.subCounter=3; } },
+  sequence:  { stateKey:'sequence',  empty:emptySequenceState,  sample:sampleSequenceState,  contentFields:['participants','messages'], resetCounters(){ state.partCounter=1; }, sampleCounters(){ state.partCounter=5; } },
+};
+
+function extractDiagramContent(obj, fields){
+  const o = {};
+  fields.forEach(k=> o[k] = obj[k]);
+  return o;
+}
+function diagramContentEquals(type, compareObj){
+  const meta = DIAGRAM_META[type];
+  const current = extractDiagramContent(state[meta.stateKey], meta.contentFields);
+  const target = extractDiagramContent(compareObj, meta.contentFields);
+  return JSON.stringify(current) === JSON.stringify(target);
+}
+function isDiagramEmpty(type){ return diagramContentEquals(type, DIAGRAM_META[type].empty()); }
+function isDiagramSample(type){ return diagramContentEquals(type, DIAGRAM_META[type].sample()); }
+
+function loadSampleDiagram(type){
+  const meta = DIAGRAM_META[type];
+  state[meta.stateKey] = meta.sample();
+  meta.sampleCounters();
+  switchDiagramType(type);
+}
+function clearDiagram(type){
+  const meta = DIAGRAM_META[type];
+  const needsConfirm = !isDiagramEmpty(type) && !isDiagramSample(type);
+  if(needsConfirm && !confirm('現在の内容をクリアします。よろしいですか？（この操作は元に戻せません）')) return;
+  state[meta.stateKey] = meta.empty();
+  meta.resetCounters();
+  switchDiagramType(type);
+}
+
+// base: 代表色（塗り・枠線・線どれでも使える汎用パレット）
+// fillDefault/strokeDefault/lineDefault: そのMermaidテーマが塗り/枠線/線に標準で使う既定色（実測値）
+const THEME_COLOR_PRESETS = {
+  // Default: 白背景向けの淡いパステル
+  default: {
+    base: ['#EF9A9A', '#FFCC80', '#FFE082', '#A5D6A7', '#80CBC4', '#90CAF9', '#9FA8DA', '#CE93D8', '#F48FB1', '#B0BEC5', '#E0E0E0'],
+    fillDefault: '#ECECFF', strokeDefault: '#9370DB', lineDefault: '#333333',
+  },
+  neutral: {
+    base: ['#EF9A9A', '#FFCC80', '#FFE082', '#A5D6A7', '#80CBC4', '#90CAF9', '#9FA8DA', '#CE93D8', '#F48FB1', '#B0BEC5', '#E0E0E0'],
+    fillDefault: '#EEEEEE', strokeDefault: '#999999', lineDefault: '#666666',
+  },
+  // Dark: 暗い背景でも埋もれない、少し濃いめのトーン
+  dark: {
+    base: ['#EF5350', '#FFA726', '#FDD835', '#66BB6A', '#26A69A', '#42A5F5', '#5C6BC0', '#AB47BC', '#EC407A', '#78909C', '#CFD8DC'],
+    fillDefault: '#1F2020', strokeDefault: '#CCCCCC', lineDefault: '#D3D3D3',
+  },
+  // Forest: 緑・アース系に寄せたパステル
+  forest: {
+    base: ['#C8E6C9', '#DCEDC8', '#FFF9C4', '#B2DFDB', '#B3E5FC', '#C5CAE9', '#D1C4E9', '#F8BBD0', '#FFCCBC', '#CFD8DC', '#E0E0E0'],
+    fillDefault: '#CDE498', strokeDefault: '#13540C', lineDefault: '#000000',
+  },
+};
+function colorPresetsHtml(targetId, kind){
+  const k = kind || 'fill';
+  const theme = THEME_COLOR_PRESETS[state.theme] || THEME_COLOR_PRESETS.default;
+  const palette = theme.base.concat([theme[k + 'Default']]);
+  return `<div class="color-presets" data-target="${targetId}" data-kind="${k}">` +
+    palette.map(c=>`<button type="button" class="color-swatch" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('') +
+    `</div>`;
+}
+function refreshAllColorPresets(){
+  document.querySelectorAll('.color-presets').forEach(el=>{
+    el.outerHTML = colorPresetsHtml(el.dataset.target, el.dataset.kind);
+  });
+}
+
+const SHAPES = [
+  { v:'rect', label:'四角形', wrap:l=>`[${quoteLabel(l)}]` },
+  { v:'round', label:'角丸', wrap:l=>`(${quoteLabel(l)})` },
+  { v:'stadium', label:'スタジアム', wrap:l=>`([${quoteLabel(l)}])` },
+  { v:'sub', label:'サブルーチン', wrap:l=>`[[${quoteLabel(l)}]]` },
+  { v:'cyl', label:'円柱(DB)', wrap:l=>`[(${quoteLabel(l)})]` },
+  { v:'circle', label:'円', wrap:l=>`((${quoteLabel(l)}))` },
+  { v:'rhombus', label:'ひし形(分岐)', wrap:l=>`{${quoteLabel(l)}}` },
+  { v:'hex', label:'六角形', wrap:l=>`{{${quoteLabel(l)}}}` },
+  { v:'para', label:'平行四辺形', wrap:l=>`[/${l}/]` },
+];
+const ARROWS_FLOW = [
+  { v:'-->', label:'実線 矢印 →' },
+  { v:'---', label:'実線 矢印なし' },
+  { v:'-.->', label:'点線 矢印 →' },
+  { v:'==>', label:'太線 矢印 →' },
+  { v:'--o', label:'実線 丸終端' },
+  { v:'--x', label:'実線 ×終端' },
+];
+// シーケンス図の参加者の描き方（participant は四角、actor は人型アイコン）
+const SEQ_PARTICIPANT_KINDS = [
+  { v:'participant', label:'participant（四角）' },
+  { v:'actor', label:'actor（人型）' },
+];
+const ARROWS_SEQ = [
+  { v:'->>', label:'実線 矢印' },
+  { v:'-->>', label:'点線 矢印' },
+  { v:'->', label:'実線 線のみ' },
+  { v:'-->', label:'点線 線のみ' },
+  { v:'-x', label:'実線 ×終端(失敗)' },
+];
+// シーケンス図の制御ブロック（loop/alt など）
+const SEQ_BLOCKS = [
+  { v:'loop', label:'loop（繰り返し）' },
+  { v:'alt', label:'alt（条件分岐）' },
+  { v:'opt', label:'opt（任意）' },
+  { v:'par', label:'par（並行処理）' },
+  { v:'critical', label:'critical（重要処理）' },
+  { v:'break', label:'break（中断）' },
+];
+// ブロックの区切り（else/and など）
+const SEQ_DIVIDERS = [
+  { v:'else', label:'else（alt用）' },
+  { v:'and', label:'and（par用）' },
+  { v:'option', label:'option（critical用）' },
+];
+// 区切りキーワードと対応するブロック種別（else→alt など）
+const DIV_BLOCK_TYPE = { else:'alt', and:'par', option:'critical' };
+/* Mermaidにクオートの仕組みが無く、記号がそのまま区切り文字として解釈されてしまう箇所がある。
+   該当する文字だけ全角に置き換えて、図が壊れないようにする。
+   ・シーケンス図のメッセージ/ノート … ; が文の区切りになる
+   ・ガントチャートのタスク名        … : 以降が日付などの指定として解釈される */
+function safeSequenceText(s){ return String(s == null ? '' : s).replace(/;/g, '；'); }
+
+function quoteLabel(s){
+  return '"' + String(s == null ? '' : s).replace(/"/g, '”') + '"';
+}
+
+/* IDが図の中で重複していないか確かめる。重複していたら理由を伝えて false を返す。
+   oldId には編集中の項目の元IDを渡す（自分自身との衝突は重複としない）。 */
+function checkDuplicateId(id, takenIds, oldId){
+  if(takenIds.some(x => x === id && x !== oldId)){
+    alert(`ID「${id}」はすでに使われています。\n図の中でIDが重複しないように、別のIDを指定してください。`);
+    return false;
+  }
+  return true;
+}
+
+function sanitizeMermaidId(raw, prefix){
+  let id = raw.replace(/[^A-Za-z0-9_一-龠ぁ-んァ-ヶ]/g,'_');
+  // Mermaidの識別子は先頭を数字にできないため、数字始まりの場合は接頭辞を付与する
+  if(/^[0-9]/.test(id)){
+    id = prefix + id;
+  }
+  return id;
+}
+/* ============ コード生成 ============ */
+function genFlowchartCode(){
+  const { direction, nodes, edges, subgraphs } = state.flowchart;
+  const lines = [`flowchart ${direction}`];
+
+  function nodeLine(n){
+    const shape = SHAPES.find(s=>s.v===n.shape) || SHAPES[0];
+    return `${n.id}${shape.wrap(n.label)}`;
+  }
+
+  const membersBySubgraph = new Map();
+  const topNodes = [];
+  nodes.forEach(n=>{
+    if(n.subgraphId){
+      if(!membersBySubgraph.has(n.subgraphId)) membersBySubgraph.set(n.subgraphId, []);
+      membersBySubgraph.get(n.subgraphId).push(n);
+    }else{
+      topNodes.push(n);
+    }
+  });
+
+  subgraphs.forEach(sg=>{
+    lines.push(`    subgraph ${sg.id}[${quoteLabel(sg.label)}]`);
+    const members = membersBySubgraph.get(sg.id) || [];
+    members.forEach(n=> lines.push(`        ${nodeLine(n)}`));
+    lines.push(`    end`);
+  });
+
+  topNodes.forEach(n=> lines.push(`    ${nodeLine(n)}`));
+
+  edges.forEach(e=>{
+    const labelPart = e.label ? `|${quoteLabel(e.label)}|` : '';
+    lines.push(`    ${e.from} ${e.arrow}${labelPart} ${e.to}`);
+  });
+  const styleLines = [];
+  nodes.forEach(n=>{
+    if(n.fill || n.stroke){
+      const parts = [];
+      if(n.fill) parts.push(`fill:${n.fill}`);
+      if(n.stroke) parts.push(`stroke:${n.stroke},stroke-width:2px`);
+      styleLines.push(`    style ${n.id} ${parts.join(',')}`);
+    }
+  });
+  subgraphs.forEach(sg=>{
+    if(sg.fill || sg.stroke){
+      const parts = [];
+      if(sg.fill) parts.push(`fill:${sg.fill}`);
+      if(sg.stroke) parts.push(`stroke:${sg.stroke},stroke-width:2px`);
+      styleLines.push(`    style ${sg.id} ${parts.join(',')}`);
+    }
+  });
+  edges.forEach((e,i)=>{
+    if(e.color){
+      styleLines.push(`    linkStyle ${i} stroke:${e.color},stroke-width:2px`);
+    }
+  });
+  if(styleLines.length){ lines.push(...styleLines); }
+  if(nodes.length===0 && edges.length===0){
+    lines.push('    %% 左側の「ノードを追加」からブロックを組み立ててください');
+  }
+  return lines.join('\n');
+}
+
+/* 中身が空のブロックは、Mermaidが座標をNaNにしたSVGを吐いてコンソールエラーになる。
+   （メッセージかノートが1つでも入っていれば問題ない）
+   組み立て途中では必ず通る状態なので、空のうちはブロック自体を出力しない。
+   戻り値は「出力を省くメッセージの添字」の集合。 */
+function emptySequenceBlockIndexes(messages){
+  const skip = new Set();
+  const stack = [];
+  messages.forEach((m, i)=>{
+    if(m.kind === 'block-start'){
+      stack.push({ start:i, divs:[], filled:false });
+    }else if(m.kind === 'block-div'){
+      if(stack.length) stack[stack.length-1].divs.push(i);
+    }else if(m.kind === 'block-end'){
+      const b = stack.pop();
+      if(!b) return;
+      if(b.filled){
+        // 中身があるブロックは、それを囲む外側のブロックも「中身あり」にする
+        if(stack.length) stack[stack.length-1].filled = true;
+      }else{
+        skip.add(b.start); skip.add(i);
+        b.divs.forEach(d=>skip.add(d));
+      }
+    }else{
+      // メッセージ・ノートは中身として数える
+      stack.forEach(b=>{ b.filled = true; });
+    }
+  });
+  // end が足りず閉じられていないブロックも、そのままでは描けないので出力しない
+  stack.forEach(b=>{ if(!b.filled){ skip.add(b.start); b.divs.forEach(d=>skip.add(d)); } });
+  return skip;
+}
+
+function genSequenceCode(){
+  const { participants, messages } = state.sequence;
+  const lines = ['sequenceDiagram'];
+  participants.forEach(p=>{
+    lines.push(`    ${p.kind === 'actor' ? 'actor' : 'participant'} ${p.id} as ${p.label}`);
+  });
+  const skip = emptySequenceBlockIndexes(messages);
+  let depth = 0;
+  const pad = (d)=> '    '.repeat((d===undefined?depth:d) + 1);
+  messages.forEach((m, i)=>{
+    if(skip.has(i)) return;
+    if(m.kind === 'block-start'){
+      lines.push(`${pad()}${m.blockType}${m.label ? ' ' + m.label : ''}`);
+      depth++;
+    }else if(m.kind === 'block-div'){
+      lines.push(`${pad(Math.max(0, depth-1))}${m.keyword}${m.label ? ' ' + m.label : ''}`);
+    }else if(m.kind === 'block-end'){
+      depth = Math.max(0, depth-1);
+      lines.push(`${pad()}end`);
+    }else if(m.kind === 'note'){
+      const target = (m.pos === 'over' && m.to && m.to !== m.from) ? `${m.from},${m.to}` : m.from;
+      lines.push(`${pad()}Note ${m.pos} ${target}: ${m.text}`);
+    }else{
+      lines.push(`${pad()}${m.from}${m.arrow}${m.to}: ${m.text}`);
+    }
+  });
+  if(participants.length===0 && messages.length===0){
+    lines.push('    %% 左側から参加者とメッセージを追加してください');
+  }
+  return lines.join('\n');
+}
+
+function regenerateCode(){
+  if(state.manualMode) return;
+  if(state.diagramType==='flowchart') state.code = genFlowchartCode();
+  else if(state.diagramType==='sequence') state.code = genSequenceCode();
+  document.getElementById('codeArea').value = state.code;
+  refreshGutter();
+  renderPreview();
+}
+
+/* ============ プレビュー描画 ============ */
+let renderSeq = 0;
+async function renderPreview(){
+  const code = document.getElementById('codeArea').value.trim();
+  const target = document.getElementById('preview');
+  if(!code){
+    target.innerHTML = '<div class="preview-placeholder">ここにプレビューが表示されます</div>';
+    return;
+  }
+  const id = 'mmd-render-' + (++renderSeq);
+  try{
+    mermaid.initialize({ startOnLoad:false, theme:state.theme, securityLevel:'loose', fontFamily:'Inter, sans-serif' });
+    const { svg } = await mermaid.render(id, code);
+    target.innerHTML = svg;
+    addEdgeHitAreas();
+  }catch(err){
+    target.innerHTML = `<div class="preview-error">構文エラー:\n${(err && err.message) ? err.message : err}</div>`;
+    const stray = document.getElementById(id);
+    if(stray) stray.remove();
+  }
+}
+
+let debounceTimer;
+function scheduleRender(){
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(renderPreview, 260);
+}
+
+/* ============ プレビュー→ビルダーの逆引き選択 ============ */
+/* Mermaidは各図形のid属性に元のMermaid IDを埋め込む（例: mmd-render-3-state-Pending-1）。
+   IDは sanitizeMermaidId でハイフンを含まない文字種に正規化済みなので、
+   「既知の接頭辞を外す」「末尾の連番 -N を1回だけ外す」で元IDへ一意に戻せる。
+   シーケンス図だけはid属性を持たず、rect.actor の name 属性がIDになっている。 */
+/* クリック対象にする図形。CSSのカーソル指定（#preview 配下）と対で管理する */
+const PREVIEW_PICK_SELECTOR = 'g.node, g.cluster, rect.node-bkg, rect.actor, g.actor-man';
+
+/* 接頭辞は図種ごとだけでなく、同じ図種の中でも種類ごとに異なる
+   （例: フローチャートのノードは flowchart、サブグラフは接頭辞なし）。 */
+function pickTargetsForType(type){
+  switch(type){
+    case 'flowchart': return [
+      { prefix:'flowchart', listId:'fcNodeList', list:()=>state.flowchart.nodes,     pick(i){ state.flowchart.editNodeIdx=i; fcFillNodeForm(state.flowchart.nodes[i]); } },
+      { prefix:'',          listId:'fcSubList',  list:()=>state.flowchart.subgraphs, pick(i){ state.flowchart.editSubIdx=i;  fcFillSubForm(state.flowchart.subgraphs[i]); } },
+    ];
+    case 'sequence': return [
+      { byName:true, listId:'sqPartList', list:()=>state.sequence.participants, pick(i){ state.sequence.editPartIdx=i; sqFillPartForm(state.sequence.participants[i]); } },
+    ];
+    default: return null;
+  }
+}
+
+/* 矢印・線（エッジ）側の対応表。
+   エッジのid末尾の数字は当てにならないが、描画順は配列順と一致することを確認済みなので、
+   描画順で対応づける。 */
+function pickEdgeTargetsForType(type){
+  switch(type){
+    case 'flowchart': return [
+      { sel:'path.flowchart-link', listId:'fcEdgeList', list:()=>state.flowchart.edges,
+        pick(i){ state.flowchart.editEdgeIdx=i; fcFillEdgeForm(state.flowchart.edges[i]); } },
+    ];
+    case 'sequence': {
+      // メッセージ一覧にはノートやブロックも混ざるので、矢印として描かれる要素だけを対応づける
+      const base = { listId:'sqMsgList', list:()=>state.sequence.messages,
+        filter:m=>!m.kind || m.kind==='message',
+        pick(i){ state.sequence.editMsgIdx=i; sqFillMsgForm(state.sequence.messages[i]); } };
+      // ノートは枠(rect.note)が1件につき1つ描かれる。文字はCSSでクリックを素通りさせている
+      const note = { sel:'rect.note', listId:'sqMsgList', list:()=>state.sequence.messages,
+        filter:m=>m.kind==='note',
+        pick(i){ state.sequence.editNoteIdx=i; sqFillNoteForm(state.sequence.messages[i]); } };
+      return [ { ...base, sel:'line[class*="messageLine"]' }, { ...base, sel:'text.messageText' }, note ];
+    }
+    default: return null;
+  }
+}
+
+/* クリックされたSVG要素から、その種類の接頭辞に沿って元のMermaid IDを取り出す */
+function mermaidIdFromEl(el, renderId, group){
+  if(group.byName) return el.getAttribute('name');
+  const head = group.prefix ? `${renderId}-${group.prefix}-` : `${renderId}-`;
+  if(!el.id || !el.id.startsWith(head)) return null;
+  return el.id.slice(head.length).replace(/-\d+$/, '');
+}
+
+/* クリックされたエッジ要素が、配列の何番目にあたるかを返す。特定できなければ -1。 */
+function edgeIndexFromEl(el, svg, conf){
+  const arr = conf.list();
+  const cohort = [...svg.querySelectorAll(conf.sel)];
+  const pos = cohort.indexOf(el);
+  if(pos < 0) return -1;
+  const idxs = arr.map((item,i)=>[item,i]).filter(([item])=>conf.filter ? conf.filter(item) : true).map(([,i])=>i);
+  // 描画数と対応づけ対象の数が食い違うときは、取り違えるより選択しない方が安全
+  if(cohort.length !== idxs.length) return -1;
+  return idxs[pos];
+}
+
+/* シーケンス図のブロック関連要素。CSSのカーソル指定と対で管理する */
+const SEQ_BLOCK_SELECTOR = 'line.loopLine, polygon.labelBox, text.labelText, text.loopText';
+
+/* シーケンス図の loop / alt などのブロックは、開始した順ではなく
+   end に到達した順に描画される（入れ子の場合は内側が先）。
+   スタックで対応を取ると、描画順のブロック一覧と各ブロックが持つ区切り(else)が求まる。 */
+function sequenceBlocksInDrawOrder(){
+  const stack = [], drawn = [];
+  state.sequence.messages.forEach((m,i)=>{
+    if(m.kind==='block-start') stack.push({ startIdx:i, divIdxs:[] });
+    else if(m.kind==='block-div'){ if(stack.length) stack[stack.length-1].divIdxs.push(i); }
+    else if(m.kind==='block-end'){ const b = stack.pop(); if(b) drawn.push(b); }
+  });
+  return drawn;
+}
+
+/* 枠線は「1ブロックにつき枠4本 → そのブロックの区切り線」の順に並ぶ。
+   その並びを再現して、線ごとの持ち主（messages上の位置）を返す。 */
+function sequenceLoopLineOwners(drawn){
+  const owners = [];
+  for(const b of drawn){
+    for(let k=0;k<4;k++) owners.push(b.startIdx);
+    for(const d of b.divIdxs) owners.push(d);
+  }
+  return owners;
+}
+
+/* クリックされたブロック関連要素が messages の何番目かを返す。特定できなければ -1。 */
+function sequenceBlockIndexFromEl(el, svg){
+  const drawn = sequenceBlocksInDrawOrder();
+  if(!drawn.length) return -1;
+  const lines = [...svg.querySelectorAll('line.loopLine')];
+  const owners = sequenceLoopLineOwners(drawn);
+  const linesUsable = lines.length === owners.length;
+
+  if(el.matches('line.loopLine')){
+    if(!linesUsable) return -1;
+    const pos = lines.indexOf(el);
+    return pos >= 0 ? owners[pos] : -1;
+  }
+  // loop / alt のタグ（枠と文字）はブロックと1対1
+  if(el.matches('polygon.labelBox') || el.matches('text.labelText')){
+    const cohort = [...svg.querySelectorAll(el.matches('polygon.labelBox') ? 'polygon.labelBox' : 'text.labelText')];
+    const pos = cohort.indexOf(el);
+    return (pos >= 0 && cohort.length === drawn.length) ? drawn[pos].startIdx : -1;
+  }
+  // ラベル文字列は折り返しで複数要素に分かれるため、直上の枠の上辺から持ち主を割り出す
+  if(el.matches('text.loopText')){
+    if(!linesUsable) return -1;
+    const y = el.getBBox().y;
+    let best = -1, bestDy = Infinity, i = 0;
+    for(const b of drawn){
+      const dy = y - Number(lines[i].getAttribute('y1'));
+      if(dy >= 0 && dy < bestDy){ bestDy = dy; best = b.startIdx; }
+      i += 4 + b.divIdxs.length;
+    }
+    return best;
+  }
+  return -1;
+}
+
+/* 矢印・線は線幅1px程度しかなく実際にはクリックしづらいので、
+   同じ形状で太い透明線を重ねて当たり判定だけを広げる。
+   見た目を変えないよう塗り・マーカーは持たせず、.svg保存時には取り除く。 */
+const PREVIEW_HIT_CLASS = 'mgs-hit-area';
+/* 複製した当たり判定を元の要素の隣に置くと、クラス図の関係線カラー（themeCSSのnth-of-type）が
+   数え間違いを起こす。同じ親の中に専用のレイヤー <g> を1枚作り、その中へまとめて入れる。
+   親が同じなので座標変換はそのまま通用し、兄弟の並びだけが崩れない。 */
+function hitLayerFor(parent){
+  let layer = parent.__mgsHitLayer;
+  if(!layer || layer.parentNode !== parent){
+    layer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    layer.setAttribute('class', PREVIEW_HIT_CLASS + ' mgs-hit-layer');
+    parent.appendChild(layer);
+    parent.__mgsHitLayer = layer;
+  }
+  return layer;
+}
+function addEdgeHitAreas(){
+  const svg = document.querySelector('#preview svg');
+  if(!svg) return;
+  const done = new Set();
+  const widen = (selector, width)=>{
+    for(const el of svg.querySelectorAll(selector)){
+      // テキストは元々クリックしやすいので対象外
+      if(done.has(el) || (el.tagName !== 'path' && el.tagName !== 'line')) continue;
+      done.add(el);
+      const hit = el.cloneNode(false);
+      hit.removeAttribute('id');
+      hit.removeAttribute('marker-end');
+      hit.removeAttribute('marker-start');
+      hit.setAttribute('class', PREVIEW_HIT_CLASS);
+      hit.setAttribute('style', `stroke:transparent;fill:none;stroke-width:${width}px;pointer-events:stroke;cursor:pointer;`);
+      hit.__hitFor = el;   // 再描画のたびに作り直すので参照を持たせるだけでよい
+      hitLayerFor(el.parentNode).appendChild(hit);
+    }
+  };
+  // ブロックの枠線は近くをメッセージ線が通るので、判定を控えめにし、
+  // かつメッセージ線より先に敷いて（＝下に置いて）取り合いを避ける
+  if(state.diagramType === 'sequence') widen('line.loopLine', 8);
+  for(const conf of pickEdgeTargetsForType(state.diagramType) || []) widen(conf.sel, 14);
+}
+
+/* 現在の図種で編集中のものをすべてキャンセルし、選択の強調も消す */
+function cancelBuilderEditing(type){
+  switch(type){
+    case 'flowchart': fcResetNodeForm(); fcResetSubForm(); fcResetEdgeForm(); break;
+    case 'sequence':  sqResetPartForm(); sqResetMsgForm(); sqResetNoteForm(); sqResetBlockForm(); break;
+  }
+  document.querySelectorAll('.item-row.picked').forEach(r=>r.classList.remove('picked'));
+}
+
+/* 対応するビルダー項目を編集状態にし、一覧の該当行を目立たせてスクロールする */
+function selectBuilderItem(group, idx){
+  group.pick(idx);
+  const listEl = document.getElementById(group.listId);
+  if(!listEl) return;
+  const row = [...listEl.querySelectorAll('.item-row')][idx];
+  if(!row) return;
+  row.classList.add('picked');
+  row.scrollIntoView({ block:'nearest', behavior:'smooth' });
+}
+
+/* プレビューは再描画のたびに innerHTML ごと差し替わるので、
+   個々の図形ではなく #preview にイベント委譲で1回だけ張る。
+   どこをクリックしても、まず編集中のものを必ずキャンセルしてから選び直す。 */
+document.getElementById('preview').addEventListener('click', ev=>{
+  const type = state.diagramType;
+  cancelBuilderEditing(type);
+
+  const svg = document.querySelector('#preview svg');
+  if(!svg) return;
+
+  // 当たり判定用の透明線が押された場合は本体に読み替える
+  const viaHit = ev.target.closest('.' + PREVIEW_HIT_CLASS);
+
+  // 図形（ノード・サブグループ・参加者など）。透明な当たり判定を敷いている図形もある
+  const nodeEl = viaHit
+    ? (viaHit.__hitFor && viaHit.__hitFor.matches(PREVIEW_PICK_SELECTOR) ? viaHit.__hitFor : null)
+    : ev.target.closest(PREVIEW_PICK_SELECTOR);
+  if(nodeEl){
+    for(const group of pickTargetsForType(type) || []){
+      const id = mermaidIdFromEl(nodeEl, svg.id, group);
+      if(!id) continue;
+      const idx = group.list().findIndex(item=>item.id===id);
+      if(idx >= 0){ selectBuilderItem(group, idx); return; }
+    }
+  }
+
+  // 矢印・線（エッジ）
+  for(const conf of pickEdgeTargetsForType(type) || []){
+    const edgeEl = viaHit ? (viaHit.__hitFor && viaHit.__hitFor.matches(conf.sel) ? viaHit.__hitFor : null)
+                          : ev.target.closest(conf.sel);
+    if(!edgeEl) continue;
+    const idx = edgeIndexFromEl(edgeEl, svg, conf);
+    if(idx >= 0){ selectBuilderItem(conf, idx); return; }
+  }
+
+  // シーケンス図の loop / alt などのブロックと、その区切り(else)
+  if(type === 'sequence'){
+    const blockEl = viaHit ? viaHit.__hitFor || null : ev.target.closest(SEQ_BLOCK_SELECTOR);
+    if(blockEl && blockEl.matches(SEQ_BLOCK_SELECTOR)){
+      const idx = sequenceBlockIndexFromEl(blockEl, svg);
+      const m = idx >= 0 ? state.sequence.messages[idx] : null;
+      if(m){
+        selectBuilderItem({
+          listId:'sqMsgList',
+          pick(i){
+            if(m.kind === 'block-div') state.sequence.editDivIdx = i;
+            else state.sequence.editBlockIdx = i;
+            sqFillBlockForm(state.sequence.messages[i]);
+          },
+        }, idx);
+        return;
+      }
+    }
+  }
+  // [*] の開始/終了など、ビルダー側に対応項目が無い図形はキャンセルのみで終わる
+});
+
+/* ============ ビルダーUI: フローチャート ============ */
+function renderFlowchartBuilder(container){
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <h2>フローチャート ビルダー</h2>
+    <p class="hint">ノードとエッジをフォームで追加すると、下部のコードとプレビューに自動反映されます。</p>
+
+    <div class="card">
+      <div class="card-title">方向</div>
+      <div class="field">
+        <select id="fcDirection" aria-label="方向">
+          <option value="TD">上から下 (TD)</option>
+          <option value="LR">左から右 (LR)</option>
+          <option value="BT">下から上 (BT)</option>
+          <option value="RL">右から左 (RL)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">サブグループ (subgraph) を追加</div>
+      <p class="hint" style="margin:0 0 10px;">複数のノードを枠で囲んでグループ化します。下の「ノードを追加」で所属先を選べます。</p>
+      <div class="row">
+        <div class="field"><label for="fcSubId">ID</label><input type="text" id="fcSubId"></div>
+        <div class="field"><label for="fcSubLabel">ラベル</label><input type="text" id="fcSubLabel" placeholder="例: フロントエンド"></div>
+      </div>
+      <label class="toggle-edit" style="margin-bottom:8px;"><input type="checkbox" id="fcSubColorEnable">色を指定する</label>
+      <div class="row" id="fcSubColorRow" style="display:none;">
+        <div class="field"><label for="fcSubFill">塗りつぶし</label><input type="color" id="fcSubFill" value="#e8f4fb">${colorPresetsHtml('fcSubFill', 'fill')}</div>
+        <div class="field"><label for="fcSubStroke">枠線</label><input type="color" id="fcSubStroke" value="#16304f">${colorPresetsHtml('fcSubStroke', 'stroke')}</div>
+      </div>
+      <button class="add-row-btn" id="fcAddSub">＋ サブグループを追加</button>
+      <button class="add-row-btn" id="fcSubCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <div class="item-list" id="fcSubList"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">ノードを追加</div>
+      <div class="row">
+        <div class="field"><label for="fcNodeId">ID</label><input type="text" id="fcNodeId"></div>
+        <div class="field"><label for="fcNodeShape">形状</label>
+          <select id="fcNodeShape">
+            ${SHAPES.map(s=>`<option value="${s.v}">${s.label}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:8px;"><label for="fcNodeSubgraph">所属グループ</label>
+        <select id="fcNodeSubgraph"><option value="">（なし）</option></select>
+      </div>
+      <div class="field" style="margin-bottom:8px;"><label for="fcNodeLabel">ラベル文字</label><input type="text" id="fcNodeLabel" placeholder="例: 開始"></div>
+      <label class="toggle-edit" style="margin-bottom:8px;"><input type="checkbox" id="fcNodeColorEnable">色を指定する</label>
+      <div class="row" id="fcNodeColorRow" style="display:none;">
+        <div class="field"><label for="fcNodeFill">塗りつぶし</label><input type="color" id="fcNodeFill" value="#e8f4fb">${colorPresetsHtml('fcNodeFill', 'fill')}</div>
+        <div class="field"><label for="fcNodeStroke">枠線</label><input type="color" id="fcNodeStroke" value="#16304f">${colorPresetsHtml('fcNodeStroke', 'stroke')}</div>
+      </div>
+      <button class="add-row-btn" id="fcAddNode">＋ ノードを追加</button>
+      <button class="add-row-btn" id="fcNodeCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <div class="item-list" id="fcNodeList"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">エッジ（矢印）を追加</div>
+      <div class="row">
+        <div class="field"><label for="fcEdgeFrom">from</label><select id="fcEdgeFrom"></select></div>
+        <div class="field"><label for="fcEdgeTo">to</label><select id="fcEdgeTo"></select></div>
+      </div>
+      <div class="row">
+        <div class="field"><label for="fcEdgeArrow">矢印種別</label>
+          <select id="fcEdgeArrow">${ARROWS_FLOW.map(a=>`<option value="${a.v}">${a.label}</option>`).join('')}</select>
+        </div>
+        <div class="field"><label for="fcEdgeLabel">ラベル（任意）</label><input type="text" id="fcEdgeLabel" placeholder="例: Yes"></div>
+      </div>
+      <label class="toggle-edit" style="margin-bottom:8px;"><input type="checkbox" id="fcEdgeColorEnable">線の色を指定する</label>
+      <div class="row" id="fcEdgeColorRow" style="display:none;">
+        <div class="field"><label for="fcEdgeColor">線の色</label><input type="color" id="fcEdgeColor" value="#4fd1e8">${colorPresetsHtml('fcEdgeColor', 'line')}</div>
+      </div>
+      <button class="add-row-btn" id="fcAddEdge">＋ エッジを追加</button>
+      <button class="add-row-btn" id="fcEdgeCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <div class="item-list" id="fcEdgeList"></div>
+    </div>
+  `;
+  container.innerHTML = '';
+  container.appendChild(wrap);
+
+  document.getElementById('fcDirection').value = state.flowchart.direction;
+  document.getElementById('fcDirection').addEventListener('change', e=>{
+    state.flowchart.direction = e.target.value; regenerateCode();
+  });
+
+  document.getElementById('fcNodeColorEnable').addEventListener('change', e=>{
+    document.getElementById('fcNodeColorRow').style.display = e.target.checked ? 'flex' : 'none';
+  });
+  document.getElementById('fcEdgeColorEnable').addEventListener('change', e=>{
+    document.getElementById('fcEdgeColorRow').style.display = e.target.checked ? 'flex' : 'none';
+  });
+  document.getElementById('fcSubColorEnable').addEventListener('change', e=>{
+    document.getElementById('fcSubColorRow').style.display = e.target.checked ? 'flex' : 'none';
+  });
+
+  document.getElementById('fcAddSub').addEventListener('click', ()=>{
+    const idInput = document.getElementById('fcSubId');
+    const labelInput = document.getElementById('fcSubLabel');
+    const colorOn = document.getElementById('fcSubColorEnable').checked;
+    const fill = colorOn ? document.getElementById('fcSubFill').value : null;
+    const stroke = colorOn ? document.getElementById('fcSubStroke').value : null;
+    let id = idInput.value.trim() || ('SG' + state.subCounter);
+    id = sanitizeMermaidId(id, 'SG');
+
+    // 同じ図の中でIDが衝突すると、参照が別の要素に付け替わってしまう
+    if(!checkDuplicateId(id, [...state.flowchart.nodes, ...state.flowchart.subgraphs].map(x=>x.id), state.flowchart.editSubIdx !== null ? state.flowchart.subgraphs[state.flowchart.editSubIdx].id : null)) return;
+    const label = labelInput.value.trim() || id;
+
+    if(state.flowchart.editSubIdx !== null){
+      const idx = state.flowchart.editSubIdx;
+      const oldId = state.flowchart.subgraphs[idx].id;
+      if(oldId !== id){
+        state.flowchart.nodes.forEach(n=>{ if(n.subgraphId===oldId) n.subgraphId = id; });
+        state.flowchart.edges.forEach(e=>{
+          if(e.from===oldId) e.from = id;
+          if(e.to===oldId) e.to = id;
+        });
+      }
+      state.flowchart.subgraphs[idx] = { id, label, fill, stroke };
+    }else{
+      state.flowchart.subgraphs.push({ id, label, fill, stroke });
+      state.subCounter++;
+    }
+    fcResetSubForm();
+    refreshFlowchartLists();
+    regenerateCode();
+  });
+  document.getElementById('fcSubCancel').addEventListener('click', fcResetSubForm);
+
+  document.getElementById('fcAddNode').addEventListener('click', ()=>{
+    const idInput = document.getElementById('fcNodeId');
+    const labelInput = document.getElementById('fcNodeLabel');
+    const shape = document.getElementById('fcNodeShape').value;
+    const subgraphId = document.getElementById('fcNodeSubgraph').value || null;
+    const colorOn = document.getElementById('fcNodeColorEnable').checked;
+    const fill = colorOn ? document.getElementById('fcNodeFill').value : null;
+    const stroke = colorOn ? document.getElementById('fcNodeStroke').value : null;
+    let id = idInput.value.trim() || ('N' + state.nodeCounter);
+    id = sanitizeMermaidId(id, 'N');
+
+    // 同じ図の中でIDが衝突すると、参照が別の要素に付け替わってしまう
+    if(!checkDuplicateId(id, [...state.flowchart.nodes, ...state.flowchart.subgraphs].map(x=>x.id), state.flowchart.editNodeIdx !== null ? state.flowchart.nodes[state.flowchart.editNodeIdx].id : null)) return;
+    const label = labelInput.value.trim() || id;
+
+    if(state.flowchart.editNodeIdx !== null){
+      const idx = state.flowchart.editNodeIdx;
+      const oldId = state.flowchart.nodes[idx].id;
+      if(oldId !== id){
+        state.flowchart.edges.forEach(e=>{
+          if(e.from===oldId) e.from = id;
+          if(e.to===oldId) e.to = id;
+        });
+      }
+      state.flowchart.nodes[idx] = { id, label, shape, subgraphId, fill, stroke };
+    }else{
+      state.flowchart.nodes.push({ id, label, shape, subgraphId, fill, stroke });
+      state.nodeCounter++;
+    }
+    fcResetNodeForm();
+    refreshFlowchartLists();
+    regenerateCode();
+  });
+  document.getElementById('fcNodeCancel').addEventListener('click', fcResetNodeForm);
+
+  document.getElementById('fcAddEdge').addEventListener('click', ()=>{
+    const from = document.getElementById('fcEdgeFrom').value;
+    const to = document.getElementById('fcEdgeTo').value;
+    const arrow = document.getElementById('fcEdgeArrow').value;
+    const label = document.getElementById('fcEdgeLabel').value.trim();
+    const colorOn = document.getElementById('fcEdgeColorEnable').checked;
+    const color = colorOn ? document.getElementById('fcEdgeColor').value : null;
+    if(!from || !to){ return; }
+
+    if(state.flowchart.editEdgeIdx !== null){
+      state.flowchart.edges[state.flowchart.editEdgeIdx] = { from, to, arrow, label, color };
+    }else{
+      state.flowchart.edges.push({ from, to, arrow, label, color });
+    }
+    fcResetEdgeForm();
+    refreshFlowchartLists();
+    regenerateCode();
+  });
+  document.getElementById('fcEdgeCancel').addEventListener('click', fcResetEdgeForm);
+
+  refreshFlowchartLists();
+}
+
+/* 編集ボタン押下時、対象フォームのカードを画面内へスクロールし最初の入力欄へフォーカスする。
+   各フォームは編集開始時に対応する「編集をキャンセル」ボタン(id 末尾 Cancel)を表示するので、
+   クリック前後で新たに表示された Cancel ボタンを検出し、そのカードへスクロールする。
+   これによりビルダー各種（ノード・メッセージ等すべて）で共通に動作する。 */
+function scrollToEditForm(cancelId){
+  const anchor = document.getElementById(cancelId);
+  if(!anchor) return;
+  const card = anchor.closest('.card') || anchor;
+  const field = card.querySelector('input:not([type=color]):not([type=checkbox]), select, textarea') || card;
+  field.scrollIntoView({ behavior:'smooth', block:'center' });
+  if(field.focus){ try{ field.focus({ preventScroll:true }); }catch(_){} }
+}
+(function setupEditScroll(){
+  function visibleCancels(){
+    const s = new Set();
+    const panel = document.getElementById('builderPanel');
+    if(!panel) return s;
+    panel.querySelectorAll('[id$="Cancel"]').forEach(el=>{
+      if(el.style.display !== 'none' && el.offsetParent !== null) s.add(el.id);
+    });
+    return s;
+  }
+  let before = new Set();
+  // キャプチャ段階：行のクリックハンドラ（フォームを埋める）より前に現状を記録
+  document.addEventListener('click', e=>{
+    if(e.target.closest && e.target.closest('.edit-btn')) before = visibleCancels();
+  }, true);
+  // バブル段階：フォームが埋まった後に、新たに表示された Cancel ボタン＝編集対象フォームへスクロール
+  document.addEventListener('click', e=>{
+    if(!(e.target.closest && e.target.closest('.edit-btn'))) return;
+    const after = visibleCancels();
+    let targetId = [...after].find(id=>!before.has(id));
+    if(!targetId && after.size === 1) targetId = [...after][0]; // 同一フォームの再編集など
+    if(targetId) scrollToEditForm(targetId);
+  }, false);
+})();
+
+function fcFillNodeForm(n){
+  document.getElementById('fcNodeId').value = n.id;
+  document.getElementById('fcNodeLabel').value = n.label;
+  document.getElementById('fcNodeShape').value = n.shape;
+  document.getElementById('fcNodeSubgraph').value = n.subgraphId || '';
+  const hasColor = !!(n.fill || n.stroke);
+  document.getElementById('fcNodeColorEnable').checked = hasColor;
+  document.getElementById('fcNodeColorRow').style.display = hasColor ? 'flex' : 'none';
+  document.getElementById('fcNodeFill').value = n.fill || '#e8f4fb';
+  document.getElementById('fcNodeStroke').value = n.stroke || '#16304f';
+  document.getElementById('fcAddNode').textContent = '✓ ノードを更新';
+  document.getElementById('fcNodeCancel').style.display = 'block';
+}
+function fcResetNodeForm(){
+  document.getElementById('fcNodeId').value='';
+  document.getElementById('fcNodeLabel').value='';
+  document.getElementById('fcNodeShape').value='rect';
+  document.getElementById('fcNodeSubgraph').value='';
+  document.getElementById('fcNodeColorEnable').checked=false;
+  document.getElementById('fcNodeColorRow').style.display='none';
+  state.flowchart.editNodeIdx = null;
+  document.getElementById('fcAddNode').textContent = '＋ ノードを追加';
+  document.getElementById('fcNodeCancel').style.display = 'none';
+}
+function fcFillSubForm(sg){
+  document.getElementById('fcSubId').value = sg.id;
+  document.getElementById('fcSubLabel').value = sg.label;
+  const hasColor = !!(sg.fill || sg.stroke);
+  document.getElementById('fcSubColorEnable').checked = hasColor;
+  document.getElementById('fcSubColorRow').style.display = hasColor ? 'flex' : 'none';
+  document.getElementById('fcSubFill').value = sg.fill || '#e8f4fb';
+  document.getElementById('fcSubStroke').value = sg.stroke || '#16304f';
+  document.getElementById('fcAddSub').textContent = '✓ サブグループを更新';
+  document.getElementById('fcSubCancel').style.display = 'block';
+}
+function fcResetSubForm(){
+  document.getElementById('fcSubId').value='';
+  document.getElementById('fcSubLabel').value='';
+  document.getElementById('fcSubColorEnable').checked=false;
+  document.getElementById('fcSubColorRow').style.display='none';
+  state.flowchart.editSubIdx = null;
+  document.getElementById('fcAddSub').textContent = '＋ サブグループを追加';
+  document.getElementById('fcSubCancel').style.display = 'none';
+}
+function fcFillEdgeForm(e){
+  document.getElementById('fcEdgeFrom').value = e.from;
+  document.getElementById('fcEdgeTo').value = e.to;
+  document.getElementById('fcEdgeArrow').value = e.arrow;
+  document.getElementById('fcEdgeLabel').value = e.label || '';
+  const hasColor = !!e.color;
+  document.getElementById('fcEdgeColorEnable').checked = hasColor;
+  document.getElementById('fcEdgeColorRow').style.display = hasColor ? 'flex' : 'none';
+  document.getElementById('fcEdgeColor').value = e.color || '#4fd1e8';
+  document.getElementById('fcAddEdge').textContent = '✓ エッジを更新';
+  document.getElementById('fcEdgeCancel').style.display = 'block';
+}
+function fcResetEdgeForm(){
+  document.getElementById('fcEdgeLabel').value='';
+  document.getElementById('fcEdgeColorEnable').checked=false;
+  document.getElementById('fcEdgeColorRow').style.display='none';
+  state.flowchart.editEdgeIdx = null;
+  document.getElementById('fcAddEdge').textContent = '＋ エッジを追加';
+  document.getElementById('fcEdgeCancel').style.display = 'none';
+}
+
+function refreshFlowchartLists(){
+  const nodeList = document.getElementById('fcNodeList');
+  const edgeList = document.getElementById('fcEdgeList');
+  const subList = document.getElementById('fcSubList');
+  const fromSel = document.getElementById('fcEdgeFrom');
+  const toSel = document.getElementById('fcEdgeTo');
+  const nodeSubSel = document.getElementById('fcNodeSubgraph');
+  if(!nodeList) return;
+
+  subList.innerHTML = state.flowchart.subgraphs.length ? '' : '<div class="empty-note">まだサブグループがありません</div>';
+  state.flowchart.subgraphs.forEach((sg,i)=>{
+    const row = document.createElement('div');
+    row.className='item-row';
+    const swatch = sg.fill ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${sg.fill};border:1px solid ${sg.stroke||'#999'};flex-shrink:0;"></span>` : '';
+    row.innerHTML = `${swatch}<span class="item-text">${sg.id}: ${sg.label}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+    row.querySelector('.edit-btn').addEventListener('click', ()=>{
+      state.flowchart.editSubIdx = i;
+      fcFillSubForm(state.flowchart.subgraphs[i]);
+    });
+    row.querySelector('.del-btn').addEventListener('click', ()=>{
+      const removedId = state.flowchart.subgraphs[i].id;
+      state.flowchart.subgraphs.splice(i,1);
+      state.flowchart.nodes.forEach(n=>{ if(n.subgraphId===removedId) n.subgraphId = null; });
+      state.flowchart.edges = state.flowchart.edges.filter(e=>e.from!==removedId && e.to!==removedId);
+      if(state.flowchart.editSubIdx===i) fcResetSubForm();
+      refreshFlowchartLists(); regenerateCode();
+    });
+    subList.appendChild(row);
+  });
+  makeSortable(subList, state.flowchart.subgraphs, ()=>{
+    fcResetSubForm();
+    refreshFlowchartLists(); regenerateCode();
+  });
+
+  const subOpts = state.flowchart.subgraphs.map(sg=>`<option value="${sg.id}">${sg.id} (${sg.label})</option>`).join('');
+  nodeSubSel.innerHTML = '<option value="">（なし）</option>' + subOpts;
+
+  nodeList.innerHTML = state.flowchart.nodes.length ? '' : '<div class="empty-note">まだノードがありません</div>';
+  state.flowchart.nodes.forEach((n,i)=>{
+    const row = document.createElement('div');
+    row.className='item-row';
+    const swatch = n.fill ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${n.fill};border:1px solid ${n.stroke||'#999'};flex-shrink:0;"></span>` : '';
+    const sg = n.subgraphId ? state.flowchart.subgraphs.find(s=>s.id===n.subgraphId) : null;
+    const groupTag = sg ? `<span class="key-badge fk">${sg.label}</span>` : '';
+    row.innerHTML = `${swatch}${groupTag}<span class="item-text">${n.id}: ${n.label}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+    row.querySelector('.edit-btn').addEventListener('click', ()=>{
+      state.flowchart.editNodeIdx = i;
+      fcFillNodeForm(state.flowchart.nodes[i]);
+    });
+    row.querySelector('.del-btn').addEventListener('click', ()=>{
+      const removedId = state.flowchart.nodes[i].id;
+      state.flowchart.nodes.splice(i,1);
+      state.flowchart.edges = state.flowchart.edges.filter(e=>e.from!==removedId && e.to!==removedId);
+      if(state.flowchart.editNodeIdx===i) fcResetNodeForm();
+      refreshFlowchartLists(); regenerateCode();
+    });
+    nodeList.appendChild(row);
+  });
+  makeSortable(nodeList, state.flowchart.nodes, ()=>{
+    fcResetNodeForm();
+    refreshFlowchartLists(); regenerateCode();
+  });
+
+  const nodeOpts = state.flowchart.nodes.map(n=>`<option value="${n.id}">${n.id} (${n.label})</option>`).join('');
+  const subOptsForEdge = state.flowchart.subgraphs.map(sg=>`<option value="${sg.id}">${sg.id} (${sg.label})</option>`).join('');
+  const edgeOpts = (nodeOpts ? `<optgroup label="ノード">${nodeOpts}</optgroup>` : '')
+    + (subOptsForEdge ? `<optgroup label="サブグループ">${subOptsForEdge}</optgroup>` : '');
+  fromSel.innerHTML = edgeOpts; toSel.innerHTML = edgeOpts;
+
+  edgeList.innerHTML = state.flowchart.edges.length ? '' : '<div class="empty-note">まだエッジがありません</div>';
+  state.flowchart.edges.forEach((e,i)=>{
+    const row = document.createElement('div');
+    row.className='item-row';
+    const swatch = e.color ? `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${e.color};flex-shrink:0;"></span>` : '';
+    row.innerHTML = `${swatch}<span class="item-text">${e.from} ${e.arrow} ${e.to}${e.label?' ['+e.label+']':''}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+    row.querySelector('.edit-btn').addEventListener('click', ()=>{
+      state.flowchart.editEdgeIdx = i;
+      fcFillEdgeForm(state.flowchart.edges[i]);
+    });
+    row.querySelector('.del-btn').addEventListener('click', ()=>{
+      state.flowchart.edges.splice(i,1);
+      if(state.flowchart.editEdgeIdx===i) fcResetEdgeForm();
+      refreshFlowchartLists(); regenerateCode();
+    });
+    edgeList.appendChild(row);
+  });
+  makeSortable(edgeList, state.flowchart.edges, ()=>{
+    fcResetEdgeForm();
+    refreshFlowchartLists(); regenerateCode();
+  });
+}
+
+/* ============ ビルダーUI: シーケンス図 ============ */
+function renderSequenceBuilder(container){
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <h2>シーケンス図 ビルダー</h2>
+    <p class="hint">参加者を追加してから、メッセージのやり取りを追加してください。</p>
+
+    <div class="card">
+      <div class="card-title">参加者を追加</div>
+      <div class="row">
+        <div class="field"><label for="sqPartId">ID</label><input type="text" id="sqPartId"></div>
+        <div class="field"><label for="sqPartLabel">表示名</label><input type="text" id="sqPartLabel" placeholder="例: ユーザー"></div>
+      </div>
+      <div class="field" style="margin-bottom:8px;"><label for="sqPartKind">表示の種類</label>
+        <select id="sqPartKind">${SEQ_PARTICIPANT_KINDS.map(k=>`<option value="${k.v}">${k.label}</option>`).join('')}</select>
+      </div>
+      <button class="add-row-btn" id="sqAddPart">＋ 参加者を追加</button>
+      <button class="add-row-btn" id="sqPartCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <div class="item-list" id="sqPartList"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">メッセージを追加</div>
+      <div class="row">
+        <div class="field"><label for="sqMsgFrom">from</label><select id="sqMsgFrom"></select></div>
+        <div class="field"><label for="sqMsgTo">to</label><select id="sqMsgTo"></select></div>
+      </div>
+      <div class="row">
+        <div class="field"><label for="sqMsgArrow">矢印種別</label>
+          <select id="sqMsgArrow">${ARROWS_SEQ.map(a=>`<option value="${a.v}">${a.label}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:8px;"><label for="sqMsgText">メッセージ内容</label><input type="text" id="sqMsgText" placeholder="例: リクエスト送信"></div>
+      <button class="add-row-btn" id="sqAddMsg">＋ メッセージを追加</button>
+      <button class="add-row-btn" id="sqMsgCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">ノート(Note)を追加</div>
+      <p class="hint">参加者の横や上にメモを表示します。「over」では対象1・対象2を指定すると複数の参加者にまたがります。</p>
+      <div class="row">
+        <div class="field"><label for="sqNotePos">位置</label>
+          <select id="sqNotePos">
+            <option value="over">over（上）</option>
+            <option value="right of">right of（右）</option>
+            <option value="left of">left of（左）</option>
+          </select>
+        </div>
+        <div class="field"><label for="sqNoteFrom">対象1</label><select id="sqNoteFrom"></select></div>
+        <div class="field"><label for="sqNoteTo">対象2 (over用・任意)</label><select id="sqNoteTo"></select></div>
+      </div>
+      <div class="field" style="margin-bottom:8px;"><label for="sqNoteText">ノート内容</label><input type="text" id="sqNoteText" placeholder="例: 認証処理"></div>
+      <button class="add-row-btn" id="sqAddNote">＋ ノートを追加</button>
+      <button class="add-row-btn" id="sqNoteCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">制御ブロック(Loop/Alt等)を追加</div>
+      <p class="hint">「ブロック開始」→ 中に入れるメッセージ →「ブロック終了(end)」の順で追加します。alt は「区切り(else)」で条件を分けられます（par は and、critical は option）。区切りは対応するブロックの end の直前に自動挿入されます。</p>
+      <div class="row">
+        <div class="field"><label for="sqBlockType">種別</label>
+          <select id="sqBlockType">${SEQ_BLOCKS.map(b=>`<option value="${b.v}">${b.label}</option>`).join('')}</select>
+        </div>
+        <div class="field"><label for="sqBlockLabel">ラベル(任意)</label><input type="text" id="sqBlockLabel" placeholder="例: 条件が真の間"></div>
+      </div>
+      <button class="add-row-btn" id="sqAddBlock">＋ ブロック開始を追加</button>
+      <button class="add-row-btn" id="sqBlockCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <div class="row" style="margin-top:10px;">
+        <div class="field"><label for="sqDivType">区切り種別</label>
+          <select id="sqDivType">${SEQ_DIVIDERS.map(d=>`<option value="${d.v}">${d.label}</option>`).join('')}</select>
+        </div>
+        <div class="field"><label for="sqDivLabel">区切りラベル(任意)</label><input type="text" id="sqDivLabel" placeholder="例: それ以外"></div>
+      </div>
+      <button class="add-row-btn" id="sqAddDiv">＋ 区切り(else/and)を追加</button>
+      <button class="add-row-btn" id="sqDivCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <button class="add-row-btn" id="sqAddEnd" style="margin-top:10px;">＋ ブロック終了(end)を追加</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">メッセージ・ノート一覧</div>
+      <p class="hint">⠿ をドラッグすると並べ替えできます。else/区切りを後から追加した場合も、ドラッグでブロック内の正しい位置へ移動できます。</p>
+      <div class="item-list" id="sqMsgList"></div>
+    </div>
+  `;
+  container.innerHTML='';
+  container.appendChild(wrap);
+
+  document.getElementById('sqAddPart').addEventListener('click', ()=>{
+    const idInput = document.getElementById('sqPartId');
+    const labelInput = document.getElementById('sqPartLabel');
+    let id = idInput.value.trim() || ('P' + state.partCounter);
+    id = sanitizeMermaidId(id, 'P');
+
+    // 同じ図の中でIDが衝突すると、参照が別の要素に付け替わってしまう
+    if(!checkDuplicateId(id, state.sequence.participants.map(x=>x.id), state.sequence.editPartIdx !== null ? state.sequence.participants[state.sequence.editPartIdx].id : null)) return;
+    const label = labelInput.value.trim() || id;
+    const kind = document.getElementById('sqPartKind').value;
+
+    if(state.sequence.editPartIdx !== null){
+      const idx = state.sequence.editPartIdx;
+      const oldId = state.sequence.participants[idx].id;
+      if(oldId !== id){
+        state.sequence.messages.forEach(m=>{
+          if(m.from===oldId) m.from = id;
+          if(m.to===oldId) m.to = id;
+        });
+      }
+      state.sequence.participants[idx] = { id, label, kind };
+    }else{
+      state.sequence.participants.push({ id, label, kind });
+      state.partCounter++;
+    }
+    sqResetPartForm();
+    refreshSequenceLists(); regenerateCode();
+  });
+  document.getElementById('sqPartCancel').addEventListener('click', sqResetPartForm);
+
+  document.getElementById('sqAddMsg').addEventListener('click', ()=>{
+    const from = document.getElementById('sqMsgFrom').value;
+    const to = document.getElementById('sqMsgTo').value;
+    const arrow = document.getElementById('sqMsgArrow').value;
+    const textInput = document.getElementById('sqMsgText');
+    const text = safeSequenceText(textInput.value.trim()) || 'メッセージ';
+    if(!from || !to) return;
+
+    if(state.sequence.editMsgIdx !== null){
+      state.sequence.messages[state.sequence.editMsgIdx] = { from, to, arrow, text };
+    }else{
+      state.sequence.messages.push({ from, to, arrow, text });
+    }
+    sqResetMsgForm();
+    refreshSequenceLists(); regenerateCode();
+  });
+  document.getElementById('sqMsgCancel').addEventListener('click', sqResetMsgForm);
+
+  document.getElementById('sqAddNote').addEventListener('click', ()=>{
+    const pos = document.getElementById('sqNotePos').value;
+    const from = document.getElementById('sqNoteFrom').value;
+    const to = document.getElementById('sqNoteTo').value;
+    const textInput = document.getElementById('sqNoteText');
+    const text = safeSequenceText(textInput.value.trim()) || 'ノート';
+    if(!from) return;
+    const note = { kind:'note', pos, from, to, text };
+
+    if(state.sequence.editNoteIdx !== null){
+      state.sequence.messages[state.sequence.editNoteIdx] = note;
+    }else{
+      state.sequence.messages.push(note);
+    }
+    sqResetNoteForm();
+    refreshSequenceLists(); regenerateCode();
+  });
+  document.getElementById('sqNoteCancel').addEventListener('click', sqResetNoteForm);
+
+  document.getElementById('sqAddBlock').addEventListener('click', ()=>{
+    const blockType = document.getElementById('sqBlockType').value;
+    const label = document.getElementById('sqBlockLabel').value.trim();
+    const block = { kind:'block-start', blockType, label };
+    if(state.sequence.editBlockIdx !== null){
+      state.sequence.messages[state.sequence.editBlockIdx] = block;
+    }else{
+      state.sequence.messages.push(block);
+    }
+    sqResetBlockForm();
+    refreshSequenceLists(); regenerateCode();
+  });
+  document.getElementById('sqBlockCancel').addEventListener('click', sqResetBlockForm);
+
+  document.getElementById('sqAddDiv').addEventListener('click', ()=>{
+    const keyword = document.getElementById('sqDivType').value;
+    const label = document.getElementById('sqDivLabel').value.trim();
+    const div = { kind:'block-div', keyword, label };
+    if(state.sequence.editDivIdx !== null){
+      state.sequence.messages[state.sequence.editDivIdx] = div;
+    }else{
+      // 対応するブロックがあれば、その end の直前（＝ブロック内）へ挿入。なければ末尾へ。
+      const endIdx = findDividerInsertIndex(state.sequence.messages, keyword);
+      if(endIdx !== -1){
+        state.sequence.messages.splice(endIdx, 0, div);
+      }else{
+        state.sequence.messages.push(div);
+      }
+    }
+    sqResetBlockForm();
+    refreshSequenceLists(); regenerateCode();
+  });
+  document.getElementById('sqDivCancel').addEventListener('click', sqResetBlockForm);
+
+  document.getElementById('sqAddEnd').addEventListener('click', ()=>{
+    state.sequence.messages.push({ kind:'block-end' });
+    refreshSequenceLists(); regenerateCode();
+  });
+
+  refreshSequenceLists();
+}
+
+function sqFillPartForm(p){
+  document.getElementById('sqPartId').value = p.id;
+  document.getElementById('sqPartLabel').value = p.label;
+  document.getElementById('sqPartKind').value = p.kind === 'actor' ? 'actor' : 'participant';
+  document.getElementById('sqAddPart').textContent = '✓ 参加者を更新';
+  document.getElementById('sqPartCancel').style.display = 'block';
+}
+function sqResetPartForm(){
+  document.getElementById('sqPartId').value='';
+  document.getElementById('sqPartLabel').value='';
+  document.getElementById('sqPartKind').value='participant';
+  state.sequence.editPartIdx = null;
+  document.getElementById('sqAddPart').textContent = '＋ 参加者を追加';
+  document.getElementById('sqPartCancel').style.display = 'none';
+}
+function sqFillMsgForm(m){
+  document.getElementById('sqMsgFrom').value = m.from;
+  document.getElementById('sqMsgTo').value = m.to;
+  document.getElementById('sqMsgArrow').value = m.arrow;
+  document.getElementById('sqMsgText').value = m.text;
+  document.getElementById('sqAddMsg').textContent = '✓ メッセージを更新';
+  document.getElementById('sqMsgCancel').style.display = 'block';
+}
+function sqResetMsgForm(){
+  document.getElementById('sqMsgText').value='';
+  state.sequence.editMsgIdx = null;
+  document.getElementById('sqAddMsg').textContent = '＋ メッセージを追加';
+  document.getElementById('sqMsgCancel').style.display = 'none';
+}
+function sqFillNoteForm(n){
+  document.getElementById('sqNotePos').value = n.pos;
+  document.getElementById('sqNoteFrom').value = n.from;
+  document.getElementById('sqNoteTo').value = n.to || '';
+  document.getElementById('sqNoteText').value = n.text;
+  document.getElementById('sqAddNote').textContent = '✓ ノートを更新';
+  document.getElementById('sqNoteCancel').style.display = 'block';
+}
+function sqResetNoteForm(){
+  document.getElementById('sqNoteText').value='';
+  state.sequence.editNoteIdx = null;
+  document.getElementById('sqAddNote').textContent = '＋ ノートを追加';
+  document.getElementById('sqNoteCancel').style.display = 'none';
+}
+function sqFillBlockForm(b){
+  if(b.kind === 'block-start'){
+    document.getElementById('sqBlockType').value = b.blockType;
+    document.getElementById('sqBlockLabel').value = b.label || '';
+    document.getElementById('sqAddBlock').textContent = '✓ ブロック開始を更新';
+    document.getElementById('sqBlockCancel').style.display = 'block';
+  }else{
+    document.getElementById('sqDivType').value = b.keyword;
+    document.getElementById('sqDivLabel').value = b.label || '';
+    document.getElementById('sqAddDiv').textContent = '✓ 区切りを更新';
+    document.getElementById('sqDivCancel').style.display = 'block';
+  }
+}
+function sqResetBlockForm(){
+  document.getElementById('sqBlockLabel').value='';
+  document.getElementById('sqDivLabel').value='';
+  state.sequence.editBlockIdx = null;
+  state.sequence.editDivIdx = null;
+  document.getElementById('sqAddBlock').textContent = '＋ ブロック開始を追加';
+  document.getElementById('sqBlockCancel').style.display = 'none';
+  document.getElementById('sqAddDiv').textContent = '＋ 区切り(else/and)を追加';
+  document.getElementById('sqDivCancel').style.display = 'none';
+}
+
+/* 一覧の項目をドラッグ&ドロップで並べ替え可能にする汎用ヘルパー。
+   listEl 内の .item-row を対象に、対応する配列 arr を直接並べ替えて onReorder() を呼ぶ。 */
+function makeSortable(listEl, arr, onReorder, isValidOrder){
+  const rows = [...listEl.children].filter(el=>el.classList.contains('item-row'));
+  let dragIdx = null;
+  rows.forEach((row, idx)=>{
+    // ドラッグ用ハンドルを行の先頭に差し込む（各テンプレートを触らずに済ませる）
+    const handle = document.createElement('span');
+    handle.className = 'drag-handle';
+    handle.textContent = '⠿';
+    handle.title = 'ドラッグして並べ替え';
+    row.insertBefore(handle, row.firstChild);
+    row.setAttribute('draggable', 'true');
+
+    row.addEventListener('dragstart', e=>{
+      dragIdx = idx;
+      row.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', String(idx)); // Firefox はデータ設定が必須
+    });
+    row.addEventListener('dragend', ()=>{
+      dragIdx = null;
+      rows.forEach(r=>r.classList.remove('dragging','drag-over'));
+    });
+    row.addEventListener('dragover', e=>{
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if(dragIdx!==null && idx!==dragIdx) row.classList.add('drag-over');
+    });
+    row.addEventListener('dragleave', ()=> row.classList.remove('drag-over'));
+    row.addEventListener('drop', e=>{
+      e.preventDefault();
+      row.classList.remove('drag-over');
+      if(dragIdx===null || dragIdx===idx) return;
+      const before = arr.slice();
+      const targetItem = arr[idx];
+      const [moved] = arr.splice(dragIdx, 1);
+      let insertAt = arr.indexOf(targetItem);
+      if(dragIdx < idx) insertAt += 1; // 下方向へのドロップは対象の直後へ
+      arr.splice(insertAt, 0, moved);
+      // 並びとして成立しない移動は、確定せず元に戻す
+      if(isValidOrder && !isValidOrder(arr)){
+        arr.splice(0, arr.length, ...before);
+        row.classList.add('drop-rejected');
+        setTimeout(()=>row.classList.remove('drop-rejected'), 600);
+        return;
+      }
+      onReorder();
+    });
+  });
+}
+
+/* メッセージ一覧が制御ブロックとして成立しているかを判定する。
+   ブロック開始 → 区切り → end の順序が崩れる並べ替えを弾くために使う。
+   ・end は対応する開始より前に来られない／余った end があってはならない
+   ・区切り(else/and/option)はブロックの内側だけ、かつ対応する種別のブロック内だけ
+   ・閉じられていないブロックが残ってはならない */
+function isValidSequenceOrder(messages){
+  const stack = [];
+  for(const m of messages){
+    if(m.kind === 'block-start'){
+      stack.push(m.blockType);
+    }else if(m.kind === 'block-div'){
+      if(!stack.length) return false;
+      if(DIV_BLOCK_TYPE[m.keyword] !== stack[stack.length-1]) return false;
+    }else if(m.kind === 'block-end'){
+      if(!stack.length) return false;
+      stack.pop();
+    }
+  }
+  return stack.length === 0;
+}
+
+/* 区切り(else/and/option)を追加すべき位置＝対応するブロックの end の直前を返す。
+   同種ブロックが複数ある場合は最後（＝直近）のものを対象にする。見つからなければ -1。 */
+function findDividerInsertIndex(messages, keyword){
+  const blockType = DIV_BLOCK_TYPE[keyword];
+  if(!blockType) return -1;
+  let startIdx = -1;
+  for(let i=0;i<messages.length;i++){
+    if(messages[i].kind==='block-start' && messages[i].blockType===blockType) startIdx = i;
+  }
+  if(startIdx === -1) return -1;
+  let depth = 0;
+  for(let i=startIdx+1;i<messages.length;i++){
+    const m = messages[i];
+    if(m.kind==='block-start') depth++;
+    else if(m.kind==='block-end'){
+      if(depth===0) return i; // この end が対象ブロックを閉じる → その直前へ
+      depth--;
+    }
+  }
+  return -1;
+}
+
+function refreshSequenceLists(){
+  const partList = document.getElementById('sqPartList');
+  const msgList = document.getElementById('sqMsgList');
+  const fromSel = document.getElementById('sqMsgFrom');
+  const toSel = document.getElementById('sqMsgTo');
+  if(!partList) return;
+
+  partList.innerHTML = state.sequence.participants.length ? '' : '<div class="empty-note">まだ参加者がいません</div>';
+  state.sequence.participants.forEach((p,i)=>{
+    const row = document.createElement('div');
+    row.className='item-row';
+    row.innerHTML = `<span class="item-text">${p.kind === 'actor' ? '👤 ' : '▭ '}${p.id} = ${p.label}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+    row.querySelector('.edit-btn').addEventListener('click', ()=>{
+      state.sequence.editPartIdx = i;
+      sqFillPartForm(state.sequence.participants[i]);
+    });
+    row.querySelector('.del-btn').addEventListener('click', ()=>{
+      const removedId = state.sequence.participants[i].id;
+      state.sequence.participants.splice(i,1);
+      state.sequence.messages = state.sequence.messages.filter(m=>m.from!==removedId && m.to!==removedId);
+      if(state.sequence.editPartIdx===i) sqResetPartForm();
+      refreshSequenceLists(); regenerateCode();
+    });
+    partList.appendChild(row);
+  });
+  makeSortable(partList, state.sequence.participants, ()=>{
+    sqResetPartForm();
+    refreshSequenceLists(); regenerateCode();
+  });
+
+  const opts = state.sequence.participants.map(p=>`<option value="${p.id}">${p.id} (${p.label})</option>`).join('');
+  fromSel.innerHTML = opts; toSel.innerHTML = opts;
+
+  const noteFromSel = document.getElementById('sqNoteFrom');
+  const noteToSel = document.getElementById('sqNoteTo');
+  if(noteFromSel){ noteFromSel.innerHTML = opts; }
+  if(noteToSel){ noteToSel.innerHTML = '<option value="">（なし）</option>' + opts; }
+
+  msgList.innerHTML = state.sequence.messages.length ? '' : '<div class="empty-note">まだメッセージ・ノートがありません</div>';
+  let depth = 0;
+  state.sequence.messages.forEach((m,i)=>{
+    const row = document.createElement('div');
+    row.className='item-row';
+    // 表示上のインデント段数（block-div と end はブロック自身の段に合わせる）
+    let indent = depth;
+    if(m.kind === 'block-div' || m.kind === 'block-end') indent = Math.max(0, depth-1);
+    row.style.marginLeft = (indent * 16) + 'px';
+
+    if(m.kind === 'block-start'){
+      row.innerHTML = `<span class="item-text">🔁 ${m.blockType}${m.label ? ' ' + m.label : ''}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+      row.querySelector('.edit-btn').addEventListener('click', ()=>{
+        sqResetMsgForm(); sqResetNoteForm(); sqResetBlockForm();
+        state.sequence.editBlockIdx = i;
+        sqFillBlockForm(state.sequence.messages[i]);
+      });
+      depth++;
+    }else if(m.kind === 'block-div'){
+      row.innerHTML = `<span class="item-text">↔ ${m.keyword}${m.label ? ' ' + m.label : ''}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+      row.querySelector('.edit-btn').addEventListener('click', ()=>{
+        sqResetMsgForm(); sqResetNoteForm(); sqResetBlockForm();
+        state.sequence.editDivIdx = i;
+        sqFillBlockForm(state.sequence.messages[i]);
+      });
+    }else if(m.kind === 'block-end'){
+      row.innerHTML = `<span class="item-text">⬛ end</span><button class="del-btn" data-i="${i}">×</button>`;
+      depth = Math.max(0, depth-1);
+    }else if(m.kind === 'note'){
+      const target = (m.pos === 'over' && m.to && m.to !== m.from) ? `${m.from},${m.to}` : m.from;
+      row.innerHTML = `<span class="item-text">📝 Note ${m.pos} ${target}: ${m.text}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+      row.querySelector('.edit-btn').addEventListener('click', ()=>{
+        sqResetMsgForm(); sqResetBlockForm();
+        state.sequence.editNoteIdx = i;
+        sqFillNoteForm(state.sequence.messages[i]);
+      });
+    }else{
+      row.innerHTML = `<span class="item-text">${m.from}${m.arrow}${m.to}: ${m.text}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+      row.querySelector('.edit-btn').addEventListener('click', ()=>{
+        sqResetNoteForm(); sqResetBlockForm();
+        state.sequence.editMsgIdx = i;
+        sqFillMsgForm(state.sequence.messages[i]);
+      });
+    }
+    row.querySelector('.del-btn').addEventListener('click', ()=>{
+      state.sequence.messages.splice(i,1);
+      if(state.sequence.editMsgIdx===i) sqResetMsgForm();
+      if(state.sequence.editNoteIdx===i) sqResetNoteForm();
+      if(state.sequence.editBlockIdx===i || state.sequence.editDivIdx===i) sqResetBlockForm();
+      refreshSequenceLists(); regenerateCode();
+    });
+    msgList.appendChild(row);
+  });
+  makeSortable(msgList, state.sequence.messages, ()=>{
+    sqResetMsgForm(); sqResetNoteForm(); sqResetBlockForm();
+    refreshSequenceLists(); regenerateCode();
+  }, isValidSequenceOrder);
+}
+
+function switchDiagramType(type){
+  state.diagramType = type;
+  state.manualMode = false;
+  document.getElementById('editToggle').checked = false;
+  document.getElementById('codeArea').readOnly = true;
+
+  const panel = document.getElementById('builderPanel');
+  if(type==='sequence') renderSequenceBuilder(panel);
+  else renderFlowchartBuilder(panel);
+  regenerateCode();
+  updateImportStatus();
+}
+
+/* ============ プロジェクト保存/復元（ハッシュ検証付き） ============ */
+function utf8ToBase64(str){
+  const bytes = new TextEncoder().encode(str);
+  let binary = '';
+  bytes.forEach(b => binary += String.fromCharCode(b));
+  return btoa(binary);
+}
+function base64ToUtf8(b64){
+  const binary = atob(b64);
+  const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+async function sha256Hex(text){
+  const data = new TextEncoder().encode(text);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function buildStateSnapshot(){
+  const snap = JSON.parse(JSON.stringify({
+    diagramType: state.diagramType,
+    flowchart: state.flowchart,
+    sequence: state.sequence,
+    nodeCounter: state.nodeCounter,
+    subCounter: state.subCounter,
+    partCounter: state.partCounter,
+  }));
+  // 編集中インデックスはリセットしてから保存する
+  if(snap.flowchart){ snap.flowchart.editNodeIdx=null; snap.flowchart.editEdgeIdx=null; snap.flowchart.editSubIdx=null; }
+  if(snap.sequence){ snap.sequence.editPartIdx=null; snap.sequence.editMsgIdx=null; snap.sequence.editNoteIdx=null; snap.sequence.editBlockIdx=null; snap.sequence.editDivIdx=null; }
+  return snap;
+}
+
+async function exportProjectMd(){
+  const snapshot = buildStateSnapshot();
+  const json = JSON.stringify(snapshot);
+  const hash = await sha256Hex(json);
+  const b64 = utf8ToBase64(json);
+  const code = document.getElementById('codeArea').value;
+  const header = `<!--mermaid-gui-studio:v1:${hash}:${b64}-->`;
+  const content = `${header}\n\n\`\`\`mermaid\n${code}\n\`\`\`\n`;
+  downloadBlob(content, 'diagram-project.md', 'text/markdown');
+}
+
+async function tryLoadProject(text){
+  const m = text.match(/<!--mermaid-gui-studio:v1:([0-9a-f]{64}):([A-Za-z0-9+/=]+)-->/);
+  if(!m) return { matched:false };
+  const [, hash, b64] = m;
+  let json;
+  try{ json = base64ToUtf8(b64); }catch(e){ return { matched:true, valid:false }; }
+  let computed;
+  try{ computed = await sha256Hex(json); }catch(e){ return { matched:true, valid:false }; }
+  if(computed !== hash) return { matched:true, valid:false };
+  let snapshot;
+  try{ snapshot = JSON.parse(json); }catch(e){ return { matched:true, valid:false }; }
+  return { matched:true, valid:true, snapshot };
+}
+
+function restoreSnapshot(snapshot){
+  if(snapshot.flowchart){
+    state.flowchart = snapshot.flowchart;
+    // 旧形式（サブグループ機能追加前）のプロジェクトファイルとの後方互換
+    if(!Array.isArray(state.flowchart.subgraphs)) state.flowchart.subgraphs = [];
+  }
+  if(snapshot.sequence){
+    state.sequence = snapshot.sequence;
+    // 旧形式（ノート機能追加前）のプロジェクトファイルとの後方互換
+    if(state.sequence.editNoteIdx === undefined) state.sequence.editNoteIdx = null;
+    // 旧形式（制御ブロック機能追加前）との後方互換
+    if(state.sequence.editBlockIdx === undefined) state.sequence.editBlockIdx = null;
+    if(state.sequence.editDivIdx === undefined) state.sequence.editDivIdx = null;
+    // 旧形式（actor選択機能追加前）は全員 participant 扱い
+    (state.sequence.participants || []).forEach(p=>{ if(!p.kind) p.kind = 'participant'; });
+  }
+  state.nodeCounter = snapshot.nodeCounter || state.nodeCounter;
+  state.subCounter = snapshot.subCounter || state.subCounter;
+  state.partCounter = snapshot.partCounter || state.partCounter;
+
+  // MGS(無印)のプロジェクトファイルは他の図種も含むが、本ツールが扱えるのはこの2種のみ
+  const type = (snapshot.diagramType === 'sequence') ? 'sequence' : 'flowchart';
+  document.getElementById('diagramType').value = type;
+  state.diagramType = type;
+  state.manualMode = false;
+  document.getElementById('editToggle').checked = false;
+  document.getElementById('codeArea').readOnly = true;
+
+  const panel = document.getElementById('builderPanel');
+  if(type==='sequence') renderSequenceBuilder(panel);
+  else renderFlowchartBuilder(panel);
+  regenerateCode();
+}
+
+/* ============ 取り込み（Mermaidコード → ビルダー） ============
+   方針は「全か無か」。ビルダーで表現できない記述が1つでもあれば取り込みそのものを中止し、
+   従来どおり「コードのみ読み込み」に倒す。
+   中途半端に取り込むと、解釈できなかった記述が次のコード再生成で黙って消える。
+   利用者から見れば「ツールが図を壊した」であり、それなら読めない方がまだ良い。 */
+
+/* 図形は開き括弧の種類で決まる。[[ より [ を先に見るとサブルーチンを四角と読み違えるので、
+   長い記号から順に並べ、最初に前方一致したものだけを候補とする。
+   候補の閉じ括弧と食い違うものは似て非なる図形（台形など）なので、取り込まない。 */
+const IMPORT_SHAPES = [
+  { v:'sub',     open:'[[', close:']]' },
+  { v:'cyl',     open:'[(', close:')]' },
+  { v:'stadium', open:'([', close:'])' },
+  { v:'para',    open:'[/', close:'/]' },
+  { v:'circle',  open:'((', close:'))' },
+  { v:'hex',     open:'{{', close:'}}' },
+  { v:'rect',    open:'[',  close:']'  },
+  { v:'round',   open:'(',  close:')'  },
+  { v:'rhombus', open:'{',  close:'}'  },
+];
+
+/* 伸ばした矢印（---> や ====>）は長さ違いの同義表記なので、正規の6種へ寄せる */
+const IMPORT_FLOW_ARROWS = [
+  { re:/^-\.+->$/, v:'-.->' },
+  { re:/^={2,}>$/, v:'==>'  },
+  { re:/^-{2,}>$/, v:'-->'  },
+  { re:/^-{2,}o$/, v:'--o'  },
+  { re:/^-{2,}x$/, v:'--x'  },
+  { re:/^-{3,}$/,  v:'---'  },
+];
+const FLOW_LINK_G = /(-\.+->|={2,}>|-{2,}>|-{2,}o|-{2,}x|-{3,})\s*(?:\|([^|]*)\|)?/g;
+
+const IMPORT_SEQ_ARROWS = ARROWS_SEQ.map(a=>a.v);
+const SEQ_BLOCK_KEYWORDS = SEQ_BLOCKS.map(b=>b.v);
+const SEQ_DIVIDER_KEYWORDS = SEQ_DIVIDERS.map(d=>d.v);
+const SEQ_MSG_RE = /^([^\s:]+?)\s*(<<-->>|<<->>|--\)|-\)|--x|-x|-->>|->>|-->|->)\s*([^\s:]+?)\s*:\s*([\s\S]*)$/;
+
+/* ビルダーが扱えるIDの文字種。生成側の sanitizeMermaidId と同じ範囲に揃えている。
+   とくにハイフン入りのIDは、プレビュー→ビルダーの逆引き（末尾の連番を外す処理）が
+   破綻して別の図形を選んでしまうため、読めても取り込まない。 */
+const IMPORT_ID_RE = /^[A-Za-z0-9_一-龠ぁ-んァ-ヶー]+$/;
+
+function newImportReport(){ return { blocked:[], dropped:[] }; }
+function blockLine(rep, lineNo, text, why){ rep.blocked.push({ lineNo, text:String(text||'').trim(), why }); }
+function dropLine(rep, lineNo, text, why){ rep.dropped.push({ lineNo, text:String(text||'').trim(), why }); }
+
+function unquoteLabel(s){
+  const t = String(s == null ? '' : s).trim();
+  return (t.length >= 2 && t.startsWith('"') && t.endsWith('"')) ? t.slice(1, -1) : t;
+}
+
+/* `UI["UI画面"]` を { id, label, shape } に分解する。
+   `UI` のように括弧が無ければ既存ノードの参照とみなし shape:null を返す。
+   ビルダーに無い図形・IDのときは false（＝取り込み不可）。 */
+function parseFlowNodeToken(token){
+  const t = String(token || '').trim();
+  if(!t) return false;
+  const br = t.search(/[[({]/);
+  const id = (br < 0 ? t : t.slice(0, br)).trim();
+  if(!IMPORT_ID_RE.test(id)) return false;
+  if(br < 0) return { id, label:null, shape:null };
+  const rest = t.slice(br);
+  const cand = IMPORT_SHAPES.find(sh => rest.startsWith(sh.open));
+  if(!cand) return false;
+  if(rest.length < cand.open.length + cand.close.length || !rest.endsWith(cand.close)) return false;
+  return { id, label: unquoteLabel(rest.slice(cand.open.length, rest.length - cand.close.length)), shape: cand.v };
+}
+
+/* `A -- ラベル --> B` は `A -->|ラベル| B` と同じ意味なので、後者に読み替えてから解析する */
+function normalizeFlowMiddleLabel(line){
+  return (' ' + line + ' ')
+    .replace(/\s(?:--|==)\s+([^|<>]+?)\s+(-{2,}>|-{2,}[ox]|={2,}>|-{3,})\s/g, (m, txt, tail)=> ` ${tail}|${txt.trim()}| `)
+    .replace(/\s-\.\s+([^|<>]+?)\s+\.->\s/g, (m, txt)=> ` -.->|${txt.trim()}| `)
+    .trim();
+}
+
+/* `fill:#fff,stroke:#000` を読み取る。ビルダーが保持できない属性が混ざっていたら null */
+function parseStyleProps(text, allowed){
+  const out = {};
+  for(const chunk of String(text).split(',')){
+    const s = chunk.trim();
+    if(!s) continue;
+    const i = s.indexOf(':');
+    if(i < 0) return null;
+    const k = s.slice(0, i).trim();
+    if(!allowed.includes(k)) return null;
+    out[k] = s.slice(i + 1).trim();
+  }
+  return out;
+}
+
+function importFlowchart(lines, rep){
+  const fc = emptyFlowchartState();
+  const byId = new Map();
+  const subById = new Map();
+  const stack = [];
+  const styles = [];
+  const linkStyles = [];
+  let headerSeen = false;
+
+  // 同じノードが「参照」と「定義」の両方で出てくるので、後から出た図形・ラベルで上書きする。
+  // 括弧の無い参照だけで作られたノードには印を付けておく。接続の相手がノードではなく
+  // subgraph だった場合（FE ==> BE のような書き方）に、後から取り消すため。
+  const touchNode = (info)=>{
+    let n = byId.get(info.id);
+    if(!n){
+      n = { id:info.id, label: info.label == null ? info.id : info.label,
+            shape: info.shape || 'rect', subgraphId: stack.length ? stack[stack.length-1] : '',
+            fill:'', stroke:'', implicit: info.shape == null };
+      byId.set(n.id, n);
+      fc.nodes.push(n);
+    }else if(info.shape){
+      n.label = info.label;
+      n.shape = info.shape;
+      n.implicit = false;
+    }
+    return n;
+  };
+
+  lines.forEach((raw, i)=>{
+    const lineNo = i + 1;
+    const line = raw.trim();
+    if(!line) return;
+    if(line.startsWith('%%')){
+      if(line.startsWith('%%{')) blockLine(rep, lineNo, line, 'ディレクティブ（%%{init:…}）はビルダーで保持できません');
+      else dropLine(rep, lineNo, line, 'コメント行');
+      return;
+    }
+    if(!headerSeen){
+      const h = /^(?:flowchart|graph)(?:\s+(TB|TD|BT|LR|RL))?$/.exec(line);
+      if(!h){ blockLine(rep, lineNo, line, '先頭が flowchart / graph の宣言ではありません'); return; }
+      fc.direction = (!h[1] || h[1] === 'TB') ? 'TD' : h[1];
+      headerSeen = true;
+      return;
+    }
+    if(/^end$/i.test(line)){
+      if(!stack.length){ blockLine(rep, lineNo, line, '対応する subgraph がありません'); return; }
+      stack.pop();
+      return;
+    }
+    if(/^subgraph\b/.test(line)){
+      if(stack.length){ blockLine(rep, lineNo, line, 'subgraph の入れ子はビルダーで表現できません'); return; }
+      const arg = line.replace(/^subgraph\s*/, '').trim();
+      if(!arg){ blockLine(rep, lineNo, line, 'subgraph の名前がありません'); return; }
+      const bm = /^([^\s[]+)\s*\[(.*)\]$/.exec(arg);
+      const id = bm ? bm[1] : arg;
+      if(!IMPORT_ID_RE.test(id)){ blockLine(rep, lineNo, line, `subgraph のID「${id}」に使えない文字が含まれています`); return; }
+      if(!subById.has(id)){
+        const sg = { id, label: bm ? unquoteLabel(bm[2]) : arg, fill:'', stroke:'' };
+        subById.set(id, sg);
+        fc.subgraphs.push(sg);
+      }
+      stack.push(id);
+      return;
+    }
+    if(/^direction\b/.test(line)){ blockLine(rep, lineNo, line, 'subgraph ごとの direction はビルダーで表現できません'); return; }
+    if(/^classDef\b/.test(line) || /^class\b/.test(line) || line.includes(':::')){
+      blockLine(rep, lineNo, line, 'クラス定義（classDef / class / :::）はビルダーで保持できません'); return;
+    }
+    if(/^click\b/.test(line)){ blockLine(rep, lineNo, line, 'click（リンク・コールバック）はビルダーで保持できません'); return; }
+    if(/^linkStyle\b/.test(line)){
+      const lm = /^linkStyle\s+([0-9,\s]+?)\s+(.+)$/.exec(line);
+      if(!lm){ blockLine(rep, lineNo, line, 'linkStyle default など、番号指定以外の書き方には対応していません'); return; }
+      const props = parseStyleProps(lm[2], ['stroke','stroke-width']);
+      if(!props){ blockLine(rep, lineNo, line, 'ビルダーが線に保持できるのは色（stroke）だけです'); return; }
+      linkStyles.push({ lineNo, line, idxs: lm[1].split(',').map(s=>Number(s.trim())).filter(n=>!isNaN(n)), props });
+      return;
+    }
+    if(/^style\b/.test(line)){
+      const sm = /^style\s+(\S+)\s+(.+)$/.exec(line);
+      if(!sm){ blockLine(rep, lineNo, line, 'style の書き方を解釈できません'); return; }
+      const props = parseStyleProps(sm[2], ['fill','stroke','stroke-width']);
+      if(!props){ blockLine(rep, lineNo, line, 'ビルダーが図形に保持できるのは塗り（fill）と枠線（stroke）だけです'); return; }
+      styles.push({ lineNo, line, id: sm[1], props });
+      return;
+    }
+    if(line.includes('&')){ blockLine(rep, lineNo, line, '&（複数ノードのまとめ書き）には対応していません'); return; }
+
+    // ここまで来たら接続、または単独のノード定義
+    const norm = normalizeFlowMiddleLabel(line);
+    FLOW_LINK_G.lastIndex = 0;
+    const tokens = [], links = [];
+    let m, prev = 0;
+    while((m = FLOW_LINK_G.exec(norm))){
+      tokens.push(norm.slice(prev, m.index));
+      links.push({ raw:m[1], label: m[2] == null ? '' : unquoteLabel(m[2]) });
+      prev = m.index + m[0].length;
+    }
+    if(!links.length){
+      const info = parseFlowNodeToken(norm);
+      if(!info || info.shape == null){ blockLine(rep, lineNo, line, '解釈できない行です'); return; }
+      touchNode(info);
+      return;
+    }
+    tokens.push(norm.slice(prev));
+    const chain = [];
+    for(const tk of tokens){
+      const info = parseFlowNodeToken(tk);
+      if(!info){ blockLine(rep, lineNo, line, `「${tk.trim()}」をノードとして解釈できません（未対応の図形かIDです）`); return; }
+      chain.push(touchNode(info));
+    }
+    // A --> B --> C のような連鎖は、1本ずつの接続にほどく
+    links.forEach((lk, k)=>{
+      const hit = IMPORT_FLOW_ARROWS.find(a=>a.re.test(lk.raw));
+      if(!hit){ blockLine(rep, lineNo, line, `矢印「${lk.raw}」には対応していません`); return; }
+      fc.edges.push({ from:chain[k].id, to:chain[k+1].id, arrow:hit.v, label:lk.label, color:null });
+    });
+  });
+
+  if(stack.length) blockLine(rep, lines.length, '', 'end で閉じられていない subgraph があります');
+  if(!headerSeen) blockLine(rep, 1, '', 'flowchart / graph の宣言が見つかりません');
+
+  // subgraph を指しているだけだった参照は、ノードではないので取り消す。
+  // subgraph が接続より後ろで宣言されることもあるため、全行を読み終えてから判定する。
+  // byId からも消しておかないと、直後の style 行が subgraph ではなく
+  // 捨てたはずのノードに当たってしまい、色が反映されない
+  fc.nodes = fc.nodes.filter(n=>{
+    if(n.implicit && subById.has(n.id)){ byId.delete(n.id); return false; }
+    return true;
+  });
+  fc.nodes.forEach(n=>{ delete n.implicit; });
+
+  // 対象が出そろってからスタイルを当てる（style は末尾にまとめて書かれることが多い）
+  styles.forEach(st=>{
+    const target = byId.get(st.id) || subById.get(st.id);
+    if(!target){ blockLine(rep, st.lineNo, st.line, `style の対象「${st.id}」が見つかりません`); return; }
+    if(st.props.fill) target.fill = st.props.fill;
+    if(st.props.stroke) target.stroke = st.props.stroke;
+  });
+  linkStyles.forEach(ls=>{
+    if(!ls.props.stroke){ blockLine(rep, ls.lineNo, ls.line, 'linkStyle に線色（stroke）の指定がありません'); return; }
+    for(const idx of ls.idxs){
+      if(!fc.edges[idx]){ blockLine(rep, ls.lineNo, ls.line, `linkStyle の番号 ${idx} に対応する接続がありません`); return; }
+      fc.edges[idx].color = ls.props.stroke;
+    }
+  });
+  return fc;
+}
+
+function importSequence(lines, rep){
+  const sq = emptySequenceState();
+  const partById = new Map();
+  const stack = [];
+  let headerSeen = false;
+
+  // 宣言されずにメッセージだけに出てくる参加者は、Mermaid同様その場で作る
+  const ensurePart = (id)=>{
+    if(partById.has(id)) return partById.get(id);
+    const p = { id, label:id, kind:'participant' };
+    partById.set(id, p);
+    sq.participants.push(p);
+    return p;
+  };
+
+  lines.forEach((raw, i)=>{
+    const lineNo = i + 1;
+    const line = raw.trim();
+    if(!line) return;
+    if(line.startsWith('%%')){
+      if(line.startsWith('%%{')) blockLine(rep, lineNo, line, 'ディレクティブ（%%{init:…}）はビルダーで保持できません');
+      else dropLine(rep, lineNo, line, 'コメント行');
+      return;
+    }
+    if(!headerSeen){
+      if(!/^sequenceDiagram$/i.test(line)){ blockLine(rep, lineNo, line, '先頭が sequenceDiagram の宣言ではありません'); return; }
+      headerSeen = true;
+      return;
+    }
+    if(/^autonumber\b/i.test(line)){ blockLine(rep, lineNo, line, 'autonumber はビルダーで保持できません'); return; }
+    if(/^(activate|deactivate)\b/i.test(line)){ blockLine(rep, lineNo, line, 'activate / deactivate はビルダーで保持できません'); return; }
+    if(/^box\b/i.test(line)){ blockLine(rep, lineNo, line, 'box（参加者のグループ化）はビルダーで保持できません'); return; }
+    if(/^rect\b/i.test(line)){ blockLine(rep, lineNo, line, 'rect（背景の塗り）はビルダーで保持できません'); return; }
+    if(/^links?\b/i.test(line)){ blockLine(rep, lineNo, line, 'link / links はビルダーで保持できません'); return; }
+
+    const pm = /^(participant|actor)\s+(.+)$/i.exec(line);
+    if(pm){
+      const am = /^(\S+)\s+as\s+([\s\S]+)$/i.exec(pm[2].trim());
+      const id = (am ? am[1] : pm[2].trim());
+      if(!IMPORT_ID_RE.test(id)){ blockLine(rep, lineNo, line, `参加者のID「${id}」に使えない文字が含まれています`); return; }
+      const p = ensurePart(id);
+      p.kind = pm[1].toLowerCase() === 'actor' ? 'actor' : 'participant';
+      p.label = am ? unquoteLabel(am[2]) : id;
+      return;
+    }
+
+    const nm = /^note\s+(over|left of|right of)\s+([^:]+):\s*([\s\S]*)$/i.exec(line);
+    if(nm){
+      const who = nm[2].split(',').map(s=>s.trim()).filter(Boolean);
+      if(!who.length){ blockLine(rep, lineNo, line, 'Note の対象がありません'); return; }
+      if(who.length > 2){ blockLine(rep, lineNo, line, 'Note の対象は2者までです'); return; }
+      if(who.some(w=>!IMPORT_ID_RE.test(w))){ blockLine(rep, lineNo, line, 'Note の対象のIDに使えない文字が含まれています'); return; }
+      who.forEach(ensurePart);
+      sq.messages.push({ kind:'note', pos:nm[1].toLowerCase(), from:who[0], to:who[1] || '', text:nm[3].trim() });
+      return;
+    }
+
+    if(/^end$/i.test(line)){
+      if(!stack.length){ blockLine(rep, lineNo, line, '対応するブロック（loop / alt など）がありません'); return; }
+      stack.pop();
+      sq.messages.push({ kind:'block-end' });
+      return;
+    }
+    const km = /^([A-Za-z]+)(?:\s+([\s\S]*))?$/.exec(line);
+    const kw = km ? km[1].toLowerCase() : '';
+    if(km && SEQ_BLOCK_KEYWORDS.includes(kw)){
+      stack.push(kw);
+      sq.messages.push({ kind:'block-start', blockType:kw, label:(km[2] || '').trim() });
+      return;
+    }
+    if(km && SEQ_DIVIDER_KEYWORDS.includes(kw)){
+      if(!stack.length || stack[stack.length-1] !== DIV_BLOCK_TYPE[kw]){
+        blockLine(rep, lineNo, line, `${kw} は ${DIV_BLOCK_TYPE[kw]} ブロックの中でのみ使えます`);
+        return;
+      }
+      sq.messages.push({ kind:'block-div', keyword:kw, label:(km[2] || '').trim() });
+      return;
+    }
+
+    const mm = SEQ_MSG_RE.exec(line);
+    if(mm){
+      const [, from, arrow, to, text] = mm;
+      if(!IMPORT_SEQ_ARROWS.includes(arrow)){ blockLine(rep, lineNo, line, `矢印「${arrow}」には対応していません`); return; }
+      if(!IMPORT_ID_RE.test(from) || !IMPORT_ID_RE.test(to)){
+        blockLine(rep, lineNo, line, '参加者のIDに使えない文字が含まれています（+ / - による活性化指定も未対応）'); return;
+      }
+      ensurePart(from); ensurePart(to);
+      sq.messages.push({ from, to, arrow, text:text.trim() });
+      return;
+    }
+    blockLine(rep, lineNo, line, '解釈できない行です');
+  });
+
+  if(stack.length) blockLine(rep, lines.length, '', 'end で閉じられていないブロックがあります');
+  if(!headerSeen) blockLine(rep, 1, '', 'sequenceDiagram の宣言が見つかりません');
+  return sq;
+}
+
+/* 取り込みの入口。成功なら { ok:true, type, data }、失敗なら理由の一覧を rep に詰めて返す */
+function tryImportCode(rawCode){
+  const rep = newImportReport();
+  const code = String(rawCode || '').trim();
+  if(!code){ blockLine(rep, 1, '', 'コードが空です'); return { ok:false, rep }; }
+  if(/^---\r?\n/.test(code)){
+    blockLine(rep, 1, '---', 'フロントマター（--- で囲む設定）はビルダーで保持できません');
+    return { ok:false, rep };
+  }
+  const type = detectDiagramType(code);
+  if(type !== 'flowchart' && type !== 'sequence'){
+    blockLine(rep, 1, code.split('\n')[0], 'このツールが取り込めるのは flowchart / graph と sequenceDiagram だけです');
+    return { ok:false, rep };
+  }
+  const lines = code.split('\n');
+  const data = type === 'flowchart' ? importFlowchart(lines, rep) : importSequence(lines, rep);
+  if(rep.blocked.length) return { ok:false, rep, type };
+  return { ok:true, type, data, rep };
+}
+
+/* 自動採番が既存IDとぶつからないよう、N3 や SG2 の数字部分の最大値から続きを振る */
+function nextCounter(ids, prefix){
+  const re = new RegExp('^' + prefix + '(\\d+)$');
+  let max = 0;
+  ids.forEach(id=>{ const m = re.exec(id); if(m) max = Math.max(max, Number(m[1])); });
+  return max + 1;
+}
+
+/* 取り込んだ内容でビルダーを置き換える。以降はGUI側が正となる（一方向の取り込み） */
+function applyImport(type, data){
+  if(type === 'flowchart'){
+    state.flowchart = data;
+    state.nodeCounter = nextCounter(data.nodes.map(n=>n.id), 'N');
+    state.subCounter = nextCounter(data.subgraphs.map(s=>s.id), 'SG');
+  }else{
+    state.sequence = data;
+    state.partCounter = nextCounter(data.participants.map(p=>p.id), 'P');
+  }
+  document.getElementById('diagramType').value = type;
+  switchDiagramType(type);
+}
+
+/* ============ ファイルを開く ============ */
+function extractMermaidCode(text){
+  const fenceRegex = /```mermaid\s*\n([\s\S]*?)```/g;
+  const matches = [...text.matchAll(fenceRegex)];
+  if(matches.length > 0){
+    return { code: matches[0][1].trim(), multiple: matches.length > 1 };
+  }
+  return { code: text.trim(), multiple: false };
+}
+
+function detectDiagramType(code){
+  // クラス図の関係線カラーなど、先頭に --- で囲んだ設定（フロントマター）が付くことがある
+  const body = code.trim().replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '');
+  const firstLine = (body.trim().split('\n')[0] || '').trim().toLowerCase();
+  if(firstLine.startsWith('flowchart') || firstLine.startsWith('graph')) return 'flowchart';
+  if(firstLine.startsWith('sequencediagram')) return 'sequence';
+  return null;
+}
+
+function loadCodeIntoEditor(text){
+  const { code, multiple } = extractMermaidCode(text);
+  if(!code){
+    alert('Mermaidのコードが見つかりませんでした。');
+    return;
+  }
+  const detected = detectDiagramType(code);
+  if(detected && detected !== state.diagramType){
+    document.getElementById('diagramType').value = detected;
+    switchDiagramType(detected);
+  }
+  state.manualMode = true;
+  document.getElementById('editToggle').checked = true;
+  document.getElementById('codeArea').readOnly = false;
+  state.code = code;
+  document.getElementById('codeArea').value = code;
+  renderPreview();
+  updateImportStatus();
+  flashBtn('btnOpenFile', multiple ? '読込済(複数ブロックの先頭)' : '読み込みました');
+}
+
+/* ============ 取り込みの実行とその結果表示 ============ */
+function escHtml(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function importIssuesHtml(list, cls){
+  return '<ul class="import-issues">' + list.map(it=>
+    `<li class="${cls}" data-line="${it.lineNo}"><span class="import-line">${it.lineNo}行目</span>${escHtml(it.why)}` +
+    (it.text ? `<pre>${escHtml(it.text)}</pre>` : '') + '</li>'
+  ).join('') + '</ul>';
+}
+
+/* 一覧の項目を押したら、コード欄の該当行へ飛ばす */
+document.getElementById('importBody').addEventListener('click', e=>{
+  const li = e.target.closest('.import-issues li[data-line]');
+  if(!li) return;
+  document.getElementById('importOverlay').classList.remove('open');
+  jumpToCodeLine(Number(li.dataset.line));
+});
+function showImportBlocked(rep){
+  document.getElementById('importTitle').textContent = 'GUIに取り込めませんでした';
+  document.getElementById('importBody').innerHTML =
+    '<p class="import-lead">次の記述はビルダーで表現できないため、<strong>取り込みを中止しました</strong>。' +
+    '一部だけ取り込むと、解釈できなかった記述がGUIでの編集後に消えてしまうためです。<br>' +
+    'コードは「コードを直接編集する」がONの状態で読み込んであるので、そのまま編集・プレビューできます。</p>' +
+    importIssuesHtml(rep.blocked, 'block');
+  document.getElementById('importOverlay').classList.add('open');
+}
+
+/* ============ コード欄の行番号 ============ */
+/* 取り込めなかった行の番号。エラー表示のたびに入れ替える */
+let gutterErrorLines = new Set();
+
+function refreshGutter(){
+  const ta = document.getElementById('codeArea');
+  const gutter = document.getElementById('codeGutter');
+  if(!ta || !gutter) return;
+  const count = ta.value.split('\n').length;
+  let html = '';
+  for(let i = 1; i <= count; i++){
+    html += gutterErrorLines.has(i) ? `<b class="err">${i}</b>` : `<b>${i}</b>`;
+  }
+  gutter.innerHTML = html;
+  gutter.scrollTop = ta.scrollTop;
+}
+
+/* 指定行へスクロールし、その行を選択して見つけやすくする */
+function jumpToCodeLine(lineNo){
+  const ta = document.getElementById('codeArea');
+  const lines = ta.value.split('\n');
+  if(lineNo < 1 || lineNo > lines.length) return;
+  const start = lines.slice(0, lineNo - 1).reduce((n, l)=> n + l.length + 1, 0);
+  const end = start + lines[lineNo - 1].length;
+  document.getElementById('codeDrawer').classList.remove('collapsed');
+  document.getElementById('btnCollapse').textContent = '折りたたむ ▾';
+  ta.focus();
+  ta.setSelectionRange(start, end);
+  // 選択しただけでは表示位置が動かないことがあるので、行の高さから直接寄せる
+  const lh = parseFloat(getComputedStyle(ta).lineHeight) || 20;
+  ta.scrollTop = Math.max(0, (lineNo - 1) * lh - ta.clientHeight / 2);
+  refreshGutter();
+}
+
+/* 手編集中のコードが取り込めるかを判定し、コード欄のすぐ横に出す。
+   取り込みはボタンを押して初めて実行される（打鍵のたびに勝手にGUIを置き換えない）ので、
+   「押せば載る」ことが分かる場所に手掛かりを置いておく必要がある。 */
+let lastImportCheck = null;
+let importStatusTimer;
+function scheduleImportStatus(){
+  clearTimeout(importStatusTimer);
+  importStatusTimer = setTimeout(updateImportStatus, 260);
+}
+function updateImportStatus(){
+  const status = document.getElementById('importStatus');
+  const btn = document.getElementById('btnImportInline');
+  const why = document.getElementById('btnImportWhy');
+  // GUIが正のときは、コードは常にGUIから作られているので取り込む意味がない
+  if(!state.manualMode){
+    lastImportCheck = null;
+    status.hidden = btn.hidden = why.hidden = true;
+    markImportErrorLines([]);   // 印は今のコードに対するものなので、GUIが正に戻ったら消す
+    return;
+  }
+  const result = tryImportCode(document.getElementById('codeArea').value);
+  lastImportCheck = result;
+  status.hidden = false;
+  if(result.ok){
+    status.textContent = 'このコードはGUIに取り込めます';
+    status.className = 'import-status ready';
+    btn.hidden = false;
+    why.hidden = true;
+  }else{
+    status.textContent = `GUIに取り込めない記述があります（${result.rep.blocked.length}件）`;
+    status.className = 'import-status ng';
+    btn.hidden = true;
+    why.hidden = false;
+  }
+  markImportErrorLines(result.ok ? [] : result.rep.blocked);
+}
+
+/* 取り込めなかった行を行番号側に赤で示す */
+function markImportErrorLines(blocked){
+  gutterErrorLines = new Set((blocked || []).map(b=>b.lineNo));
+  refreshGutter();
+}
+
+/* コードをビルダーへ取り込む。取り込めなければコードのみの読み込みへ倒す。
+   戻り値は取り込めたかどうか。 */
+function importOrFallback(text, flashTargetId){
+  const { code } = extractMermaidCode(text);
+  if(!code){ alert('Mermaidのコードが見つかりませんでした。'); return false; }
+  const result = tryImportCode(code);
+  if(!result.ok){
+    loadCodeIntoEditor(text);
+    showImportBlocked(result.rep);
+    return false;
+  }
+  // 取り込めるが失われるもの（コメントなど）は、黙って消さずに同意を取る
+  if(result.rep.dropped.length){
+    const list = result.rep.dropped.map(d=>`  ${d.lineNo}行目: ${d.text}`).join('\n');
+    const ok = confirm(
+      'GUIに取り込めますが、次の行は保持できないため失われます。\n\n' + list +
+      '\n\n取り込みますか？（キャンセルするとコードのみ読み込みます）'
+    );
+    if(!ok){ loadCodeIntoEditor(text); return false; }
+  }
+  applyImport(result.type, result.data);
+  if(flashTargetId) flashBtn(flashTargetId, 'GUIに取り込みました');
+  return true;
+}
+
+document.getElementById('btnLoadSample').addEventListener('click', ()=>{
+  loadSampleDiagram(state.diagramType);
+});
+document.getElementById('btnClear').addEventListener('click', ()=>{
+  clearDiagram(state.diagramType);
+});
+
+document.getElementById('btnOpenFile').addEventListener('click', ()=>{
+  document.getElementById('fileInput').click();
+});
+document.getElementById('fileInput').addEventListener('change', async e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  try{
+    const text = await file.text();
+    const result = await tryLoadProject(text);
+    if(result.matched && result.valid){
+      restoreSnapshot(result.snapshot);
+      flashBtn('btnOpenFile', 'プロジェクトを復元しました');
+    }else if(result.matched && !result.valid){
+      // 埋め込みJSONが信用できない以上、GUIへは載せない。中身のコードだけ拾う
+      loadCodeIntoEditor(text);
+      alert('プロジェクト情報のハッシュ検証に失敗したため、コードのみを読み込みました（ファイルが改変された可能性があります）。');
+    }else{
+      // 外から来たコードは、まずGUIへの取り込みを試す
+      importOrFallback(text, 'btnOpenFile');
+    }
+  }catch(err){
+    alert('ファイルの読み込みに失敗しました: ' + err.message);
+  }
+  e.target.value = '';
+});
+
+document.getElementById('btnImport').addEventListener('click', ()=>{
+  importOrFallback(document.getElementById('codeArea').value, 'btnImport');
+});
+document.getElementById('btnImportInline').addEventListener('click', ()=>{
+  importOrFallback(document.getElementById('codeArea').value, 'btnImportInline');
+});
+document.getElementById('btnImportWhy').addEventListener('click', ()=>{
+  if(lastImportCheck && !lastImportCheck.ok) showImportBlocked(lastImportCheck.rep);
+});
+document.getElementById('btnCloseImport').addEventListener('click', ()=>{
+  document.getElementById('importOverlay').classList.remove('open');
+});
+document.getElementById('importOverlay').addEventListener('click', e=>{
+  if(e.target.id === 'importOverlay'){
+    document.getElementById('importOverlay').classList.remove('open');
+  }
+});
+
+
+document.getElementById('diagramType').addEventListener('change', e=>{
+  switchDiagramType(e.target.value);
+});
+
+document.addEventListener('click', e=>{
+  const swatch = e.target.closest('.color-swatch');
+  if(!swatch) return;
+  const wrap = swatch.closest('.color-presets');
+  const input = wrap && document.getElementById(wrap.dataset.target);
+  if(input){ input.value = swatch.dataset.color; }
+});
+
+document.getElementById('themeSelect').addEventListener('change', e=>{
+  state.theme = e.target.value;
+  refreshAllColorPresets();
+  renderPreview();
+});
+
+document.getElementById('editToggle').addEventListener('change', e=>{
+  state.manualMode = e.target.checked;
+  document.getElementById('codeArea').readOnly = !state.manualMode;
+  if(!state.manualMode){ regenerateCode(); }
+  updateImportStatus();
+});
+
+document.getElementById('codeArea').addEventListener('input', e=>{
+  if(!state.manualMode) return;
+  state.code = e.target.value;
+  refreshGutter();
+  scheduleRender();
+  scheduleImportStatus();
+});
+
+// 本文をスクロールしたら行番号も同じだけ動かす
+document.getElementById('codeArea').addEventListener('scroll', ()=>{
+  document.getElementById('codeGutter').scrollTop = document.getElementById('codeArea').scrollTop;
+});
+
+document.getElementById('btnCollapse').addEventListener('click', ()=>{
+  const drawer = document.getElementById('codeDrawer');
+  drawer.classList.toggle('collapsed');
+  document.getElementById('btnCollapse').textContent = drawer.classList.contains('collapsed') ? '広げる ▴' : '折りたたむ ▾';
+});
+
+function setHeaderControlsCollapsed(collapsed){
+  const controls = document.getElementById('headerControls');
+  const btn = document.getElementById('btnToggleHeader');
+  controls.classList.toggle('collapsed', collapsed);
+  btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+  btn.textContent = collapsed ? '▽' : '△';
+}
+
+document.getElementById('btnToggleHeader').addEventListener('click', ()=>{
+  const controls = document.getElementById('headerControls');
+  setHeaderControlsCollapsed(!controls.classList.contains('collapsed'));
+});
+
+// 画面幅がボタン表示の閾値(760px)を超えて広くなったら、隠していても強制的に表示状態へ戻す
+const headerToggleBreakpoint = window.matchMedia('(max-width:760px)');
+headerToggleBreakpoint.addEventListener('change', (e)=>{
+  if(!e.matches){
+    setHeaderControlsCollapsed(false);
+  }
+});
+
+/* ---------- ビルダー/プレビューの境界ドラッグ（スマホ表示のみ） ---------- */
+(function(){
+  const resizer = document.getElementById('panelResizer');
+  const builder = document.getElementById('builderPanel');
+  const mainEl = document.querySelector('.main');
+  let dragging = false;
+  let startY = 0;
+  let startHeight = 0;
+
+  function clampHeight(px){
+    const totalH = mainEl.clientHeight;
+    const min = 120;
+    const max = Math.max(min, totalH - 160); // プレビュー側の最低限の高さを確保
+    return Math.max(min, Math.min(max, px));
+  }
+
+  resizer.addEventListener('pointerdown', (e)=>{
+    if(!headerToggleBreakpoint.matches) return;
+    dragging = true;
+    startY = e.clientY;
+    startHeight = builder.getBoundingClientRect().height;
+    resizer.classList.add('dragging');
+    resizer.setPointerCapture(e.pointerId);
+  });
+
+  resizer.addEventListener('pointermove', (e)=>{
+    if(!dragging) return;
+    const newHeight = clampHeight(startHeight + (e.clientY - startY));
+    builder.style.maxHeight = 'none';
+    builder.style.height = newHeight + 'px';
+  });
+
+  function stopDragging(){
+    dragging = false;
+    resizer.classList.remove('dragging');
+  }
+  resizer.addEventListener('pointerup', stopDragging);
+  resizer.addEventListener('pointercancel', stopDragging);
+
+  // デスクトップ幅に戻ったら、ドラッグで付けたインラインの高さ指定を解除する
+  headerToggleBreakpoint.addEventListener('change', (e)=>{
+    if(!e.matches){
+      builder.style.height = '';
+      builder.style.maxHeight = '';
+    }
+  });
+})();
+
+document.getElementById('btnCopyCode').addEventListener('click', ()=>{
+  navigator.clipboard.writeText(document.getElementById('codeArea').value).then(()=>flashBtn('btnCopyCode','コピーしました'));
+});
+document.getElementById('btnCopyMd').addEventListener('click', ()=>{
+  const md = '```mermaid\n' + document.getElementById('codeArea').value + '\n```';
+  navigator.clipboard.writeText(md).then(()=>flashBtn('btnCopyMd','コピーしました'));
+});
+document.getElementById('btnDownloadMd').addEventListener('click', ()=>{
+  const md = '```mermaid\n' + document.getElementById('codeArea').value + '\n```\n';
+  downloadBlob(md, 'diagram.md', 'text/markdown');
+});
+document.getElementById('btnDownloadSvg').addEventListener('click', ()=>{
+  const svgEl = document.querySelector('#preview svg');
+  if(!svgEl){ alert('先に図を作成してください。'); return; }
+  // クリック用に重ねている透明線は保存物に含めない
+  const clean = svgEl.cloneNode(true);
+  clean.querySelectorAll('.' + PREVIEW_HIT_CLASS).forEach(el=>el.remove());
+  const svgText = new XMLSerializer().serializeToString(clean);
+  downloadBlob('<?xml version="1.0" encoding="UTF-8"?>\n' + svgText, 'diagram.svg', 'image/svg+xml');
+});
+document.getElementById('btnDownloadHtml').addEventListener('click', async ()=>{
+  const code = document.getElementById('codeArea').value;
+  // Mermaid.js は外部ファイル参照なので、保存時に取得して本文へ埋め込む
+  let libSrc;
+  try{
+    const res = await fetch('../assets/vendor/mermaid.min.js');
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    libSrc = await res.text();
+  }catch(err){
+    alert('Mermaid.js の読み込みに失敗したため、.html を保存できませんでした。\n' + (err && err.message ? err.message : err));
+    return;
+  }
+  // 埋め込むスクリプト・図コードが外側のタグを閉じてしまわないよう無害化する
+  const safeLib = libSrc.replace(/<\/script/gi, '<\\/script');
+  const safeCode = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const html = `<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><title>Mermaid Diagram</title>
+<!-- Mermaid.js を埋め込み、外部通信なしで完結する単体ファイルにしています -->
+<script>
+${safeLib}
+</scr` + `ipt>
+</head><body>
+<pre class="mermaid">
+${safeCode}
+</pre>
+<script>mermaid.initialize({ startOnLoad: true, theme: '${state.theme}' });</scr` + `ipt>
+</body></html>`;
+  downloadBlob(html, 'diagram.html', 'text/html');
+});
+document.getElementById('btnDownloadProject').addEventListener('click', ()=>{
+  exportProjectMd();
+});
+document.getElementById('btnCredits').addEventListener('click', ()=>{
+  document.getElementById('creditsOverlay').classList.add('open');
+});
+document.getElementById('btnCloseCredits').addEventListener('click', ()=>{
+  document.getElementById('creditsOverlay').classList.remove('open');
+});
+document.getElementById('creditsOverlay').addEventListener('click', e=>{
+  if(e.target.id === 'creditsOverlay'){
+    document.getElementById('creditsOverlay').classList.remove('open');
+  }
+});
+document.getElementById('btnHelp').addEventListener('click', ()=>{
+  document.getElementById('helpOverlay').classList.add('open');
+});
+document.getElementById('btnCloseHelp').addEventListener('click', ()=>{
+  document.getElementById('helpOverlay').classList.remove('open');
+});
+document.getElementById('helpOverlay').addEventListener('click', e=>{
+  if(e.target.id === 'helpOverlay'){
+    document.getElementById('helpOverlay').classList.remove('open');
+  }
+});
+
+function flashBtn(id, text){
+  const btn = document.getElementById(id);
+  const original = btn.textContent;
+  btn.textContent = text;
+  setTimeout(()=>{ btn.textContent = original; }, 1200);
+}
+function downloadBlob(content, filename, mime){
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ============ 初期化 ============ */
+switchDiagramType('flowchart');
+</script>
+</body>
+</html>
