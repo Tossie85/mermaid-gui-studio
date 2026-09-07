@@ -2032,6 +2032,50 @@ function addEdgeHitAreas(){
   // かつメッセージ線より先に敷いて（＝下に置いて）取り合いを避ける
   if(state.diagramType === 'sequence') widen('line.loopLine', 8);
   for(const conf of pickEdgeTargetsForType(state.diagramType) || []) widen(conf.sel, 14);
+  addFrameHitAreas();
+}
+
+/* 塗りの無い枠（アーキテクチャ図のグループ）は、線の上のちょうど1pxしか
+   クリックに反応しない。中を塗って判定を作るとサービスを覆い隠してしまうので、
+   ・枠線の周りに透明な太い線
+   ・見出し（アイコンとラベル文字）の上に透明な面
+   の2つを重ねて掴めるようにする。
+   太さは vector-effect で画面基準に固定する。拡大率で割ると縮小時に細くなり、
+   結局クリックできないため。 */
+const FRAME_HIT_SELECTOR = 'rect.node-bkg';
+const FRAME_HIT_PX = 14;
+function addFrameHitAreas(){
+  const svg = document.querySelector('#preview svg');
+  if(!svg) return;
+  for(const el of svg.querySelectorAll(FRAME_HIT_SELECTOR)){
+    // 塗りがある枠は面でクリックできるので、そのままでよい
+    if(getComputedStyle(el).fill !== 'none') continue;
+
+    const hit = el.cloneNode(false);
+    hit.removeAttribute('id');
+    hit.setAttribute('class', PREVIEW_HIT_CLASS);
+    hit.setAttribute('vector-effect', 'non-scaling-stroke');
+    hit.setAttribute('style', `stroke:transparent;fill:none;stroke-width:${FRAME_HIT_PX}px;pointer-events:stroke;cursor:pointer;`);
+    hit.__hitFor = el;
+    hitLayerFor(el.parentNode).appendChild(hit);
+
+    // 見出しは枠の直後の <g>（アイコンとラベルがこの順で入る）
+    if(state.diagramType !== 'arch') continue;
+    const labelG = el.nextElementSibling;
+    if(!labelG || labelG.tagName !== 'g') continue;
+    let bb;
+    try{ bb = labelG.getBBox(); }catch(_){ continue; }
+    if(!bb || !bb.width || !bb.height) continue;
+    const labelHit = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    labelHit.setAttribute('class', PREVIEW_HIT_CLASS);
+    labelHit.setAttribute('x', bb.x);
+    labelHit.setAttribute('y', bb.y);
+    labelHit.setAttribute('width', bb.width);
+    labelHit.setAttribute('height', bb.height);
+    labelHit.setAttribute('style', 'fill:transparent;stroke:none;pointer-events:all;cursor:pointer;');
+    labelHit.__hitFor = el;
+    labelG.appendChild(labelHit);
+  }
 }
 
 /* 現在の図種で編集中のものをすべてキャンセルし、選択の強調も消す */
