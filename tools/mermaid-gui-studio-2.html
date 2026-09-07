@@ -715,7 +715,8 @@
           <span class="hint">エンティティの色も <code>style</code> で出力しているため、クラス図と同じくその形に限って取り込めます。</span></li>
         <li>アーキテクチャ図の <code>junction</code> / グループを端点にしたエッジ（<code>{group}</code>）/ Mermaid標準以外のアイコン<br>
           <span class="hint">アーキテクチャ図はMermaidに色指定の構文自体が無いため、クラス図と同じくフロントマターの <code>themeCSS</code> で色を出しています。その形（本ツールが出力したサービス・グループの色指定のみ）に限って取り込めます。</span></li>
-        <li>ガントチャートの <code>milestone</code> / <code>excludes</code> / <code>axisFormat</code> / <code>todayMarker</code> / <code>YYYY-MM-DD</code> 以外の <code>dateFormat</code> / IDを省いたタスク</li>
+        <li>ガントチャートの <code>milestone</code> / <code>excludes</code> / <code>axisFormat</code> / <code>todayMarker</code> / <code>YYYY-MM-DD</code> 以外の <code>dateFormat</code> / IDを省いたタスク<br>
+          <span class="hint">ガントもMermaidに色指定の構文が無いため、フロントマターの <code>themeCSS</code> で色を出しています。その形（本ツールが出力したタスク・セクションの色指定のみ）に限って取り込めます。</span></li>
       </ul>
       <p class="hint" style="margin-top:12px;">
         逆に、<code>A --&gt; B --&gt; C</code> の連鎖、<code>A -- ラベル --&gt; B</code> の書き方、<code>---&gt;</code> のような長さ違いの矢印、<code>graph</code> 始まりの旧表記は、意味が同じなので正規の形に直して取り込みます。コメント行（<code>%%</code>）は保持できないため、取り込む前に確認を出します。
@@ -849,7 +850,7 @@ function emptyStateDiagState(){ return { nodes:[], edges:[], composites:[], edit
 function emptyClassState(){ return { classes:[], relations:[], namespaces:[], editClassIdx:null, editRelationIdx:null, editNamespaceIdx:null }; }
 function emptyERState(){ return { entities:[], relations:[], editEntityIdx:null, editRelationIdx:null, activeEntityIdx:null, editAttrIdx:null, dbEngine:'postgresql' }; }
 function emptyArchState(){ return { groups:[], services:[], edges:[], editGroupIdx:null, editServiceIdx:null, editEdgeIdx:null }; }
-function emptyGanttState(){ return { title:'プロジェクト計画', tasks:[], editTaskIdx:null }; }
+function emptyGanttState(){ return { title:'プロジェクト計画', tasks:[], sectionColors:{}, editTaskIdx:null }; }
 
 const state = {
   diagramType: 'flowchart',
@@ -1047,13 +1048,14 @@ function sampleGanttState(){
   return Object.assign(emptyGanttState(), {
     title: 'リリース計画',
     tasks: [
-      { id:'t1', name:'要件定義', section:'企画', startType:'date',  startValue:'2026-07-01', duration:'5d',  status:'done' },
-      { id:'t2', name:'基本設計', section:'設計', startType:'after', startValue:'t1', duration:'4d',  status:'done' },
-      { id:'t3', name:'詳細設計', section:'設計', startType:'after', startValue:'t2', duration:'3d',  status:'active' },
-      { id:'t4', name:'実装',     section:'開発', startType:'after', startValue:'t3', duration:'10d', status:'' },
-      { id:'t5', name:'テスト',   section:'開発', startType:'after', startValue:'t4', duration:'5d',  status:'crit' },
-      { id:'t6', name:'リリース', section:'公開', startType:'after', startValue:'t5', duration:'1d',  status:'crit' },
+      { id:'t1', name:'要件定義', section:'企画', startType:'date',  startValue:'2026-07-01', duration:'5d',  status:'done', color:null },
+      { id:'t2', name:'基本設計', section:'設計', startType:'after', startValue:'t1', duration:'4d',  status:'done', color:null },
+      { id:'t3', name:'詳細設計', section:'設計', startType:'after', startValue:'t2', duration:'3d',  status:'active', color:null },
+      { id:'t4', name:'実装',     section:'開発', startType:'after', startValue:'t3', duration:'10d', status:'', color:'#4a90d9' },
+      { id:'t5', name:'テスト',   section:'開発', startType:'after', startValue:'t4', duration:'5d',  status:'crit', color:null },
+      { id:'t6', name:'リリース', section:'公開', startType:'after', startValue:'t5', duration:'1d',  status:'crit', color:null },
     ],
+    sectionColors: { '企画':'#E3F2FD', '公開':'#E8F5E9' },
   });
 }
 
@@ -1067,7 +1069,7 @@ const DIAGRAM_META = {
   er:        { stateKey:'erDiag',    empty:()=>Object.assign(emptyERState(), { dbEngine: state.erDiag.dbEngine }),
                sample:sampleERState, contentFields:['dbEngine','entities','relations'], resetCounters(){ state.entCounter=1; }, sampleCounters(){ state.entCounter=4; } },
   arch:      { stateKey:'archDiag',  empty:emptyArchState,      sample:sampleArchState,      contentFields:['groups','services','edges'], resetCounters(){ state.archGroupCounter=1; state.archServiceCounter=1; }, sampleCounters(){ state.archGroupCounter=2; state.archServiceCounter=6; } },
-  gantt:     { stateKey:'ganttDiag', empty:emptyGanttState,     sample:sampleGanttState,     contentFields:['title','tasks'], resetCounters(){ state.taskCounter=1; }, sampleCounters(){ state.taskCounter=7; } },
+  gantt:     { stateKey:'ganttDiag', empty:emptyGanttState,     sample:sampleGanttState,     contentFields:['title','tasks','sectionColors'], resetCounters(){ state.taskCounter=1; }, sampleCounters(){ state.taskCounter=7; } },
 };
 
 function extractDiagramContent(obj, fields){
@@ -1765,6 +1767,26 @@ function genArchCode(){
 const GANTT_DEFAULT_START = '2026-07-01';
 const GANTT_DATE_FORMAT = 'YYYY-MM-DD';
 
+/* ガントには style / classDef が無く、状態タグ（done/active/crit）以外の色を
+   指定する構文が無い。クラス図やアーキテクチャ図と同じくフロントマターの
+   themeCSS でSVGへCSSを流し込む。
+   ・タスクのバー … rect.task の id にタスクIDが入るので後方一致で狙える
+   ・セクションの帯 … 1行につき rect.section が1つ、タスクの並び順に並ぶので
+     行番号（nth-child）で狙う。同名セクションが離れて現れても全部に同じ色がかかる */
+function ganttStyleHeader(tasks, sectionColors){
+  const rules = [];
+  tasks.forEach(t=>{
+    if(t.color) rules.push(`rect.task[id$='-${t.id}']{fill:${t.color} !important;}`);
+  });
+  tasks.forEach((t,i)=>{
+    const name = t.section && t.section.trim() ? t.section.trim() : '未分類';
+    const c = sectionColors && sectionColors[name];
+    if(c) rules.push(`rect.section:nth-child(${i + 1}){fill:${c} !important;}`);
+  });
+  if(!rules.length) return '';
+  return `---\nconfig:\n  themeCSS: "${rules.join(' ').replace(/"/g,'')}"\n---\n`;
+}
+
 function genGanttCode(){
   const { title, tasks } = state.ganttDiag;
   const lines = ['gantt', `    title ${title || 'プロジェクト計画'}`, `    dateFormat  ${GANTT_DATE_FORMAT}`];
@@ -1787,7 +1809,7 @@ function genGanttCode(){
     lines.push('    section セクション');
     lines.push('    %% 左側からタスクを追加してください');
   }
-  return lines.join('\n');
+  return ganttStyleHeader(tasks, state.ganttDiag.sectionColors) + lines.join('\n');
 }
 
 function regenerateCode(){
@@ -4569,9 +4591,20 @@ function renderGanttBuilder(container){
           <select id="ganttStatus">${GANTT_STATUS.map(s=>`<option value="${s.v}">${s.label}</option>`).join('')}</select>
         </div>
       </div>
+      <label class="toggle-edit" style="margin-bottom:8px;"><input type="checkbox" id="ganttTaskColorEnable">バーの色を指定する</label>
+      <div class="row" id="ganttTaskColorRow" style="display:none;">
+        <div class="field"><label for="ganttTaskColor">バーの色</label><input type="color" id="ganttTaskColor" value="#4a90d9">${colorPresetsHtml('ganttTaskColor', 'fill')}</div>
+      </div>
+      <p class="hint" style="margin:0 0 10px;">指定しないタスクは状態（通常／進行中／完了／重要）に応じた自動色のままです。</p>
       <button class="add-row-btn" id="ganttAddTask">＋ タスクを追加</button>
       <button class="add-row-btn" id="ganttTaskCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
       <div class="item-list" id="ganttTaskList"></div>
+    </div>
+
+    <div class="card" id="ganttSectionColorCard" style="display:none;">
+      <div class="card-title">セクションの色</div>
+      <p class="hint" style="margin:0 0 10px;">セクションの帯（背景）の色です。指定しないセクションはMermaidの自動色（青／黄が交互）のままになります。</p>
+      <div class="item-list" id="ganttSectionColorList"></div>
     </div>
   `;
   container.innerHTML = '';
@@ -4584,6 +4617,9 @@ function renderGanttBuilder(container){
   });
 
   document.getElementById('ganttStartDate').value = todayISO();
+  document.getElementById('ganttTaskColorEnable').addEventListener('change', e=>{
+    document.getElementById('ganttTaskColorRow').style.display = e.target.checked ? 'flex' : 'none';
+  });
   document.getElementById('ganttStartType').addEventListener('change', e=>{
     const isAfter = e.target.value === 'after';
     document.getElementById('ganttStartDateWrap').style.display = isAfter ? 'none' : 'block';
@@ -4600,15 +4636,17 @@ function renderGanttBuilder(container){
       : document.getElementById('ganttStartDate').value;
     const duration = document.getElementById('ganttDuration').value.trim();
     const status = document.getElementById('ganttStatus').value;
+    const colorOn = document.getElementById('ganttTaskColorEnable').checked;
+    const color = colorOn ? document.getElementById('ganttTaskColor').value : null;
     // after の基準タスクが無いまま追加すると参照先の無いコードになる
     if(startType==='after' && !startValue){ alert('基準にするタスクがありません。先に日付指定のタスクを追加してください。'); return; }
 
     if(state.ganttDiag.editTaskIdx !== null){
       const idx = state.ganttDiag.editTaskIdx;
       // IDは他タスクの after から参照されているので、更新でも作り直さない
-      state.ganttDiag.tasks[idx] = { id: state.ganttDiag.tasks[idx].id, name, section, startType, startValue, duration, status };
+      state.ganttDiag.tasks[idx] = { id: state.ganttDiag.tasks[idx].id, name, section, startType, startValue, duration, status, color };
     }else{
-      state.ganttDiag.tasks.push({ id: 't' + state.taskCounter, name, section, startType, startValue, duration, status });
+      state.ganttDiag.tasks.push({ id: 't' + state.taskCounter, name, section, startType, startValue, duration, status, color });
       state.taskCounter++;
     }
     ganttResetTaskForm();
@@ -4631,6 +4669,10 @@ function ganttFillTaskForm(t){
   else document.getElementById('ganttStartDate').value = t.startValue || todayISO();
   document.getElementById('ganttDuration').value = t.duration || '';
   document.getElementById('ganttStatus').value = t.status || '';
+  const hasColor = !!t.color;
+  document.getElementById('ganttTaskColorEnable').checked = hasColor;
+  document.getElementById('ganttTaskColorRow').style.display = hasColor ? 'flex' : 'none';
+  document.getElementById('ganttTaskColor').value = t.color || '#4a90d9';
   document.getElementById('ganttAddTask').textContent = '✓ タスクを更新';
   document.getElementById('ganttTaskCancel').style.display = 'block';
   // 編集中のタスクを after の候補から外すため、選択肢を作り直す
@@ -4647,6 +4689,8 @@ function ganttResetTaskForm(){
   document.getElementById('ganttStartDate').value = todayISO();
   document.getElementById('ganttDuration').value = '';
   document.getElementById('ganttStatus').value = '';
+  document.getElementById('ganttTaskColorEnable').checked = false;
+  document.getElementById('ganttTaskColorRow').style.display = 'none';
   state.ganttDiag.editTaskIdx = null;
   document.getElementById('ganttAddTask').textContent = '＋ タスクを追加';
   document.getElementById('ganttTaskCancel').style.display = 'none';
@@ -4673,7 +4717,8 @@ function refreshGanttLists(){
       : t.startValue;
     const statusLabel = (GANTT_STATUS.find(s=>s.v===t.status)||{}).label || '';
     const badge = t.status ? `<span class="key-badge fk">${statusLabel}</span>` : '';
-    row.innerHTML = `${badge}<span class="item-text">${t.name}（${t.section||'未分類'} / ${startText} / ${t.duration||'-'}）</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+    const swatch = t.color ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${t.color};border:1px solid #999;flex-shrink:0;"></span>` : '';
+    row.innerHTML = `${badge}${swatch}<span class="item-text">${t.name}（${t.section||'未分類'} / ${startText} / ${t.duration||'-'}）</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
     row.querySelector('.edit-btn').addEventListener('click', ()=>{
       state.ganttDiag.editTaskIdx = i;
       ganttFillTaskForm(state.ganttDiag.tasks[i]);
@@ -4694,6 +4739,54 @@ function refreshGanttLists(){
   makeSortable(taskList, state.ganttDiag.tasks, ()=>{
     ganttResetTaskForm();
     refreshGanttLists(); regenerateCode();
+  });
+
+  refreshGanttSectionColors();
+}
+
+/* セクションはタスクの入力欄に書く文字列なので、実体としての一覧を持たない。
+   いまタスクが使っているセクション名を出現順に集めて、その色を編集させる。 */
+function ganttSectionNames(){
+  const names = [];
+  state.ganttDiag.tasks.forEach(t=>{
+    const n = t.section && t.section.trim() ? t.section.trim() : '未分類';
+    if(!names.includes(n)) names.push(n);
+  });
+  return names;
+}
+
+function refreshGanttSectionColors(){
+  const card = document.getElementById('ganttSectionColorCard');
+  const list = document.getElementById('ganttSectionColorList');
+  if(!card) return;
+
+  const names = ganttSectionNames();
+  card.style.display = names.length ? 'block' : 'none';
+  // 使われなくなったセクション名の色は残しても出力されないので捨てる
+  Object.keys(state.ganttDiag.sectionColors).forEach(k=>{
+    if(!names.includes(k)) delete state.ganttDiag.sectionColors[k];
+  });
+
+  list.innerHTML = '';
+  names.forEach(name=>{
+    const cur = state.ganttDiag.sectionColors[name] || '';
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    const swatch = cur ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${cur};border:1px solid #999;flex-shrink:0;"></span>` : '';
+    row.innerHTML = `${swatch}<span class="item-text">${name}</span>`
+      + `<input type="color" value="${cur || '#E3F2FD'}" aria-label="${name} の色" style="width:40px;height:24px;padding:0;border:1px solid #2A3B54;border-radius:4px;background:none;cursor:pointer;flex-shrink:0;">`
+      + `<button class="del-btn" title="色の指定を外す"${cur ? '' : ' disabled style="opacity:0.35;cursor:default;"'}>×</button>`;
+    const picker = row.querySelector('input[type=color]');
+    picker.addEventListener('input', ()=>{
+      state.ganttDiag.sectionColors[name] = picker.value;
+      refreshGanttSectionColors(); regenerateCode();
+    });
+    row.querySelector('.del-btn').addEventListener('click', ()=>{
+      if(!state.ganttDiag.sectionColors[name]) return;
+      delete state.ganttDiag.sectionColors[name];
+      refreshGanttSectionColors(); regenerateCode();
+    });
+    list.appendChild(row);
   });
 }
 
@@ -4865,6 +4958,9 @@ function restoreSnapshot(snapshot){
     state.ganttDiag = snapshot.ganttDiag;
     if(!state.ganttDiag.title) state.ganttDiag.title = 'プロジェクト計画';
     if(!Array.isArray(state.ganttDiag.tasks)) state.ganttDiag.tasks = [];
+    // 旧形式（色の追加前／MGS無印）のプロジェクトファイルとの後方互換
+    if(!state.ganttDiag.sectionColors || typeof state.ganttDiag.sectionColors !== 'object') state.ganttDiag.sectionColors = {};
+    state.ganttDiag.tasks.forEach(t=>{ if(t.color === undefined) t.color = null; });
   }
   state.archGroupCounter = snapshot.archGroupCounter || state.archGroupCounter;
   state.archServiceCounter = snapshot.archServiceCounter || state.archServiceCounter;
@@ -5696,7 +5792,7 @@ const GANTT_STATUS_VALUES = GANTT_STATUS.map(s=>s.v).filter(Boolean);
 const GANTT_TASK_RE = /^([^:]+?)\s*:\s*(.+)$/;
 const GANTT_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
-function importGantt(lines, rep){
+function importGantt(lines, rep, colors){
   const gt = emptyGanttState();
   const ids = new Set();
   const afterRefs = [];
@@ -5757,7 +5853,7 @@ function importGantt(lines, rep){
     else { blockLine(rep, lineNo, line, '開始は日付（YYYY-MM-DD）か「after タスクID」だけ解釈できます'); return; }
 
     ids.add(id);
-    gt.tasks.push({ id, name, section, startType, startValue, duration, status });
+    gt.tasks.push({ id, name, section, startType, startValue, duration, status, color:null });
   });
 
   if(!headerSeen) blockLine(rep, 1, '', 'gantt の宣言が見つかりません');
@@ -5766,6 +5862,15 @@ function importGantt(lines, rep){
   afterRefs.forEach(a=>{
     if(!ids.has(a.ref)) blockLine(rep, a.lineNo, a.line, `after の参照先「${a.ref}」が見つかりません`);
   });
+
+  // フロントマターから復元した色を割り当てる
+  if(colors){
+    colors.taskColors.forEach((c,id)=>{ const t = gt.tasks.find(x=>x.id===id); if(t) t.color = c; });
+    colors.rowColors.forEach((c,row)=>{
+      const t = gt.tasks[row - 1];
+      if(t){ const name = t.section && t.section.trim() ? t.section.trim() : '未分類'; gt.sectionColors[name] = c; }
+    });
+  }
   return gt;
 }
 
@@ -5804,6 +5909,24 @@ function parseArchColors(css){
   return { services, groups };
 }
 
+const GANTT_TASK_RULE_SRC = "rect\\.task\\[id\\$='-([A-Za-z0-9_]+)'\\]\\{fill:(#[0-9A-Fa-f]{3,8}) !important;\\}";
+const GANTT_SECTION_RULE_SRC = "rect\\.section:nth-child\\((\\d+)\\)\\{fill:(#[0-9A-Fa-f]{3,8}) !important;\\}";
+/* themeCSS からガントのタスク色・セクション帯の色を読み戻す。自分の出力以外が混ざっていたら null。
+   セクションの帯は「行番号→その行のタスク→所属セクション名」でセクション名に戻す。 */
+function parseGanttColors(css){
+  const taskColors = new Map();
+  const rowColors = new Map();
+  const a = new RegExp(GANTT_TASK_RULE_SRC, 'g');
+  const b = new RegExp(GANTT_SECTION_RULE_SRC, 'g');
+  let mm;
+  while((mm = a.exec(css))) taskColors.set(mm[1], mm[2]);
+  while((mm = b.exec(css))) rowColors.set(Number(mm[1]), mm[2]);
+  if(!taskColors.size && !rowColors.size) return null;
+  const residue = css.replace(new RegExp(GANTT_TASK_RULE_SRC, 'g'), '').replace(new RegExp(GANTT_SECTION_RULE_SRC, 'g'), '').trim();
+  if(residue) return null;
+  return { taskColors, rowColors };
+}
+
 /* 取り込みの入口。成功なら { ok:true, type, data }、失敗なら理由の一覧を rep に詰めて返す */
 function tryImportCode(rawCode){
   const rep = newImportReport();
@@ -5832,6 +5955,7 @@ function tryImportCode(rawCode){
   if(themeCss){
     if(type === 'class') colors = parseClassRelationColors(themeCss);
     else if(type === 'arch') colors = parseArchColors(themeCss);
+    else if(type === 'gantt') colors = parseGanttColors(themeCss);
     if(!colors){
       blockLine(rep, 1, '---', 'フロントマター（--- で囲む設定）はビルダーで保持できません');
       return { ok:false, rep };
