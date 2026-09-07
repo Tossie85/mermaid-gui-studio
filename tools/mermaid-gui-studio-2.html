@@ -8,17 +8,17 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/favicon-16x16.png">
 <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
-<meta name="description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図・アーキテクチャ図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
+<meta name="description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図・アーキテクチャ図・ガントチャートをGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
 <link rel="canonical" href="https://tossie85.site/tools/mermaid-gui-studio-2.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="tossie85 lab">
 <meta property="og:title" content="Mermaid GUI Studio 2">
-<meta property="og:description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図・アーキテクチャ図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
+<meta property="og:description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図・アーキテクチャ図・ガントチャートをGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
 <meta property="og:url" content="https://tossie85.site/tools/mermaid-gui-studio-2.html">
 <meta property="og:image" content="https://tossie85.site/assets/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Mermaid GUI Studio 2">
-<meta name="twitter:description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図・アーキテクチャ図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
+<meta name="twitter:description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図・アーキテクチャ図・ガントチャートをGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
 <meta name="twitter:image" content="https://tossie85.site/assets/og-default.png">
 <style>
   :root{
@@ -588,7 +588,7 @@
     <div class="brand-mark"></div>
     <div>
       <div class="brand-title">Mermaid GUI Studio 2</div>
-      <div class="brand-sub">Flowchart / Sequence / State / Class / ER / Architecture — with Import</div>
+      <div class="brand-sub">Diagram Builder<br>— with Import</div>
     </div>
   </div>
 
@@ -602,6 +602,7 @@
         <option value="class">クラス図</option>
         <option value="er">ER図</option>
         <option value="arch">アーキテクチャ図</option>
+        <option value="gantt">ガントチャート</option>
       </select>
     </div>
 
@@ -714,6 +715,7 @@
           <span class="hint">エンティティの色も <code>style</code> で出力しているため、クラス図と同じくその形に限って取り込めます。</span></li>
         <li>アーキテクチャ図の <code>junction</code> / グループを端点にしたエッジ（<code>{group}</code>）/ Mermaid標準以外のアイコン<br>
           <span class="hint">アーキテクチャ図はMermaidに色指定の構文自体が無いため、クラス図と同じくフロントマターの <code>themeCSS</code> で色を出しています。その形（本ツールが出力したサービス・グループの色指定のみ）に限って取り込めます。</span></li>
+        <li>ガントチャートの <code>milestone</code> / <code>excludes</code> / <code>axisFormat</code> / <code>todayMarker</code> / <code>YYYY-MM-DD</code> 以外の <code>dateFormat</code> / IDを省いたタスク</li>
       </ul>
       <p class="hint" style="margin-top:12px;">
         逆に、<code>A --&gt; B --&gt; C</code> の連鎖、<code>A -- ラベル --&gt; B</code> の書き方、<code>---&gt;</code> のような長さ違いの矢印、<code>graph</code> 始まりの旧表記は、意味が同じなので正規の形に直して取り込みます。コメント行（<code>%%</code>）は保持できないため、取り込む前に確認を出します。
@@ -747,7 +749,7 @@
     </div>
     <div class="modal-body">
       <h3>Mermaid GUI Studio 2</h3>
-      <p>Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図・アーキテクチャ図をGUIで組み立てられるツールです。既存のMermaidコードをGUIへ取り込む機能を備えています。ブラウザ単体で動作し、外部サーバーへの通信は行いません。</p>
+      <p>Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図・アーキテクチャ図・ガントチャートをGUIで組み立てられるツールです。既存のMermaidコードをGUIへ取り込む機能を備えています。ブラウザ単体で動作し、外部サーバーへの通信は行いません。</p>
 
       <h3>使用ライブラリ</h3>
       <div class="credit-item">
@@ -847,6 +849,7 @@ function emptyStateDiagState(){ return { nodes:[], edges:[], composites:[], edit
 function emptyClassState(){ return { classes:[], relations:[], namespaces:[], editClassIdx:null, editRelationIdx:null, editNamespaceIdx:null }; }
 function emptyERState(){ return { entities:[], relations:[], editEntityIdx:null, editRelationIdx:null, activeEntityIdx:null, editAttrIdx:null, dbEngine:'postgresql' }; }
 function emptyArchState(){ return { groups:[], services:[], edges:[], editGroupIdx:null, editServiceIdx:null, editEdgeIdx:null }; }
+function emptyGanttState(){ return { title:'プロジェクト計画', tasks:[], editTaskIdx:null }; }
 
 const state = {
   diagramType: 'flowchart',
@@ -859,6 +862,7 @@ const state = {
   classDiag: emptyClassState(),
   erDiag: emptyERState(),
   archDiag: emptyArchState(),
+  ganttDiag: emptyGanttState(),
   nodeCounter: 1,
   edgeCounter: 1,
   subCounter: 1,
@@ -871,6 +875,7 @@ const state = {
   entCounter: 1,
   archGroupCounter: 1,
   archServiceCounter: 1,
+  taskCounter: 1,
 };
 
 /* ============ サンプルデータ（「サンプルを読み込む」ボタン用） ============ */
@@ -1037,6 +1042,21 @@ function sampleArchState(){
   });
 }
 
+function sampleGanttState(){
+  // 企画〜リリースまで、状態（完了/進行中/重要）を織り交ぜた計画例
+  return Object.assign(emptyGanttState(), {
+    title: 'リリース計画',
+    tasks: [
+      { id:'t1', name:'要件定義', section:'企画', startType:'date',  startValue:'2026-07-01', duration:'5d',  status:'done' },
+      { id:'t2', name:'基本設計', section:'設計', startType:'after', startValue:'t1', duration:'4d',  status:'done' },
+      { id:'t3', name:'詳細設計', section:'設計', startType:'after', startValue:'t2', duration:'3d',  status:'active' },
+      { id:'t4', name:'実装',     section:'開発', startType:'after', startValue:'t3', duration:'10d', status:'' },
+      { id:'t5', name:'テスト',   section:'開発', startType:'after', startValue:'t4', duration:'5d',  status:'crit' },
+      { id:'t6', name:'リリース', section:'公開', startType:'after', startValue:'t5', duration:'1d',  status:'crit' },
+    ],
+  });
+}
+
 // 図の種類ごとに「stateのキー」「空/サンプルの作り方」「比較対象フィールド」「読み込み後のカウンタ初期値」をまとめる
 const DIAGRAM_META = {
   flowchart: { stateKey:'flowchart', empty:emptyFlowchartState, sample:sampleFlowchartState, contentFields:['direction','nodes','edges','subgraphs'], resetCounters(){ state.nodeCounter=1; state.subCounter=1; }, sampleCounters(){ state.nodeCounter=5; state.subCounter=3; } },
@@ -1047,6 +1067,7 @@ const DIAGRAM_META = {
   er:        { stateKey:'erDiag',    empty:()=>Object.assign(emptyERState(), { dbEngine: state.erDiag.dbEngine }),
                sample:sampleERState, contentFields:['dbEngine','entities','relations'], resetCounters(){ state.entCounter=1; }, sampleCounters(){ state.entCounter=4; } },
   arch:      { stateKey:'archDiag',  empty:emptyArchState,      sample:sampleArchState,      contentFields:['groups','services','edges'], resetCounters(){ state.archGroupCounter=1; state.archServiceCounter=1; }, sampleCounters(){ state.archGroupCounter=2; state.archServiceCounter=6; } },
+  gantt:     { stateKey:'ganttDiag', empty:emptyGanttState,     sample:sampleGanttState,     contentFields:['title','tasks'], resetCounters(){ state.taskCounter=1; }, sampleCounters(){ state.taskCounter=7; } },
 };
 
 function extractDiagramContent(obj, fields){
@@ -1163,6 +1184,20 @@ const SEQ_DIVIDERS = [
 ];
 // 区切りキーワードと対応するブロック種別（else→alt など）
 const DIV_BLOCK_TYPE = { else:'alt', and:'par', option:'critical' };
+// ガントチャートのタスクの状態
+const GANTT_STATUS = [
+  { v:'', label:'通常' },
+  { v:'active', label:'進行中' },
+  { v:'done', label:'完了' },
+  { v:'crit', label:'重要' },
+];
+/* toISOString はUTC基準なので、そのまま使うと日本時間の朝は前日になってしまう。
+   時差を引いてから切り出し、利用者の手元の「今日」を返す */
+function todayISO(){
+  const d = new Date();
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+
 // アーキテクチャ図（architecture-beta）：Mermaid本体に同梱された既定アイコンのみ使用（外部アイコンパック不要でオフライン動作）
 const ARCH_ICONS = [
   { v:'cloud', label:'クラウド' },
@@ -1293,6 +1328,7 @@ const CLASS_RELATIONS = [
    ・シーケンス図のメッセージ/ノート … ; が文の区切りになる
    ・ガントチャートのタスク名        … : 以降が日付などの指定として解釈される */
 function safeSequenceText(s){ return String(s == null ? '' : s).replace(/;/g, '；'); }
+function safeGanttName(s){ return String(s == null ? '' : s).replace(/:/g, '：'); }
 
 function quoteLabel(s){
   return '"' + String(s == null ? '' : s).replace(/"/g, '”') + '"';
@@ -1726,6 +1762,34 @@ function genArchCode(){
   return archStyleHeader(groups, services) + lines.join('\n');
 }
 
+const GANTT_DEFAULT_START = '2026-07-01';
+const GANTT_DATE_FORMAT = 'YYYY-MM-DD';
+
+function genGanttCode(){
+  const { title, tasks } = state.ganttDiag;
+  const lines = ['gantt', `    title ${title || 'プロジェクト計画'}`, `    dateFormat  ${GANTT_DATE_FORMAT}`];
+  // section はタスクの並びが変わったところで出す。同じ名前でも離れていれば別の帯になる
+  let lastSection = null;
+  tasks.forEach(t=>{
+    const sec = t.section && t.section.trim() ? t.section.trim() : '未分類';
+    if(sec !== lastSection){
+      lines.push(`    section ${sec}`);
+      lastSection = sec;
+    }
+    const args = [];
+    if(t.status) args.push(t.status);
+    args.push(t.id);
+    args.push(t.startType==='after' ? `after ${t.startValue}` : (t.startValue || GANTT_DEFAULT_START));
+    args.push(t.duration && t.duration.trim() ? t.duration.trim() : '3d');
+    lines.push(`    ${t.name} :${args.join(', ')}`);
+  });
+  if(tasks.length===0){
+    lines.push('    section セクション');
+    lines.push('    %% 左側からタスクを追加してください');
+  }
+  return lines.join('\n');
+}
+
 function regenerateCode(){
   if(state.manualMode) return;
   if(state.diagramType==='flowchart') state.code = genFlowchartCode();
@@ -1734,6 +1798,7 @@ function regenerateCode(){
   else if(state.diagramType==='class') state.code = genClassCode();
   else if(state.diagramType==='er') state.code = genERCode();
   else if(state.diagramType==='arch') state.code = genArchCode();
+  else if(state.diagramType==='gantt') state.code = genGanttCode();
   document.getElementById('codeArea').value = state.code;
   refreshGutter();
   renderPreview();
@@ -1780,7 +1845,7 @@ function scheduleRender(){
    「既知の接頭辞を外す」「末尾の連番 -N を1回だけ外す」で元IDへ一意に戻せる。
    シーケンス図だけはid属性を持たず、rect.actor の name 属性がIDになっている。 */
 /* クリック対象にする図形。CSSのカーソル指定（#preview 配下）と対で管理する */
-const PREVIEW_PICK_SELECTOR = 'g.node, g.statediagram-cluster, g.cluster, g.architecture-service, rect.node-bkg, rect.actor, g.actor-man';
+const PREVIEW_PICK_SELECTOR = 'g.node, g.statediagram-cluster, g.cluster, g.architecture-service, rect.node-bkg, rect.actor, g.actor-man, rect.task, text.taskText';
 
 /* 接頭辞は図種ごとだけでなく、同じ図種の中でも種類ごとに異なる
    （例: フローチャートのノードは flowchart、サブグラフは接頭辞なし）。 */
@@ -1805,6 +1870,13 @@ function pickTargetsForType(type){
       { prefix:'service', listId:'archServiceList', list:()=>state.archDiag.services, pick(i){ state.archDiag.editServiceIdx=i; archFillServiceForm(state.archDiag.services[i]); } },
       { prefix:'group',   listId:'archGroupList',   list:()=>state.archDiag.groups,   pick(i){ state.archDiag.editGroupIdx=i;   archFillGroupForm(state.archDiag.groups[i]); } },
     ];
+    case 'gantt': {
+      // ガントのタスクは rect.task の id がそのままタスクID（接頭辞なし）。
+      // 帯の上には文字が重なっていて、そちらは id が「タスクID-text」になる
+      const pick = i=>{ state.ganttDiag.editTaskIdx=i; ganttFillTaskForm(state.ganttDiag.tasks[i]); };
+      const base = { prefix:'', listId:'ganttTaskList', list:()=>state.ganttDiag.tasks, pick };
+      return [ base, { ...base, strip:/-text$/ } ];
+    }
     case 'sequence': return [
       { byName:true, listId:'sqPartList', list:()=>state.sequence.participants, pick(i){ state.sequence.editPartIdx=i; sqFillPartForm(state.sequence.participants[i]); } },
     ];
@@ -1857,7 +1929,10 @@ function mermaidIdFromEl(el, renderId, group){
   if(group.byName) return el.getAttribute('name');
   const head = group.prefix ? `${renderId}-${group.prefix}-` : `${renderId}-`;
   if(!el.id || !el.id.startsWith(head)) return null;
-  return el.id.slice(head.length).replace(/-\d+$/, '');
+  let id = el.id.slice(head.length);
+  // 図形と文字で id の末尾が違うことがある（ガントの帯と文字など）
+  if(group.strip) id = id.replace(group.strip, '');
+  return id.replace(/-\d+$/, '');
 }
 
 /* クリックされたエッジ要素が、配列の何番目にあたるかを返す。特定できなければ -1。 */
@@ -2087,6 +2162,7 @@ function cancelBuilderEditing(type){
     case 'class':     clsResetClassForm(); clsResetNsForm(); clsResetRelForm(); break;
     case 'er':        erResetEntForm(); erResetAttrForm(); erResetRelForm(); break;
     case 'arch':      archResetGroupForm(); archResetServiceForm(); archResetEdgeForm(); break;
+    case 'gantt':     ganttResetTaskForm(); break;
   }
   document.querySelectorAll('.item-row.picked').forEach(r=>r.classList.remove('picked'));
 }
@@ -4461,6 +4537,166 @@ function refreshArchLists(){
   });
 }
 
+/* ============ ビルダーUI: ガントチャート ============ */
+function renderGanttBuilder(container){
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <h2>ガントチャート ビルダー</h2>
+    <p class="hint">タスクをフォームで追加します。開始は日付指定、または他タスクの完了後（after）を選べます。セクションは並び順のとおりに区切られます。</p>
+
+    <div class="card">
+      <div class="card-title">タイトル</div>
+      <div class="field"><input type="text" id="ganttTitle" aria-label="タイトル" placeholder="プロジェクト計画"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">タスクを追加</div>
+      <div class="row">
+        <div class="field"><label for="ganttTaskName">タスク名</label><input type="text" id="ganttTaskName" placeholder="例: 要件定義"></div>
+        <div class="field"><label for="ganttTaskSection">セクション</label><input type="text" id="ganttTaskSection" placeholder="例: 設計"></div>
+      </div>
+      <div class="field" style="margin-bottom:8px;"><label for="ganttStartType">開始</label>
+        <select id="ganttStartType">
+          <option value="date">日付を指定</option>
+          <option value="after">他タスクの後（after）</option>
+        </select>
+      </div>
+      <div class="field" id="ganttStartDateWrap" style="margin-bottom:8px;"><label for="ganttStartDate">開始日</label><input type="date" id="ganttStartDate"></div>
+      <div class="field" id="ganttStartAfterWrap" style="margin-bottom:8px; display:none;"><label for="ganttStartAfter">基準タスク</label><select id="ganttStartAfter"></select></div>
+      <div class="row">
+        <div class="field"><label for="ganttDuration">期間</label><input type="text" id="ganttDuration" placeholder="例: 5d"></div>
+        <div class="field"><label for="ganttStatus">状態</label>
+          <select id="ganttStatus">${GANTT_STATUS.map(s=>`<option value="${s.v}">${s.label}</option>`).join('')}</select>
+        </div>
+      </div>
+      <button class="add-row-btn" id="ganttAddTask">＋ タスクを追加</button>
+      <button class="add-row-btn" id="ganttTaskCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <div class="item-list" id="ganttTaskList"></div>
+    </div>
+  `;
+  container.innerHTML = '';
+  container.appendChild(wrap);
+
+  document.getElementById('ganttTitle').value = state.ganttDiag.title;
+  document.getElementById('ganttTitle').addEventListener('input', e=>{
+    state.ganttDiag.title = e.target.value;
+    regenerateCode();
+  });
+
+  document.getElementById('ganttStartDate').value = todayISO();
+  document.getElementById('ganttStartType').addEventListener('change', e=>{
+    const isAfter = e.target.value === 'after';
+    document.getElementById('ganttStartDateWrap').style.display = isAfter ? 'none' : 'block';
+    document.getElementById('ganttStartAfterWrap').style.display = isAfter ? 'block' : 'none';
+  });
+
+  document.getElementById('ganttAddTask').addEventListener('click', ()=>{
+    // タスク名の : は「以降を日付などの指定」と読まれてしまうので全角に寄せる
+    const name = safeGanttName(document.getElementById('ganttTaskName').value.trim()) || 'タスク';
+    const section = document.getElementById('ganttTaskSection').value.trim();
+    const startType = document.getElementById('ganttStartType').value;
+    const startValue = startType==='after'
+      ? document.getElementById('ganttStartAfter').value
+      : document.getElementById('ganttStartDate').value;
+    const duration = document.getElementById('ganttDuration').value.trim();
+    const status = document.getElementById('ganttStatus').value;
+    // after の基準タスクが無いまま追加すると参照先の無いコードになる
+    if(startType==='after' && !startValue){ alert('基準にするタスクがありません。先に日付指定のタスクを追加してください。'); return; }
+
+    if(state.ganttDiag.editTaskIdx !== null){
+      const idx = state.ganttDiag.editTaskIdx;
+      // IDは他タスクの after から参照されているので、更新でも作り直さない
+      state.ganttDiag.tasks[idx] = { id: state.ganttDiag.tasks[idx].id, name, section, startType, startValue, duration, status };
+    }else{
+      state.ganttDiag.tasks.push({ id: 't' + state.taskCounter, name, section, startType, startValue, duration, status });
+      state.taskCounter++;
+    }
+    ganttResetTaskForm();
+    refreshGanttLists();
+    regenerateCode();
+  });
+  document.getElementById('ganttTaskCancel').addEventListener('click', ganttResetTaskForm);
+
+  refreshGanttLists();
+}
+
+function ganttFillTaskForm(t){
+  document.getElementById('ganttTaskName').value = t.name;
+  document.getElementById('ganttTaskSection').value = t.section || '';
+  document.getElementById('ganttStartType').value = t.startType;
+  const isAfter = t.startType === 'after';
+  document.getElementById('ganttStartDateWrap').style.display = isAfter ? 'none' : 'block';
+  document.getElementById('ganttStartAfterWrap').style.display = isAfter ? 'block' : 'none';
+  if(isAfter) document.getElementById('ganttStartAfter').value = t.startValue;
+  else document.getElementById('ganttStartDate').value = t.startValue || todayISO();
+  document.getElementById('ganttDuration').value = t.duration || '';
+  document.getElementById('ganttStatus').value = t.status || '';
+  document.getElementById('ganttAddTask').textContent = '✓ タスクを更新';
+  document.getElementById('ganttTaskCancel').style.display = 'block';
+  // 編集中のタスクを after の候補から外すため、選択肢を作り直す
+  refreshGanttLists();
+}
+function ganttResetTaskForm(){
+  const nameInput = document.getElementById('ganttTaskName');
+  if(!nameInput) return;   // 他の図種を表示中はフォームが無い
+  nameInput.value = '';
+  document.getElementById('ganttTaskSection').value = '';
+  document.getElementById('ganttStartType').value = 'date';
+  document.getElementById('ganttStartDateWrap').style.display = 'block';
+  document.getElementById('ganttStartAfterWrap').style.display = 'none';
+  document.getElementById('ganttStartDate').value = todayISO();
+  document.getElementById('ganttDuration').value = '';
+  document.getElementById('ganttStatus').value = '';
+  state.ganttDiag.editTaskIdx = null;
+  document.getElementById('ganttAddTask').textContent = '＋ タスクを追加';
+  document.getElementById('ganttTaskCancel').style.display = 'none';
+}
+
+function refreshGanttLists(){
+  const taskList = document.getElementById('ganttTaskList');
+  const afterSel = document.getElementById('ganttStartAfter');
+  if(!taskList) return;
+
+  // 自分自身は after の基準にできない
+  const editingId = state.ganttDiag.editTaskIdx !== null ? (state.ganttDiag.tasks[state.ganttDiag.editTaskIdx]||{}).id : null;
+  const prevAfter = afterSel.value;
+  const opts = state.ganttDiag.tasks.filter(t=>t.id!==editingId).map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+  afterSel.innerHTML = opts || '<option value="">（他タスクがありません）</option>';
+  afterSel.value = prevAfter;
+
+  taskList.innerHTML = state.ganttDiag.tasks.length ? '' : '<div class="empty-note">まだタスクがありません</div>';
+  state.ganttDiag.tasks.forEach((t,i)=>{
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    const startText = t.startType==='after'
+      ? `after ${(state.ganttDiag.tasks.find(x=>x.id===t.startValue)||{}).name || t.startValue}`
+      : t.startValue;
+    const statusLabel = (GANTT_STATUS.find(s=>s.v===t.status)||{}).label || '';
+    const badge = t.status ? `<span class="key-badge fk">${statusLabel}</span>` : '';
+    row.innerHTML = `${badge}<span class="item-text">${t.name}（${t.section||'未分類'} / ${startText} / ${t.duration||'-'}）</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+    row.querySelector('.edit-btn').addEventListener('click', ()=>{
+      state.ganttDiag.editTaskIdx = i;
+      ganttFillTaskForm(state.ganttDiag.tasks[i]);
+    });
+    row.querySelector('.del-btn').addEventListener('click', ()=>{
+      // 消したタスクを after で参照していたタスクは、日付指定に倒して参照切れを防ぐ
+      const removedId = state.ganttDiag.tasks[i].id;
+      state.ganttDiag.tasks.splice(i,1);
+      state.ganttDiag.tasks.forEach(t2=>{
+        if(t2.startType==='after' && t2.startValue===removedId){ t2.startType='date'; t2.startValue=todayISO(); }
+      });
+      if(state.ganttDiag.editTaskIdx===i) ganttResetTaskForm();
+      refreshGanttLists(); regenerateCode();
+    });
+    taskList.appendChild(row);
+  });
+  // 並び順がそのままセクションの区切りと表示順になるため、D&Dで入れ替えられるようにする
+  makeSortable(taskList, state.ganttDiag.tasks, ()=>{
+    ganttResetTaskForm();
+    refreshGanttLists(); regenerateCode();
+  });
+}
+
 /* 図種に対応するビルダーを描く。図種を増やすときはここだけ足せば
    switchDiagramType とプロジェクト復元の両方に反映される */
 function renderBuilderFor(type, panel){
@@ -4469,6 +4705,7 @@ function renderBuilderFor(type, panel){
   else if(type==='class') renderClassBuilder(panel);
   else if(type==='er') renderERBuilder(panel);
   else if(type==='arch') renderArchBuilder(panel);
+  else if(type==='gantt') renderGanttBuilder(panel);
   else renderFlowchartBuilder(panel);
 }
 
@@ -4510,6 +4747,7 @@ function buildStateSnapshot(){
     classDiag: state.classDiag,
     erDiag: state.erDiag,
     archDiag: state.archDiag,
+    ganttDiag: state.ganttDiag,
     nodeCounter: state.nodeCounter,
     subCounter: state.subCounter,
     partCounter: state.partCounter,
@@ -4520,6 +4758,7 @@ function buildStateSnapshot(){
     entCounter: state.entCounter,
     archGroupCounter: state.archGroupCounter,
     archServiceCounter: state.archServiceCounter,
+    taskCounter: state.taskCounter,
   }));
   // 編集中インデックスはリセットしてから保存する
   if(snap.flowchart){ snap.flowchart.editNodeIdx=null; snap.flowchart.editEdgeIdx=null; snap.flowchart.editSubIdx=null; }
@@ -4528,6 +4767,7 @@ function buildStateSnapshot(){
   if(snap.classDiag){ snap.classDiag.editClassIdx=null; snap.classDiag.editRelationIdx=null; snap.classDiag.editNamespaceIdx=null; }
   if(snap.erDiag){ snap.erDiag.editEntityIdx=null; snap.erDiag.editRelationIdx=null; snap.erDiag.activeEntityIdx=null; snap.erDiag.editAttrIdx=null; }
   if(snap.archDiag){ snap.archDiag.editGroupIdx=null; snap.archDiag.editServiceIdx=null; snap.archDiag.editEdgeIdx=null; }
+  if(snap.ganttDiag){ snap.ganttDiag.editTaskIdx=null; }
   return snap;
 }
 
@@ -4621,11 +4861,17 @@ function restoreSnapshot(snapshot){
     });
     (state.archDiag.services || []).forEach(sv=>{ if(sv.color === undefined) sv.color = null; });
   }
+  if(snapshot.ganttDiag){
+    state.ganttDiag = snapshot.ganttDiag;
+    if(!state.ganttDiag.title) state.ganttDiag.title = 'プロジェクト計画';
+    if(!Array.isArray(state.ganttDiag.tasks)) state.ganttDiag.tasks = [];
+  }
   state.archGroupCounter = snapshot.archGroupCounter || state.archGroupCounter;
   state.archServiceCounter = snapshot.archServiceCounter || state.archServiceCounter;
+  state.taskCounter = snapshot.taskCounter || state.taskCounter;
 
-  // MGS(無印)のプロジェクトファイルは他の図種も含むが、本ツールが扱えるのはこの6種のみ
-  const type = ['sequence','state','class','er','arch'].includes(snapshot.diagramType) ? snapshot.diagramType : 'flowchart';
+  // MGS(無印)のプロジェクトファイルは他の図種も含むが、本ツールが扱えるのはこの7種のみ
+  const type = ['sequence','state','class','er','arch','gantt'].includes(snapshot.diagramType) ? snapshot.diagramType : 'flowchart';
   document.getElementById('diagramType').value = type;
   state.diagramType = type;
   state.manualMode = false;
@@ -5443,6 +5689,86 @@ function importArchitecture(lines, rep, colors){
   return ar;
 }
 
+/* ガントチャート。タイトル・セクション・タスクを読む。
+   タスクは after の参照とプレビューのクリック選択にIDが要るので、
+   IDを省いた書き方（Mermaidは許す）は取り込まない。 */
+const GANTT_STATUS_VALUES = GANTT_STATUS.map(s=>s.v).filter(Boolean);
+const GANTT_TASK_RE = /^([^:]+?)\s*:\s*(.+)$/;
+const GANTT_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+function importGantt(lines, rep){
+  const gt = emptyGanttState();
+  const ids = new Set();
+  const afterRefs = [];
+  let headerSeen = false;
+  let dateFormatSeen = false;
+  let section = '';
+
+  lines.forEach((raw, i)=>{
+    const lineNo = i + 1;
+    const line = raw.trim();
+    if(!line) return;
+    if(line.startsWith('%%')){
+      if(line.startsWith('%%{')) blockLine(rep, lineNo, line, 'ディレクティブ（%%{init:…}）はビルダーで保持できません');
+      else dropLine(rep, lineNo, line, 'コメント行');
+      return;
+    }
+    if(!headerSeen){
+      if(!/^gantt$/i.test(line)){ blockLine(rep, lineNo, line, '先頭が gantt の宣言ではありません'); return; }
+      headerSeen = true;
+      return;
+    }
+    const title = /^title\s+(.+)$/i.exec(line);
+    if(title){ gt.title = title[1].trim(); return; }
+
+    const df = /^dateFormat\s+(.+)$/i.exec(line);
+    if(df){
+      if(df[1].trim() !== GANTT_DATE_FORMAT){ blockLine(rep, lineNo, line, `ビルダーが扱える dateFormat は ${GANTT_DATE_FORMAT} だけです`); return; }
+      dateFormatSeen = true;
+      return;
+    }
+    const sec = /^section\s+(.+)$/i.exec(line);
+    if(sec){ section = sec[1].trim(); return; }
+
+    if(/^(excludes|includes|axisFormat|tickInterval|todayMarker|weekday|displayMode|inclusiveEndDates|topAxis)\b/i.test(line)){
+      blockLine(rep, lineNo, line, `${line.split(/\s+/)[0]} はビルダーで保持できません`);
+      return;
+    }
+
+    const m = GANTT_TASK_RE.exec(line);
+    if(!m){ blockLine(rep, lineNo, line, '解釈できない行です'); return; }
+    const name = m[1].trim();
+    let parts = m[2].split(',').map(x=>x.trim()).filter(x=>x!=='');
+
+    if(parts.some(x=>/^milestone$/i.test(x))){ blockLine(rep, lineNo, line, 'milestone はビルダーで表現できません'); return; }
+    let status = '';
+    if(parts.length && GANTT_STATUS_VALUES.includes(parts[0])) status = parts.shift();
+    if(parts.length && GANTT_STATUS_VALUES.includes(parts[0])){ blockLine(rep, lineNo, line, '状態は1つだけ指定できます'); return; }
+    if(parts.length !== 3){ blockLine(rep, lineNo, line, 'タスクは「名前 :[状態,] ID, 開始, 期間」の形だけ解釈できます（IDの省略は不可）'); return; }
+
+    const [id, start, duration] = parts;
+    if(!IMPORT_ID_RE.test(id)){ blockLine(rep, lineNo, line, `タスクのID「${id}」に使えない文字が含まれています`); return; }
+    if(ids.has(id)){ blockLine(rep, lineNo, line, `タスクのID「${id}」が重複しています`); return; }
+
+    let startType, startValue;
+    const am = /^after\s+(\S+)$/i.exec(start);
+    if(am){ startType = 'after'; startValue = am[1]; afterRefs.push({ lineNo, line, ref: am[1] }); }
+    else if(GANTT_DATE_RE.test(start)){ startType = 'date'; startValue = start; }
+    else { blockLine(rep, lineNo, line, '開始は日付（YYYY-MM-DD）か「after タスクID」だけ解釈できます'); return; }
+
+    ids.add(id);
+    gt.tasks.push({ id, name, section, startType, startValue, duration, status });
+  });
+
+  if(!headerSeen) blockLine(rep, 1, '', 'gantt の宣言が見つかりません');
+  else if(!dateFormatSeen) blockLine(rep, 1, '', `dateFormat ${GANTT_DATE_FORMAT} の指定が見つかりません`);
+  // after の参照先は前後どちらに書かれていてもよいので、全部読んでから確かめる
+  afterRefs.forEach(a=>{
+    if(!ids.has(a.ref)) blockLine(rep, a.lineNo, a.line, `after の参照先「${a.ref}」が見つかりません`);
+  });
+  return gt;
+}
+
 /* このツールが出力したクラス図のフロントマター（関係線の色）だけを読み戻す。
    themeCSS に自分の出力以外が混ざっていたら、保持できないので取り込まない。 */
 function parseThemeCssHeader(code){
@@ -5497,9 +5823,9 @@ function tryImportCode(rawCode){
     code = '\n'.repeat(header.headerLines) + header.body;
   }
   const type = detectDiagramType(code);
-  const importers = { flowchart:importFlowchart, sequence:importSequence, state:importStateDiagram, class:importClassDiagram, er:importERDiagram, arch:importArchitecture };
+  const importers = { flowchart:importFlowchart, sequence:importSequence, state:importStateDiagram, class:importClassDiagram, er:importERDiagram, arch:importArchitecture, gantt:importGantt };
   if(!importers[type]){
-    blockLine(rep, 1, code.split('\n')[0], 'このツールが取り込めるのは flowchart / graph、sequenceDiagram、stateDiagram、classDiagram、erDiagram、architecture-beta だけです');
+    blockLine(rep, 1, code.split('\n')[0], 'このツールが取り込めるのは flowchart / graph、sequenceDiagram、stateDiagram、classDiagram、erDiagram、architecture-beta、gantt だけです');
     return { ok:false, rep };
   }
   let colors = null;
@@ -5548,6 +5874,9 @@ function applyImport(type, data){
     state.archDiag = data;
     state.archGroupCounter = nextCounter(data.groups.map(g=>g.id), 'g');
     state.archServiceCounter = nextCounter(data.services.map(sv=>sv.id), 's');
+  }else if(type === 'gantt'){
+    state.ganttDiag = data;
+    state.taskCounter = nextCounter(data.tasks.map(t=>t.id), 't');
   }else{
     state.sequence = data;
     state.partCounter = nextCounter(data.participants.map(p=>p.id), 'P');
@@ -5576,6 +5905,7 @@ function detectDiagramType(code){
   if(firstLine.startsWith('classdiagram')) return 'class';
   if(firstLine.startsWith('erdiagram')) return 'er';
   if(firstLine.startsWith('architecture-beta')) return 'arch';
+  if(firstLine.startsWith('gantt')) return 'gantt';
   return null;
 }
 
