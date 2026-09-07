@@ -1331,6 +1331,9 @@ function classDeclLines(c, indent){
 
 function genClassCode(){
   const { classes, relations, namespaces } = state.classDiag;
+  // クラス図はMermaidが中身の無い図を受け付けず、コメントだけ／宣言だけでもパースエラーになる。
+  // 他の図種のような案内コメントは出せないので、空のうちは何も出力しない（プレビューは待機表示のまま）
+  if(classes.length===0 && relations.length===0) return '';
   const lines = ['classDiagram'];
 
   const membersByNs = new Map();
@@ -1360,9 +1363,6 @@ function genClassCode(){
     lines.push(`    ${r.from} ${r.type} ${r.to}${labelPart}`);
   });
 
-  if(classes.length===0 && relations.length===0){
-    lines.push('    %% 左側の「クラスを追加」からブロックを組み立ててください');
-  }
   return classRelationStyleHeader(relations) + lines.join('\n');
 }
 
