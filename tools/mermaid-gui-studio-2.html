@@ -936,15 +936,16 @@ function sampleStateDiagState(){
 }
 
 function sampleClassState(){
-  // 継承2系統＋関連。動物側だけを名前空間でまとめ、名前空間の有無が混在する例にしている
+  // 継承2系統＋関連。動物側だけを名前空間でまとめ、名前空間の有無が混在する例にしている。
+  // 色は全クラスに付ける（一部だけ色付きにすると、色を変えられないクラスがあるように見えるため）
   return Object.assign(emptyClassState(), {
     namespaces: [
       { id:'Animals', label:'Animals' },
     ],
     classes: [
       { id:'Animal', namespaceId:'Animals', members:'+String name\n+int age\n+makeSound()', fill:'#BBDEFB', stroke:'#1565C0' },
-      { id:'Dog',    namespaceId:'Animals', members:'+fetch()',   fill:null, stroke:null },
-      { id:'Cat',    namespaceId:'Animals', members:'+scratch()', fill:null, stroke:null },
+      { id:'Dog',    namespaceId:'Animals', members:'+fetch()',   fill:'#FFE0B2', stroke:'#EF6C00' },
+      { id:'Cat',    namespaceId:'Animals', members:'+scratch()', fill:'#E1BEE7', stroke:'#6A1B9A' },
       { id:'Owner',  namespaceId:null,      members:'+String name\n+feed()', fill:'#C8E6C9', stroke:'#2E7D32' },
     ],
     relations: [
