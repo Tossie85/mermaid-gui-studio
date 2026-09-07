@@ -8,17 +8,17 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/favicon-16x16.png">
 <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
-<meta name="description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
+<meta name="description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図・アーキテクチャ図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
 <link rel="canonical" href="https://tossie85.site/tools/mermaid-gui-studio-2.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="tossie85 lab">
 <meta property="og:title" content="Mermaid GUI Studio 2">
-<meta property="og:description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
+<meta property="og:description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図・アーキテクチャ図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
 <meta property="og:url" content="https://tossie85.site/tools/mermaid-gui-studio-2.html">
 <meta property="og:image" content="https://tossie85.site/assets/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Mermaid GUI Studio 2">
-<meta name="twitter:description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
+<meta name="twitter:description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図・アーキテクチャ図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
 <meta name="twitter:image" content="https://tossie85.site/assets/og-default.png">
 <style>
   :root{
@@ -588,7 +588,7 @@
     <div class="brand-mark"></div>
     <div>
       <div class="brand-title">Mermaid GUI Studio 2</div>
-      <div class="brand-sub">Flowchart / Sequence / State / Class / ER — with Import</div>
+      <div class="brand-sub">Flowchart / Sequence / State / Class / ER / Architecture — with Import</div>
     </div>
   </div>
 
@@ -601,6 +601,7 @@
         <option value="state">状態遷移図</option>
         <option value="class">クラス図</option>
         <option value="er">ER図</option>
+        <option value="arch">アーキテクチャ図</option>
       </select>
     </div>
 
@@ -711,6 +712,7 @@
           <span class="hint"><code>style</code> だけは、本ツールがクラスの色を出力する形（1つのクラスに塗りと枠線のみ）に限って取り込めます。</span></li>
         <li>ER図の <code>direction</code> / エンティティの別名（<code>A["表示名"]</code>）/ <code>UK</code> のキー指定 / 破線（<code>..</code>）の非依存リレーション<br>
           <span class="hint">エンティティの色も <code>style</code> で出力しているため、クラス図と同じくその形に限って取り込めます。</span></li>
+        <li>アーキテクチャ図の <code>junction</code> / グループを端点にしたエッジ（<code>{group}</code>）/ Mermaid標準以外のアイコン</li>
       </ul>
       <p class="hint" style="margin-top:12px;">
         逆に、<code>A --&gt; B --&gt; C</code> の連鎖、<code>A -- ラベル --&gt; B</code> の書き方、<code>---&gt;</code> のような長さ違いの矢印、<code>graph</code> 始まりの旧表記は、意味が同じなので正規の形に直して取り込みます。コメント行（<code>%%</code>）は保持できないため、取り込む前に確認を出します。
@@ -744,7 +746,7 @@
     </div>
     <div class="modal-body">
       <h3>Mermaid GUI Studio 2</h3>
-      <p>Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図をGUIで組み立てられるツールです。既存のMermaidコードをGUIへ取り込む機能を備えています。ブラウザ単体で動作し、外部サーバーへの通信は行いません。</p>
+      <p>Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図・アーキテクチャ図をGUIで組み立てられるツールです。既存のMermaidコードをGUIへ取り込む機能を備えています。ブラウザ単体で動作し、外部サーバーへの通信は行いません。</p>
 
       <h3>使用ライブラリ</h3>
       <div class="credit-item">
@@ -843,6 +845,7 @@ function emptySequenceState(){ return { participants:[], messages:[], editPartId
 function emptyStateDiagState(){ return { nodes:[], edges:[], composites:[], editNodeIdx:null, editEdgeIdx:null, editCompositeIdx:null }; }
 function emptyClassState(){ return { classes:[], relations:[], namespaces:[], editClassIdx:null, editRelationIdx:null, editNamespaceIdx:null }; }
 function emptyERState(){ return { entities:[], relations:[], editEntityIdx:null, editRelationIdx:null, activeEntityIdx:null, editAttrIdx:null, dbEngine:'postgresql' }; }
+function emptyArchState(){ return { groups:[], services:[], edges:[], editGroupIdx:null, editServiceIdx:null, editEdgeIdx:null }; }
 
 const state = {
   diagramType: 'flowchart',
@@ -854,6 +857,7 @@ const state = {
   stateDiag: emptyStateDiagState(),
   classDiag: emptyClassState(),
   erDiag: emptyERState(),
+  archDiag: emptyArchState(),
   nodeCounter: 1,
   edgeCounter: 1,
   subCounter: 1,
@@ -864,6 +868,8 @@ const state = {
   clsCounter: 1,
   nsCounter: 1,
   entCounter: 1,
+  archGroupCounter: 1,
+  archServiceCounter: 1,
 };
 
 /* ============ サンプルデータ（「サンプルを読み込む」ボタン用） ============ */
@@ -1008,6 +1014,28 @@ function sampleERState(){
   });
 }
 
+function sampleArchState(){
+  // ゲートウェイ経由でクラウド基盤上のWeb/API/DB/ストレージにつながる構成例
+  return Object.assign(emptyArchState(), {
+    groups: [
+      { id:'cloud', title:'クラウド基盤', icon:'cloud', parentId:null },
+    ],
+    services: [
+      { id:'gateway', title:'ゲートウェイ', icon:'internet', groupId:null },
+      { id:'web', title:'Webサーバー', icon:'server', groupId:'cloud' },
+      { id:'api', title:'APIサーバー', icon:'server', groupId:'cloud' },
+      { id:'db', title:'データベース', icon:'database', groupId:'cloud' },
+      { id:'storage', title:'ストレージ', icon:'disk', groupId:'cloud' },
+    ],
+    edges: [
+      { from:'gateway', fromSide:'B', to:'web', toSide:'T', arrow:'-->' },
+      { from:'web', fromSide:'B', to:'api', toSide:'T', arrow:'-->' },
+      { from:'api', fromSide:'R', to:'db', toSide:'L', arrow:'-->' },
+      { from:'api', fromSide:'B', to:'storage', toSide:'T', arrow:'--' },
+    ],
+  });
+}
+
 // 図の種類ごとに「stateのキー」「空/サンプルの作り方」「比較対象フィールド」「読み込み後のカウンタ初期値」をまとめる
 const DIAGRAM_META = {
   flowchart: { stateKey:'flowchart', empty:emptyFlowchartState, sample:sampleFlowchartState, contentFields:['direction','nodes','edges','subgraphs'], resetCounters(){ state.nodeCounter=1; state.subCounter=1; }, sampleCounters(){ state.nodeCounter=5; state.subCounter=3; } },
@@ -1017,6 +1045,7 @@ const DIAGRAM_META = {
   // DB種類は図の内容ではなく設定なので、クリアやサンプル読み込みでは選択中のものを引き継ぐ
   er:        { stateKey:'erDiag',    empty:()=>Object.assign(emptyERState(), { dbEngine: state.erDiag.dbEngine }),
                sample:sampleERState, contentFields:['dbEngine','entities','relations'], resetCounters(){ state.entCounter=1; }, sampleCounters(){ state.entCounter=4; } },
+  arch:      { stateKey:'archDiag',  empty:emptyArchState,      sample:sampleArchState,      contentFields:['groups','services','edges'], resetCounters(){ state.archGroupCounter=1; state.archServiceCounter=1; }, sampleCounters(){ state.archGroupCounter=2; state.archServiceCounter=6; } },
 };
 
 function extractDiagramContent(obj, fields){
@@ -1133,6 +1162,34 @@ const SEQ_DIVIDERS = [
 ];
 // 区切りキーワードと対応するブロック種別（else→alt など）
 const DIV_BLOCK_TYPE = { else:'alt', and:'par', option:'critical' };
+// アーキテクチャ図（architecture-beta）：Mermaid本体に同梱された既定アイコンのみ使用（外部アイコンパック不要でオフライン動作）
+const ARCH_ICONS = [
+  { v:'cloud', label:'クラウド' },
+  { v:'database', label:'データベース' },
+  { v:'disk', label:'ディスク' },
+  { v:'internet', label:'インターネット' },
+  { v:'server', label:'サーバー' },
+];
+const ARCH_SIDES = [
+  { v:'T', label:'上' },
+  { v:'B', label:'下' },
+  { v:'L', label:'左' },
+  { v:'R', label:'右' },
+];
+const ARCH_ARROWS = [
+  { v:'--',   label:'線（矢印なし）' },
+  { v:'-->',  label:'矢印 →（from → to）' },
+  { v:'<--',  label:'矢印 ←（to → from）' },
+  { v:'<-->', label:'両矢印 ↔' },
+];
+/* architecture-beta のIDはハイフンも使えないため、英数字とアンダースコアだけに寄せる */
+function sanitizeArchId(raw, prefix){
+  let id = String(raw || '').replace(/[^A-Za-z0-9_]/g, '_');
+  if(!id) id = prefix + '1';
+  if(/^[0-9]/.test(id)) id = prefix + id;
+  return id;
+}
+
 // ER図のリレーション（カーディナリティ）
 const ER_RELATIONS = [
   { v:'||--||', label:'1 対 1（必須ー必須）' },
@@ -1603,6 +1660,46 @@ function genERCode(){
   return lines.join('\n');
 }
 
+function genArchCode(){
+  const { groups, services, edges } = state.archDiag;
+  const lines = ['architecture-beta'];
+  // architecture-beta のラベルは [ ] 内をそのまま書くと日本語・空白・記号でLexerエラーになる。
+  // ダブルクオートで囲むと通るため、内部の " は除去したうえで常にクオートする。
+  const q = t => `"${String(t == null ? '' : t).replace(/"/g, '')}"`;
+  const groupLine = g => `    group ${g.id}(${g.icon})[${q(g.title)}]${g.parentId ? ` in ${g.parentId}` : ''}`;
+
+  // グループは親を先に宣言する必要があるため、親が出力済みのものから順に並べ替える
+  const emitted = new Set();
+  const remaining = groups.slice();
+  let guard = remaining.length + 1;
+  while(remaining.length && guard-- > 0){
+    for(let i=0; i<remaining.length; i++){
+      const g = remaining[i];
+      if(!g.parentId || emitted.has(g.parentId)){
+        lines.push(groupLine(g));
+        emitted.add(g.id);
+        remaining.splice(i,1);
+        i--;
+      }
+    }
+  }
+  // 親が見つからない（循環・欠落）グループは末尾にそのまま出力
+  remaining.forEach(g=>{ lines.push(groupLine(g)); });
+
+  services.forEach(s=>{
+    lines.push(`    service ${s.id}(${s.icon})[${q(s.title)}]${s.groupId ? ` in ${s.groupId}` : ''}`);
+  });
+
+  edges.forEach(e=>{
+    lines.push(`    ${e.from}:${e.fromSide} ${e.arrow} ${e.toSide}:${e.to}`);
+  });
+
+  if(groups.length===0 && services.length===0){
+    lines.push('    %% 左側からグループとサービスを追加してください');
+  }
+  return lines.join('\n');
+}
+
 function regenerateCode(){
   if(state.manualMode) return;
   if(state.diagramType==='flowchart') state.code = genFlowchartCode();
@@ -1610,6 +1707,7 @@ function regenerateCode(){
   else if(state.diagramType==='state') state.code = genStateCode();
   else if(state.diagramType==='class') state.code = genClassCode();
   else if(state.diagramType==='er') state.code = genERCode();
+  else if(state.diagramType==='arch') state.code = genArchCode();
   document.getElementById('codeArea').value = state.code;
   refreshGutter();
   renderPreview();
@@ -1656,7 +1754,7 @@ function scheduleRender(){
    「既知の接頭辞を外す」「末尾の連番 -N を1回だけ外す」で元IDへ一意に戻せる。
    シーケンス図だけはid属性を持たず、rect.actor の name 属性がIDになっている。 */
 /* クリック対象にする図形。CSSのカーソル指定（#preview 配下）と対で管理する */
-const PREVIEW_PICK_SELECTOR = 'g.node, g.statediagram-cluster, g.cluster, rect.node-bkg, rect.actor, g.actor-man';
+const PREVIEW_PICK_SELECTOR = 'g.node, g.statediagram-cluster, g.cluster, g.architecture-service, rect.node-bkg, rect.actor, g.actor-man';
 
 /* 接頭辞は図種ごとだけでなく、同じ図種の中でも種類ごとに異なる
    （例: フローチャートのノードは flowchart、サブグラフは接頭辞なし）。 */
@@ -1676,6 +1774,10 @@ function pickTargetsForType(type){
     ];
     case 'er': return [
       { prefix:'entity', listId:'erEntList', list:()=>state.erDiag.entities, pick(i){ state.erDiag.editEntityIdx=i; erFillEntForm(state.erDiag.entities[i]); } },
+    ];
+    case 'arch': return [
+      { prefix:'service', listId:'archServiceList', list:()=>state.archDiag.services, pick(i){ state.archDiag.editServiceIdx=i; archFillServiceForm(state.archDiag.services[i]); } },
+      { prefix:'group',   listId:'archGroupList',   list:()=>state.archDiag.groups,   pick(i){ state.archDiag.editGroupIdx=i;   archFillGroupForm(state.archDiag.groups[i]); } },
     ];
     case 'sequence': return [
       { byName:true, listId:'sqPartList', list:()=>state.sequence.participants, pick(i){ state.sequence.editPartIdx=i; sqFillPartForm(state.sequence.participants[i]); } },
@@ -1704,6 +1806,10 @@ function pickEdgeTargetsForType(type){
     case 'er': return [
       { sel:'path.relationshipLine', listId:'erRelList', list:()=>state.erDiag.relations,
         pick(i){ state.erDiag.editRelationIdx=i; erFillRelForm(state.erDiag.relations[i]); } },
+    ];
+    case 'arch': return [
+      { sel:'path.edge', listId:'archEdgeList', list:()=>state.archDiag.edges,
+        pick(i){ state.archDiag.editEdgeIdx=i; archFillEdgeForm(state.archDiag.edges[i]); } },
     ];
     case 'sequence': {
       // メッセージ一覧にはノートやブロックも混ざるので、矢印として描かれる要素だけを対応づける
@@ -1910,6 +2016,7 @@ function cancelBuilderEditing(type){
     case 'state':     stResetNodeForm(); stResetCompForm(); stResetEdgeForm(); break;
     case 'class':     clsResetClassForm(); clsResetNsForm(); clsResetRelForm(); break;
     case 'er':        erResetEntForm(); erResetAttrForm(); erResetRelForm(); break;
+    case 'arch':      archResetGroupForm(); archResetServiceForm(); archResetEdgeForm(); break;
   }
   document.querySelectorAll('.item-row.picked').forEach(r=>r.classList.remove('picked'));
 }
@@ -2664,6 +2771,7 @@ const groupCollapse = {
   fcNode:new Set(), fcEdge:new Set(),
   stNode:new Set(), stEdge:new Set(),
   clsClass:new Set(), clsRel:new Set(),
+  archService:new Set(), archEdge:new Set(),
 };
 const GROUP_UNGROUPED = ' ungrouped';
 function setSectionCollapsed(sec, isCollapsed){
@@ -2715,8 +2823,10 @@ function renderGroupedList(listEl, items, keyOf, groups, collapsed, rowFactory, 
   order.forEach(key=>{
     const entries = buckets.get(key);
     const g = key===GROUP_UNGROUPED ? null : groupById.get(key);
+    // グループの表示名はフローチャート/状態遷移図が label、アーキテクチャ図が title に持つ。
     // 表示名を持たないグループ（クラス図の namespace など）は、同じ名前を二度出さない
-    const label = g ? (g.label && g.label !== g.id ? `${g.id}: ${g.label}` : g.id) : ungroupedLabel;
+    const gname = g && (g.label || g.title);
+    const label = g ? (gname && gname !== g.id ? `${g.id}: ${gname}` : g.id) : ungroupedLabel;
     const isCol = collapsed.has(key);
     const sec = document.createElement('div');
     sec.className = 'group-sec' + (isCol ? ' collapsed' : '');
@@ -3911,6 +4021,327 @@ function refreshERLists(){
   });
 }
 
+/* ============ ビルダーUI: アーキテクチャ図 ============ */
+function renderArchBuilder(container){
+  const iconOpts = ARCH_ICONS.map(ic=>`<option value="${ic.v}">${ic.label}</option>`).join('');
+  const sideOpts = ARCH_SIDES.map(s=>`<option value="${s.v}">${s.label}</option>`).join('');
+  const arrowOpts = ARCH_ARROWS.map(a=>`<option value="${a.v}">${a.label}</option>`).join('');
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <h2>アーキテクチャ図 ビルダー</h2>
+    <p class="hint">グループ・サービス・エッジを組み立てます。アイコンはMermaid標準の5種のみ（外部アイコンパック不要でオフライン動作）。</p>
+
+    <div class="card">
+      <div class="card-title">グループを追加</div>
+      <p class="hint" style="margin:0 0 10px;">サービスをまとめる枠です。別グループの中に入れ子にもできます。</p>
+      <div class="row">
+        <div class="field"><label for="archGroupId">ID</label><input type="text" id="archGroupId" placeholder="例: cloud"></div>
+        <div class="field"><label for="archGroupIcon">アイコン</label><select id="archGroupIcon">${iconOpts}</select></div>
+      </div>
+      <div class="field" style="margin-bottom:8px;"><label for="archGroupTitle">ラベル文字</label><input type="text" id="archGroupTitle" placeholder="例: クラウド基盤"></div>
+      <div class="field" style="margin-bottom:8px;"><label for="archGroupParent">親グループ（入れ子にする場合）</label>
+        <select id="archGroupParent"><option value="">（なし）</option></select>
+      </div>
+      <button class="add-row-btn" id="archAddGroup">＋ グループを追加</button>
+      <button class="add-row-btn" id="archGroupCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <div class="item-list" id="archGroupList"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">サービスを追加</div>
+      <div class="row">
+        <div class="field"><label for="archServiceId">ID</label><input type="text" id="archServiceId" placeholder="例: db"></div>
+        <div class="field"><label for="archServiceIcon">アイコン</label><select id="archServiceIcon">${iconOpts}</select></div>
+      </div>
+      <div class="field" style="margin-bottom:8px;"><label for="archServiceTitle">ラベル文字</label><input type="text" id="archServiceTitle" placeholder="例: データベース"></div>
+      <div class="field" style="margin-bottom:8px;"><label for="archServiceGroup">所属グループ</label>
+        <select id="archServiceGroup"><option value="">（なし）</option></select>
+      </div>
+      <button class="add-row-btn" id="archAddService">＋ サービスを追加</button>
+      <button class="add-row-btn" id="archServiceCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <div class="item-list" id="archServiceList"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">エッジ（接続）を追加</div>
+      <p class="hint" style="margin:0 0 10px;">サービス同士を結びます。各端の接続位置（上下左右）を指定できます。</p>
+      <div class="row">
+        <div class="field"><label for="archEdgeFrom">from サービス</label><select id="archEdgeFrom"></select></div>
+        <div class="field"><label for="archEdgeFromSide">from 接続位置</label><select id="archEdgeFromSide">${sideOpts}</select></div>
+      </div>
+      <div class="row">
+        <div class="field"><label for="archEdgeTo">to サービス</label><select id="archEdgeTo"></select></div>
+        <div class="field"><label for="archEdgeToSide">to 接続位置</label><select id="archEdgeToSide">${sideOpts}</select></div>
+      </div>
+      <div class="field" style="margin-bottom:8px;"><label for="archEdgeArrow">矢印種別</label>
+        <select id="archEdgeArrow">${arrowOpts}</select>
+      </div>
+      <button class="add-row-btn" id="archAddEdge">＋ エッジを追加</button>
+      <button class="add-row-btn" id="archEdgeCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <div class="item-list" id="archEdgeList"></div>
+    </div>
+  `;
+  container.innerHTML = '';
+  container.appendChild(wrap);
+
+  document.getElementById('archAddGroup').addEventListener('click', ()=>{
+    const id = sanitizeArchId(document.getElementById('archGroupId').value.trim() || ('g' + state.archGroupCounter), 'g');
+    // グループとサービスは同じ名前空間（エッジや所属先から同じIDで参照される）
+    if(!checkDuplicateId(id, [...state.archDiag.groups, ...state.archDiag.services].map(x=>x.id),
+        state.archDiag.editGroupIdx !== null ? state.archDiag.groups[state.archDiag.editGroupIdx].id : null)) return;
+    const title = document.getElementById('archGroupTitle').value.trim() || id;
+    const icon = document.getElementById('archGroupIcon').value;
+    let parentId = document.getElementById('archGroupParent').value || null;
+    if(parentId === id) parentId = null; // 自分自身を親にはできない
+
+    if(state.archDiag.editGroupIdx !== null){
+      const idx = state.archDiag.editGroupIdx;
+      const oldId = state.archDiag.groups[idx].id;
+      if(oldId !== id){
+        state.archDiag.services.forEach(s=>{ if(s.groupId===oldId) s.groupId = id; });
+        state.archDiag.groups.forEach(g=>{ if(g.parentId===oldId) g.parentId = id; });
+      }
+      state.archDiag.groups[idx] = { id, title, icon, parentId };
+    }else{
+      state.archDiag.groups.push({ id, title, icon, parentId });
+      state.archGroupCounter++;
+    }
+    archResetGroupForm();
+    refreshArchLists();
+    regenerateCode();
+  });
+  document.getElementById('archGroupCancel').addEventListener('click', archResetGroupForm);
+
+  document.getElementById('archAddService').addEventListener('click', ()=>{
+    const id = sanitizeArchId(document.getElementById('archServiceId').value.trim() || ('s' + state.archServiceCounter), 's');
+    if(!checkDuplicateId(id, [...state.archDiag.groups, ...state.archDiag.services].map(x=>x.id),
+        state.archDiag.editServiceIdx !== null ? state.archDiag.services[state.archDiag.editServiceIdx].id : null)) return;
+    const title = document.getElementById('archServiceTitle').value.trim() || id;
+    const icon = document.getElementById('archServiceIcon').value;
+    const groupId = document.getElementById('archServiceGroup').value || null;
+
+    if(state.archDiag.editServiceIdx !== null){
+      const idx = state.archDiag.editServiceIdx;
+      const oldId = state.archDiag.services[idx].id;
+      if(oldId !== id){
+        state.archDiag.edges.forEach(e=>{
+          if(e.from===oldId) e.from = id;
+          if(e.to===oldId) e.to = id;
+        });
+      }
+      state.archDiag.services[idx] = { id, title, icon, groupId };
+    }else{
+      state.archDiag.services.push({ id, title, icon, groupId });
+      state.archServiceCounter++;
+    }
+    archResetServiceForm();
+    refreshArchLists();
+    regenerateCode();
+  });
+  document.getElementById('archServiceCancel').addEventListener('click', archResetServiceForm);
+
+  document.getElementById('archAddEdge').addEventListener('click', ()=>{
+    const from = document.getElementById('archEdgeFrom').value;
+    const to = document.getElementById('archEdgeTo').value;
+    const fromSide = document.getElementById('archEdgeFromSide').value;
+    const toSide = document.getElementById('archEdgeToSide').value;
+    const arrow = document.getElementById('archEdgeArrow').value;
+    if(!from || !to) return;
+
+    if(state.archDiag.editEdgeIdx !== null){
+      state.archDiag.edges[state.archDiag.editEdgeIdx] = { from, fromSide, to, toSide, arrow };
+    }else{
+      state.archDiag.edges.push({ from, fromSide, to, toSide, arrow });
+    }
+    archResetEdgeForm();
+    refreshArchLists();
+    regenerateCode();
+  });
+  document.getElementById('archEdgeCancel').addEventListener('click', archResetEdgeForm);
+
+  refreshArchLists();
+}
+
+function archFillGroupForm(g){
+  document.getElementById('archGroupId').value = g.id;
+  document.getElementById('archGroupTitle').value = g.title;
+  document.getElementById('archGroupIcon').value = g.icon;
+  refreshArchGroupSelects();
+  document.getElementById('archGroupParent').value = g.parentId || '';
+  document.getElementById('archAddGroup').textContent = '✓ グループを更新';
+  document.getElementById('archGroupCancel').style.display = 'block';
+}
+function archResetGroupForm(){
+  const idInput = document.getElementById('archGroupId');
+  if(!idInput) return;   // 他の図種を表示中はフォームが無い
+  idInput.value = '';
+  document.getElementById('archGroupTitle').value = '';
+  document.getElementById('archGroupIcon').value = ARCH_ICONS[0].v;
+  state.archDiag.editGroupIdx = null;
+  refreshArchGroupSelects();
+  document.getElementById('archGroupParent').value = '';
+  document.getElementById('archAddGroup').textContent = '＋ グループを追加';
+  document.getElementById('archGroupCancel').style.display = 'none';
+}
+function archFillServiceForm(s){
+  document.getElementById('archServiceId').value = s.id;
+  document.getElementById('archServiceTitle').value = s.title;
+  document.getElementById('archServiceIcon').value = s.icon;
+  document.getElementById('archServiceGroup').value = s.groupId || '';
+  document.getElementById('archAddService').textContent = '✓ サービスを更新';
+  document.getElementById('archServiceCancel').style.display = 'block';
+}
+function archResetServiceForm(){
+  const idInput = document.getElementById('archServiceId');
+  if(!idInput) return;
+  idInput.value = '';
+  document.getElementById('archServiceTitle').value = '';
+  document.getElementById('archServiceIcon').value = ARCH_ICONS[0].v;
+  document.getElementById('archServiceGroup').value = '';
+  state.archDiag.editServiceIdx = null;
+  document.getElementById('archAddService').textContent = '＋ サービスを追加';
+  document.getElementById('archServiceCancel').style.display = 'none';
+}
+function archFillEdgeForm(e){
+  document.getElementById('archEdgeFrom').value = e.from;
+  document.getElementById('archEdgeTo').value = e.to;
+  document.getElementById('archEdgeFromSide').value = e.fromSide;
+  document.getElementById('archEdgeToSide').value = e.toSide;
+  document.getElementById('archEdgeArrow').value = e.arrow;
+  document.getElementById('archAddEdge').textContent = '✓ エッジを更新';
+  document.getElementById('archEdgeCancel').style.display = 'block';
+}
+function archResetEdgeForm(){
+  const sideSel = document.getElementById('archEdgeFromSide');
+  if(!sideSel) return;
+  sideSel.value = 'R';
+  document.getElementById('archEdgeToSide').value = 'L';
+  document.getElementById('archEdgeArrow').value = ARCH_ARROWS[0].v;
+  state.archDiag.editEdgeIdx = null;
+  document.getElementById('archAddEdge').textContent = '＋ エッジを追加';
+  document.getElementById('archEdgeCancel').style.display = 'none';
+}
+
+function archIconLabel(v){ const ic = ARCH_ICONS.find(i=>i.v===v); return ic ? ic.label : v; }
+function archSideLabel(v){ const s = ARCH_SIDES.find(x=>x.v===v); return s ? s.label : v; }
+
+/* 親グループの候補からは編集中のグループ自身を外す（自己参照を作らせない） */
+function refreshArchGroupSelects(){
+  const parentSel = document.getElementById('archGroupParent');
+  const svcGroupSel = document.getElementById('archServiceGroup');
+  if(!parentSel) return;
+  const editingId = state.archDiag.editGroupIdx!==null ? (state.archDiag.groups[state.archDiag.editGroupIdx]||{}).id : null;
+  const opt = g=>`<option value="${g.id}">${g.id} (${g.title})</option>`;
+  const prevParent = parentSel.value, prevSvcGroup = svcGroupSel.value;
+  parentSel.innerHTML = '<option value="">（なし）</option>' + state.archDiag.groups.filter(g=>g.id!==editingId).map(opt).join('');
+  svcGroupSel.innerHTML = '<option value="">（なし）</option>' + state.archDiag.groups.map(opt).join('');
+  parentSel.value = prevParent;
+  svcGroupSel.value = prevSvcGroup;
+}
+
+function refreshArchLists(){
+  const groupList = document.getElementById('archGroupList');
+  const serviceList = document.getElementById('archServiceList');
+  const edgeList = document.getElementById('archEdgeList');
+  const fromSel = document.getElementById('archEdgeFrom');
+  const toSel = document.getElementById('archEdgeTo');
+  if(!groupList) return;
+
+  // グループ一覧。入れ子は「親の中」バッジで示す（グループ自身は平坦に並べる）
+  groupList.innerHTML = state.archDiag.groups.length ? '' : '<div class="empty-note">まだグループがありません</div>';
+  state.archDiag.groups.forEach((g,i)=>{
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    const parent = g.parentId ? state.archDiag.groups.find(x=>x.id===g.parentId) : null;
+    const parentTag = parent ? `<span class="key-badge fk">${parent.title}内</span>` : '';
+    row.innerHTML = `${parentTag}<span class="item-text">${g.id}: ${g.title}（${archIconLabel(g.icon)}）</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+    row.querySelector('.edit-btn').addEventListener('click', ()=>{
+      state.archDiag.editGroupIdx = i;
+      archFillGroupForm(state.archDiag.groups[i]);
+    });
+    row.querySelector('.del-btn').addEventListener('click', ()=>{
+      // グループを消してもサービスは残す（枠から出るだけ）
+      const removedId = state.archDiag.groups[i].id;
+      state.archDiag.groups.splice(i,1);
+      state.archDiag.services.forEach(s=>{ if(s.groupId===removedId) s.groupId = null; });
+      state.archDiag.groups.forEach(g2=>{ if(g2.parentId===removedId) g2.parentId = null; });
+      if(state.archDiag.editGroupIdx===i) archResetGroupForm();
+      refreshArchLists(); regenerateCode();
+    });
+    groupList.appendChild(row);
+  });
+  makeSortable(groupList, state.archDiag.groups, ()=>{
+    archResetGroupForm();
+    refreshArchLists(); regenerateCode();
+  });
+
+  refreshArchGroupSelects();
+
+  // サービス一覧は所属グループごとに束ねる
+  if(!state.archDiag.services.length){
+    serviceList.innerHTML = '<div class="empty-note">まだサービスがありません</div>';
+  }else{
+    renderGroupedList(serviceList, state.archDiag.services,
+      s=> s.groupId || null,
+      state.archDiag.groups, groupCollapse.archService,
+      (s,i)=>{
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        row.innerHTML = `<span class="item-text">${s.id}: ${s.title}（${archIconLabel(s.icon)}）</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+        row.querySelector('.edit-btn').addEventListener('click', ()=>{
+          state.archDiag.editServiceIdx = i;
+          archFillServiceForm(state.archDiag.services[i]);
+        });
+        row.querySelector('.del-btn').addEventListener('click', ()=>{
+          const removedId = state.archDiag.services[i].id;
+          state.archDiag.services.splice(i,1);
+          state.archDiag.edges = state.archDiag.edges.filter(e=>e.from!==removedId && e.to!==removedId);
+          if(state.archDiag.editServiceIdx===i) archResetServiceForm();
+          refreshArchLists(); regenerateCode();
+        });
+        return row;
+      }, '（グループなし）');
+  }
+  makeSortable(serviceList, state.archDiag.services, ()=>{
+    archResetServiceForm();
+    refreshArchLists(); regenerateCode();
+  });
+
+  // エッジの from/to はサービスのみ
+  const svcOpts = state.archDiag.services.map(s=>`<option value="${s.id}">${s.id} (${s.title})</option>`).join('');
+  const prevFrom = fromSel.value, prevTo = toSel.value;
+  fromSel.innerHTML = svcOpts; toSel.innerHTML = svcOpts;
+  fromSel.value = prevFrom; toSel.value = prevTo;
+
+  // エッジは起点サービスの所属グループごとに束ねる
+  if(!state.archDiag.edges.length){
+    edgeList.innerHTML = '<div class="empty-note">まだエッジがありません</div>';
+  }else{
+    renderGroupedList(edgeList, state.archDiag.edges,
+      e=>{ const fs = state.archDiag.services.find(s=>s.id===e.from); return fs ? (fs.groupId || null) : null; },
+      state.archDiag.groups, groupCollapse.archEdge,
+      (e,i)=>{
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        row.innerHTML = `<span class="item-text">${e.from}:${archSideLabel(e.fromSide)} ${e.arrow} ${archSideLabel(e.toSide)}:${e.to}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+        row.querySelector('.edit-btn').addEventListener('click', ()=>{
+          state.archDiag.editEdgeIdx = i;
+          archFillEdgeForm(state.archDiag.edges[i]);
+        });
+        row.querySelector('.del-btn').addEventListener('click', ()=>{
+          state.archDiag.edges.splice(i,1);
+          if(state.archDiag.editEdgeIdx===i) archResetEdgeForm();
+          refreshArchLists(); regenerateCode();
+        });
+        return row;
+      }, '（グループなし）');
+  }
+  makeSortable(edgeList, state.archDiag.edges, ()=>{
+    archResetEdgeForm();
+    refreshArchLists(); regenerateCode();
+  });
+}
+
 /* 図種に対応するビルダーを描く。図種を増やすときはここだけ足せば
    switchDiagramType とプロジェクト復元の両方に反映される */
 function renderBuilderFor(type, panel){
@@ -3918,6 +4349,7 @@ function renderBuilderFor(type, panel){
   else if(type==='state') renderStateBuilder(panel);
   else if(type==='class') renderClassBuilder(panel);
   else if(type==='er') renderERBuilder(panel);
+  else if(type==='arch') renderArchBuilder(panel);
   else renderFlowchartBuilder(panel);
 }
 
@@ -3958,6 +4390,7 @@ function buildStateSnapshot(){
     stateDiag: state.stateDiag,
     classDiag: state.classDiag,
     erDiag: state.erDiag,
+    archDiag: state.archDiag,
     nodeCounter: state.nodeCounter,
     subCounter: state.subCounter,
     partCounter: state.partCounter,
@@ -3966,6 +4399,8 @@ function buildStateSnapshot(){
     clsCounter: state.clsCounter,
     nsCounter: state.nsCounter,
     entCounter: state.entCounter,
+    archGroupCounter: state.archGroupCounter,
+    archServiceCounter: state.archServiceCounter,
   }));
   // 編集中インデックスはリセットしてから保存する
   if(snap.flowchart){ snap.flowchart.editNodeIdx=null; snap.flowchart.editEdgeIdx=null; snap.flowchart.editSubIdx=null; }
@@ -3973,6 +4408,7 @@ function buildStateSnapshot(){
   if(snap.stateDiag){ snap.stateDiag.editNodeIdx=null; snap.stateDiag.editEdgeIdx=null; snap.stateDiag.editCompositeIdx=null; }
   if(snap.classDiag){ snap.classDiag.editClassIdx=null; snap.classDiag.editRelationIdx=null; snap.classDiag.editNamespaceIdx=null; }
   if(snap.erDiag){ snap.erDiag.editEntityIdx=null; snap.erDiag.editRelationIdx=null; snap.erDiag.activeEntityIdx=null; snap.erDiag.editAttrIdx=null; }
+  if(snap.archDiag){ snap.archDiag.editGroupIdx=null; snap.archDiag.editServiceIdx=null; snap.archDiag.editEdgeIdx=null; }
   return snap;
 }
 
@@ -4055,9 +4491,16 @@ function restoreSnapshot(snapshot){
   state.clsCounter = snapshot.clsCounter || state.clsCounter;
   state.nsCounter = snapshot.nsCounter || state.nsCounter;
   state.entCounter = snapshot.entCounter || state.entCounter;
+  if(snapshot.archDiag){
+    state.archDiag = snapshot.archDiag;
+    // 旧形式（親グループ機能追加前）のプロジェクトファイルとの後方互換
+    (state.archDiag.groups || []).forEach(g=>{ if(g.parentId === undefined) g.parentId = null; });
+  }
+  state.archGroupCounter = snapshot.archGroupCounter || state.archGroupCounter;
+  state.archServiceCounter = snapshot.archServiceCounter || state.archServiceCounter;
 
-  // MGS(無印)のプロジェクトファイルは他の図種も含むが、本ツールが扱えるのはこの5種のみ
-  const type = ['sequence','state','class','er'].includes(snapshot.diagramType) ? snapshot.diagramType : 'flowchart';
+  // MGS(無印)のプロジェクトファイルは他の図種も含むが、本ツールが扱えるのはこの6種のみ
+  const type = ['sequence','state','class','er','arch'].includes(snapshot.diagramType) ? snapshot.diagramType : 'flowchart';
   document.getElementById('diagramType').value = type;
   state.diagramType = type;
   state.manualMode = false;
@@ -4785,6 +5228,90 @@ function importERDiagram(lines, rep){
   return er;
 }
 
+/* アーキテクチャ図（architecture-beta）。グループ・サービス・エッジを読む。
+   アイコンはMermaid同梱の5種だけを使う方針なので、それ以外は取り込まない。 */
+const ARCH_DECL_RE = /^(group|service)\s+([A-Za-z0-9_]+)\(([^()]*)\)\[([\s\S]*)\](?:\s+in\s+([A-Za-z0-9_]+))?$/;
+const ARCH_EDGE_RE = /^([A-Za-z0-9_]+):([TBLR])\s*(<-->|-->|<--|--)\s*([TBLR]):([A-Za-z0-9_]+)$/;
+const ARCH_ICON_VALUES = ARCH_ICONS.map(i=>i.v);
+
+function importArchitecture(lines, rep){
+  const ar = emptyArchState();
+  const groupById = new Map();
+  const serviceById = new Map();
+  const pendingParents = [];
+  let headerSeen = false;
+
+  lines.forEach((raw, i)=>{
+    const lineNo = i + 1;
+    const line = raw.trim();
+    if(!line) return;
+    if(line.startsWith('%%')){
+      if(line.startsWith('%%{')) blockLine(rep, lineNo, line, 'ディレクティブ（%%{init:…}）はビルダーで保持できません');
+      else dropLine(rep, lineNo, line, 'コメント行');
+      return;
+    }
+    if(!headerSeen){
+      if(!/^architecture-beta$/i.test(line)){ blockLine(rep, lineNo, line, '先頭が architecture-beta の宣言ではありません'); return; }
+      headerSeen = true;
+      return;
+    }
+    if(/^junction\b/i.test(line)){ blockLine(rep, lineNo, line, 'junction はビルダーで表現できません'); return; }
+
+    const decl = ARCH_DECL_RE.exec(line);
+    if(decl){
+      const [, kind, id, icon, rawLabel, parent] = decl;
+      if(!ARCH_ICON_VALUES.includes(icon)){
+        blockLine(rep, lineNo, line, `アイコン「${icon}」はビルダーの選択肢にありません（${ARCH_ICON_VALUES.join(' / ')} のみ）`);
+        return;
+      }
+      if(groupById.has(id) || serviceById.has(id)){ blockLine(rep, lineNo, line, `ID「${id}」が重複しています`); return; }
+      const q = /^"([\s\S]*)"$/.exec(rawLabel.trim());
+      const title = (q ? q[1] : rawLabel).trim() || id;
+      if(kind === 'group'){
+        const g = { id, title, icon, parentId:null };
+        groupById.set(id, g); ar.groups.push(g);
+        if(parent) pendingParents.push({ lineNo, line, g, parent });
+      }else{
+        const s = { id, title, icon, groupId:null };
+        serviceById.set(id, s); ar.services.push(s);
+        if(parent) pendingParents.push({ lineNo, line, s, parent });
+      }
+      return;
+    }
+    if(/^(group|service)\b/i.test(line)){ blockLine(rep, lineNo, line, 'group / service は「名前(アイコン)[ラベル] in 親」の形だけ解釈できます'); return; }
+
+    const edge = ARCH_EDGE_RE.exec(line);
+    if(edge){
+      const [, from, fromSide, arrow, toSide, to] = edge;
+      ar.edges.push({ from, fromSide, to, toSide, arrow });
+      return;
+    }
+    // グループ端のエッジ（例: a:R -- L:b{group}）はビルダーに指定手段が無い
+    if(/\{group\}/.test(line)){ blockLine(rep, lineNo, line, 'グループを端点にしたエッジ（{group}）はビルダーで表現できません'); return; }
+    blockLine(rep, lineNo, line, '解釈できない行です');
+  });
+
+  if(!headerSeen) blockLine(rep, 1, '', 'architecture-beta の宣言が見つかりません');
+
+  // 所属先（in）は宣言順に依存しないよう、全行を読んでから解決する
+  pendingParents.forEach(p=>{
+    if(!groupById.has(p.parent)){ blockLine(rep, p.lineNo, p.line, `所属先のグループ「${p.parent}」が見つかりません`); return; }
+    if(p.g) p.g.parentId = p.parent;
+    else p.s.groupId = p.parent;
+  });
+  // エッジの端点はサービスでなければならない
+  ar.edges.forEach((e,idx)=>{
+    for(const id of [e.from, e.to]){
+      if(!serviceById.has(id)){
+        blockLine(rep, 1, `${e.from}:${e.fromSide} ${e.arrow} ${e.toSide}:${e.to}`,
+          groupById.has(id) ? `エッジの端点にグループ「${id}」は指定できません` : `エッジの端点「${id}」が見つかりません`);
+        return;
+      }
+    }
+  });
+  return ar;
+}
+
 /* このツールが出力したクラス図のフロントマター（関係線の色）だけを読み戻す。
    themeCSS に自分の出力以外が混ざっていたら、保持できないので取り込まない。 */
 function parseClassColorHeader(code){
@@ -4820,9 +5347,9 @@ function tryImportCode(rawCode){
     code = '\n'.repeat(header.headerLines) + header.body;
   }
   const type = detectDiagramType(code);
-  const importers = { flowchart:importFlowchart, sequence:importSequence, state:importStateDiagram, class:importClassDiagram, er:importERDiagram };
+  const importers = { flowchart:importFlowchart, sequence:importSequence, state:importStateDiagram, class:importClassDiagram, er:importERDiagram, arch:importArchitecture };
   if(!importers[type]){
-    blockLine(rep, 1, code.split('\n')[0], 'このツールが取り込めるのは flowchart / graph、sequenceDiagram、stateDiagram、classDiagram、erDiagram だけです');
+    blockLine(rep, 1, code.split('\n')[0], 'このツールが取り込めるのは flowchart / graph、sequenceDiagram、stateDiagram、classDiagram、erDiagram、architecture-beta だけです');
     return { ok:false, rep };
   }
   if(relationColors && type !== 'class'){
@@ -4862,6 +5389,10 @@ function applyImport(type, data){
     data.dbEngine = state.erDiag.dbEngine;
     state.erDiag = data;
     state.entCounter = nextCounter(data.entities.map(e=>e.id), 'ENTITY');
+  }else if(type === 'arch'){
+    state.archDiag = data;
+    state.archGroupCounter = nextCounter(data.groups.map(g=>g.id), 'g');
+    state.archServiceCounter = nextCounter(data.services.map(sv=>sv.id), 's');
   }else{
     state.sequence = data;
     state.partCounter = nextCounter(data.participants.map(p=>p.id), 'P');
@@ -4889,6 +5420,7 @@ function detectDiagramType(code){
   if(firstLine.startsWith('statediagram')) return 'state';
   if(firstLine.startsWith('classdiagram')) return 'class';
   if(firstLine.startsWith('erdiagram')) return 'er';
+  if(firstLine.startsWith('architecture-beta')) return 'arch';
   return null;
 }
 
