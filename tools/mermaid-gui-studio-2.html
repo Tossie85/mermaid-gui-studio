@@ -2049,17 +2049,24 @@ function cancelBuilderEditing(type){
 
 /* 対応するビルダー項目を編集状態にし、一覧の該当行を目立たせてスクロールする */
 function selectBuilderItem(group, idx){
+  // 編集前の状態を控えてから選択する（どのフォームが開いたかを見分けるため）
+  const beforeCancels = visibleCancels();
   group.pick(idx);
+
   const listEl = document.getElementById(group.listId);
-  if(!listEl) return;
-  // グループ表示では DOM 順と配列インデックスがずれるので data-idx を優先。無ければ従来どおり位置で拾う
-  const row = listEl.querySelector(`.item-row[data-idx="${idx}"]`) || [...listEl.querySelectorAll('.item-row')][idx];
-  if(!row) return;
-  // 折りたたまれたグループ内なら開いてから見せる
-  const sec = row.closest('.group-sec');
-  if(sec && sec.classList.contains('collapsed')) setSectionCollapsed(sec, false);
-  row.classList.add('picked');
-  row.scrollIntoView({ block:'nearest', behavior:'smooth' });
+  const row = listEl && (listEl.querySelector(`.item-row[data-idx="${idx}"]`) || [...listEl.querySelectorAll('.item-row')][idx]);
+  if(row){
+    // 折りたたまれたグループ内なら開いてから見せる
+    const sec = row.closest('.group-sec');
+    if(sec && sec.classList.contains('collapsed')) setSectionCollapsed(sec, false);
+    row.classList.add('picked');
+  }
+
+  // ✎ボタンから編集したときと同じく、値を変えられる設定フォームまで送る。
+  // 一覧の行だけを見せても、肝心の入力欄が画面外に残ることがあるため。
+  const targetId = newlyOpenedCancelId(beforeCancels);
+  if(targetId) scrollToEditForm(targetId);
+  else if(row) row.scrollIntoView({ block:'nearest', behavior:'smooth' });
 }
 
 /* プレビューは再描画のたびに innerHTML ごと差し替わるので、
@@ -2328,16 +2335,25 @@ function scrollToEditForm(cancelId){
   field.scrollIntoView({ behavior:'smooth', block:'center' });
   if(field.focus){ try{ field.focus({ preventScroll:true }); }catch(_){} }
 }
+/* いま編集中のフォームを「表示されている編集をキャンセルボタン」で見分ける。
+   プレビューからの選択でも同じ判定を使うので、モジュール直下に置く */
+function visibleCancels(){
+  const s = new Set();
+  const panel = document.getElementById('builderPanel');
+  if(!panel) return s;
+  panel.querySelectorAll('[id$="Cancel"]').forEach(el=>{
+    if(el.style.display !== 'none' && el.offsetParent !== null) s.add(el.id);
+  });
+  return s;
+}
+/* 編集開始の前後を比べ、新たに現れた Cancel ボタン＝編集対象フォームのidを返す */
+function newlyOpenedCancelId(before){
+  const after = visibleCancels();
+  let targetId = [...after].find(id=>!before.has(id));
+  if(!targetId && after.size === 1) targetId = [...after][0]; // 同一フォームの再編集など
+  return targetId || null;
+}
 (function setupEditScroll(){
-  function visibleCancels(){
-    const s = new Set();
-    const panel = document.getElementById('builderPanel');
-    if(!panel) return s;
-    panel.querySelectorAll('[id$="Cancel"]').forEach(el=>{
-      if(el.style.display !== 'none' && el.offsetParent !== null) s.add(el.id);
-    });
-    return s;
-  }
   let before = new Set();
   // キャプチャ段階：行のクリックハンドラ（フォームを埋める）より前に現状を記録
   document.addEventListener('click', e=>{
@@ -2346,9 +2362,7 @@ function scrollToEditForm(cancelId){
   // バブル段階：フォームが埋まった後に、新たに表示された Cancel ボタン＝編集対象フォームへスクロール
   document.addEventListener('click', e=>{
     if(!(e.target.closest && e.target.closest('.edit-btn'))) return;
-    const after = visibleCancels();
-    let targetId = [...after].find(id=>!before.has(id));
-    if(!targetId && after.size === 1) targetId = [...after][0]; // 同一フォームの再編集など
+    const targetId = newlyOpenedCancelId(before);
     if(targetId) scrollToEditForm(targetId);
   }, false);
 })();
