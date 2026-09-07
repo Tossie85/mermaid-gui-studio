@@ -712,7 +712,8 @@
           <span class="hint"><code>style</code> だけは、本ツールがクラスの色を出力する形（1つのクラスに塗りと枠線のみ）に限って取り込めます。</span></li>
         <li>ER図の <code>direction</code> / エンティティの別名（<code>A["表示名"]</code>）/ <code>UK</code> のキー指定 / 破線（<code>..</code>）の非依存リレーション<br>
           <span class="hint">エンティティの色も <code>style</code> で出力しているため、クラス図と同じくその形に限って取り込めます。</span></li>
-        <li>アーキテクチャ図の <code>junction</code> / グループを端点にしたエッジ（<code>{group}</code>）/ Mermaid標準以外のアイコン</li>
+        <li>アーキテクチャ図の <code>junction</code> / グループを端点にしたエッジ（<code>{group}</code>）/ Mermaid標準以外のアイコン<br>
+          <span class="hint">アーキテクチャ図はMermaidに色指定の構文自体が無いため、クラス図と同じくフロントマターの <code>themeCSS</code> で色を出しています。その形（本ツールが出力したサービス・グループの色指定のみ）に限って取り込めます。</span></li>
       </ul>
       <p class="hint" style="margin-top:12px;">
         逆に、<code>A --&gt; B --&gt; C</code> の連鎖、<code>A -- ラベル --&gt; B</code> の書き方、<code>---&gt;</code> のような長さ違いの矢印、<code>graph</code> 始まりの旧表記は、意味が同じなので正規の形に直して取り込みます。コメント行（<code>%%</code>）は保持できないため、取り込む前に確認を出します。
@@ -1018,14 +1019,14 @@ function sampleArchState(){
   // ゲートウェイ経由でクラウド基盤上のWeb/API/DB/ストレージにつながる構成例
   return Object.assign(emptyArchState(), {
     groups: [
-      { id:'cloud', title:'クラウド基盤', icon:'cloud', parentId:null },
+      { id:'cloud', title:'クラウド基盤', icon:'cloud', parentId:null, stroke:'#1565C0' },
     ],
     services: [
-      { id:'gateway', title:'ゲートウェイ', icon:'internet', groupId:null },
-      { id:'web', title:'Webサーバー', icon:'server', groupId:'cloud' },
-      { id:'api', title:'APIサーバー', icon:'server', groupId:'cloud' },
-      { id:'db', title:'データベース', icon:'database', groupId:'cloud' },
-      { id:'storage', title:'ストレージ', icon:'disk', groupId:'cloud' },
+      { id:'gateway', title:'ゲートウェイ', icon:'internet', groupId:null,    color:'#EF6C00' },
+      { id:'web', title:'Webサーバー', icon:'server', groupId:'cloud',      color:'#087ebf' },
+      { id:'api', title:'APIサーバー', icon:'server', groupId:'cloud',      color:'#2E7D32' },
+      { id:'db', title:'データベース', icon:'database', groupId:'cloud',    color:'#6A1B9A' },
+      { id:'storage', title:'ストレージ', icon:'disk', groupId:'cloud',     color:'#455A64' },
     ],
     edges: [
       { from:'gateway', fromSide:'B', to:'web', toSide:'T', arrow:'-->' },
@@ -1660,6 +1661,31 @@ function genERCode(){
   return lines.join('\n');
 }
 
+/* architecture-beta には style / classDef / ::: がいずれも無く、パーサが受け付けない。
+   そこでクラス図の関係線と同じく、フロントマターの themeCSS でSVGへCSSを流し込む。
+   ・サービスのアイコンは「土台の四角＋白い装飾」でできており、土台は必ず先頭の rect。
+     そこだけ塗り替えると、白い装飾を残したまま色を変えられる。
+   ・図のidは描画ごとに変わる（mmd-render-3-service-web など）ので、
+     前方一致ではなく後方一致（[id$='-service-web']）で狙う。
+   ・themeCSS はYAMLのダブルクオート文字列なので、セレクタ内はシングルクオートを使う。 */
+const ARCH_SVC_RULE_SRC = "g\\.architecture-service\\[id\\$='-service-([A-Za-z0-9_]+)'\\] svg rect:first-of-type\\{fill:(#[0-9A-Fa-f]{3,8}) !important;\\}";
+const ARCH_GRP_RULE_SRC = "rect\\.node-bkg\\[id\\$='-group-([A-Za-z0-9_]+)'\\]\\{stroke:(#[0-9A-Fa-f]{3,8}) !important;\\}";
+
+function archStyleHeader(groups, services){
+  const rules = [];
+  services.forEach(s=>{
+    if(!s.color) return;
+    rules.push(`g.architecture-service[id$='-service-${s.id}'] svg rect:first-of-type{fill:${s.color} !important;}`);
+  });
+  groups.forEach(g=>{
+    if(!g.stroke) return;
+    rules.push(`rect.node-bkg[id$='-group-${g.id}']{stroke:${g.stroke} !important;}`);
+  });
+  if(!rules.length) return '';
+  // themeCSS はYAMLのダブルクオート文字列として渡すので、色以外の文字が混ざらないようにしておく
+  return `---\nconfig:\n  themeCSS: "${rules.join(' ').replace(/"/g,'')}"\n---\n`;
+}
+
 function genArchCode(){
   const { groups, services, edges } = state.archDiag;
   const lines = ['architecture-beta'];
@@ -1697,7 +1723,7 @@ function genArchCode(){
   if(groups.length===0 && services.length===0){
     lines.push('    %% 左側からグループとサービスを追加してください');
   }
-  return lines.join('\n');
+  return archStyleHeader(groups, services) + lines.join('\n');
 }
 
 function regenerateCode(){
@@ -4042,6 +4068,11 @@ function renderArchBuilder(container){
       <div class="field" style="margin-bottom:8px;"><label for="archGroupParent">親グループ（入れ子にする場合）</label>
         <select id="archGroupParent"><option value="">（なし）</option></select>
       </div>
+      <label class="toggle-edit" style="margin-bottom:8px;"><input type="checkbox" id="archGroupColorEnable">枠線の色を指定する</label>
+      <div class="row" id="archGroupColorRow" style="display:none;">
+        <div class="field"><label for="archGroupStroke">枠線</label><input type="color" id="archGroupStroke" value="#16304f">${colorPresetsHtml('archGroupStroke', 'stroke')}</div>
+      </div>
+      <p class="hint" style="margin:0 0 10px;">Mermaidがグループの枠を最前面に描くため、枠の内側は塗りつぶせません（中のサービスが隠れてしまいます）。</p>
       <button class="add-row-btn" id="archAddGroup">＋ グループを追加</button>
       <button class="add-row-btn" id="archGroupCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
       <div class="item-list" id="archGroupList"></div>
@@ -4057,6 +4088,11 @@ function renderArchBuilder(container){
       <div class="field" style="margin-bottom:8px;"><label for="archServiceGroup">所属グループ</label>
         <select id="archServiceGroup"><option value="">（なし）</option></select>
       </div>
+      <label class="toggle-edit" style="margin-bottom:8px;"><input type="checkbox" id="archServiceColorEnable">アイコンの色を指定する</label>
+      <div class="row" id="archServiceColorRow" style="display:none;">
+        <div class="field"><label for="archServiceColor">アイコン色</label><input type="color" id="archServiceColor" value="#087ebf">${colorPresetsHtml('archServiceColor', 'fill')}</div>
+      </div>
+      <p class="hint" style="margin:0 0 10px;">アイコンの土台の色が変わります。白い装飾部分はそのまま残ります。</p>
       <button class="add-row-btn" id="archAddService">＋ サービスを追加</button>
       <button class="add-row-btn" id="archServiceCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
       <div class="item-list" id="archServiceList"></div>
@@ -4084,6 +4120,13 @@ function renderArchBuilder(container){
   container.innerHTML = '';
   container.appendChild(wrap);
 
+  document.getElementById('archGroupColorEnable').addEventListener('change', e=>{
+    document.getElementById('archGroupColorRow').style.display = e.target.checked ? 'flex' : 'none';
+  });
+  document.getElementById('archServiceColorEnable').addEventListener('change', e=>{
+    document.getElementById('archServiceColorRow').style.display = e.target.checked ? 'flex' : 'none';
+  });
+
   document.getElementById('archAddGroup').addEventListener('click', ()=>{
     const id = sanitizeArchId(document.getElementById('archGroupId').value.trim() || ('g' + state.archGroupCounter), 'g');
     // グループとサービスは同じ名前空間（エッジや所属先から同じIDで参照される）
@@ -4093,6 +4136,8 @@ function renderArchBuilder(container){
     const icon = document.getElementById('archGroupIcon').value;
     let parentId = document.getElementById('archGroupParent').value || null;
     if(parentId === id) parentId = null; // 自分自身を親にはできない
+    const gColorOn = document.getElementById('archGroupColorEnable').checked;
+    const stroke = gColorOn ? document.getElementById('archGroupStroke').value : null;
 
     if(state.archDiag.editGroupIdx !== null){
       const idx = state.archDiag.editGroupIdx;
@@ -4101,9 +4146,9 @@ function renderArchBuilder(container){
         state.archDiag.services.forEach(s=>{ if(s.groupId===oldId) s.groupId = id; });
         state.archDiag.groups.forEach(g=>{ if(g.parentId===oldId) g.parentId = id; });
       }
-      state.archDiag.groups[idx] = { id, title, icon, parentId };
+      state.archDiag.groups[idx] = { id, title, icon, parentId, stroke };
     }else{
-      state.archDiag.groups.push({ id, title, icon, parentId });
+      state.archDiag.groups.push({ id, title, icon, parentId, stroke });
       state.archGroupCounter++;
     }
     archResetGroupForm();
@@ -4119,6 +4164,8 @@ function renderArchBuilder(container){
     const title = document.getElementById('archServiceTitle').value.trim() || id;
     const icon = document.getElementById('archServiceIcon').value;
     const groupId = document.getElementById('archServiceGroup').value || null;
+    const sColorOn = document.getElementById('archServiceColorEnable').checked;
+    const color = sColorOn ? document.getElementById('archServiceColor').value : null;
 
     if(state.archDiag.editServiceIdx !== null){
       const idx = state.archDiag.editServiceIdx;
@@ -4129,9 +4176,9 @@ function renderArchBuilder(container){
           if(e.to===oldId) e.to = id;
         });
       }
-      state.archDiag.services[idx] = { id, title, icon, groupId };
+      state.archDiag.services[idx] = { id, title, icon, groupId, color };
     }else{
-      state.archDiag.services.push({ id, title, icon, groupId });
+      state.archDiag.services.push({ id, title, icon, groupId, color });
       state.archServiceCounter++;
     }
     archResetServiceForm();
@@ -4168,6 +4215,10 @@ function archFillGroupForm(g){
   document.getElementById('archGroupIcon').value = g.icon;
   refreshArchGroupSelects();
   document.getElementById('archGroupParent').value = g.parentId || '';
+  const gHasColor = !!g.stroke;
+  document.getElementById('archGroupColorEnable').checked = gHasColor;
+  document.getElementById('archGroupColorRow').style.display = gHasColor ? 'flex' : 'none';
+  document.getElementById('archGroupStroke').value = g.stroke || '#16304f';
   document.getElementById('archAddGroup').textContent = '✓ グループを更新';
   document.getElementById('archGroupCancel').style.display = 'block';
 }
@@ -4180,6 +4231,8 @@ function archResetGroupForm(){
   state.archDiag.editGroupIdx = null;
   refreshArchGroupSelects();
   document.getElementById('archGroupParent').value = '';
+  document.getElementById('archGroupColorEnable').checked = false;
+  document.getElementById('archGroupColorRow').style.display = 'none';
   document.getElementById('archAddGroup').textContent = '＋ グループを追加';
   document.getElementById('archGroupCancel').style.display = 'none';
 }
@@ -4188,6 +4241,10 @@ function archFillServiceForm(s){
   document.getElementById('archServiceTitle').value = s.title;
   document.getElementById('archServiceIcon').value = s.icon;
   document.getElementById('archServiceGroup').value = s.groupId || '';
+  const sHasColor = !!s.color;
+  document.getElementById('archServiceColorEnable').checked = sHasColor;
+  document.getElementById('archServiceColorRow').style.display = sHasColor ? 'flex' : 'none';
+  document.getElementById('archServiceColor').value = s.color || '#087ebf';
   document.getElementById('archAddService').textContent = '✓ サービスを更新';
   document.getElementById('archServiceCancel').style.display = 'block';
 }
@@ -4198,6 +4255,8 @@ function archResetServiceForm(){
   document.getElementById('archServiceTitle').value = '';
   document.getElementById('archServiceIcon').value = ARCH_ICONS[0].v;
   document.getElementById('archServiceGroup').value = '';
+  document.getElementById('archServiceColorEnable').checked = false;
+  document.getElementById('archServiceColorRow').style.display = 'none';
   state.archDiag.editServiceIdx = null;
   document.getElementById('archAddService').textContent = '＋ サービスを追加';
   document.getElementById('archServiceCancel').style.display = 'none';
@@ -4254,7 +4313,8 @@ function refreshArchLists(){
     row.className = 'item-row';
     const parent = g.parentId ? state.archDiag.groups.find(x=>x.id===g.parentId) : null;
     const parentTag = parent ? `<span class="key-badge fk">${parent.title}内</span>` : '';
-    row.innerHTML = `${parentTag}<span class="item-text">${g.id}: ${g.title}（${archIconLabel(g.icon)}）</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+    const gSw = g.stroke ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;border:2px solid ${g.stroke};flex-shrink:0;"></span>` : '';
+    row.innerHTML = `${parentTag}${gSw}<span class="item-text">${g.id}: ${g.title}（${archIconLabel(g.icon)}）</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
     row.querySelector('.edit-btn').addEventListener('click', ()=>{
       state.archDiag.editGroupIdx = i;
       archFillGroupForm(state.archDiag.groups[i]);
@@ -4287,7 +4347,8 @@ function refreshArchLists(){
       (s,i)=>{
         const row = document.createElement('div');
         row.className = 'item-row';
-        row.innerHTML = `<span class="item-text">${s.id}: ${s.title}（${archIconLabel(s.icon)}）</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+        const sSw = s.color ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${s.color};border:1px solid #999;flex-shrink:0;"></span>` : '';
+        row.innerHTML = `${sSw}<span class="item-text">${s.id}: ${s.title}（${archIconLabel(s.icon)}）</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
         row.querySelector('.edit-btn').addEventListener('click', ()=>{
           state.archDiag.editServiceIdx = i;
           archFillServiceForm(state.archDiag.services[i]);
@@ -4494,7 +4555,13 @@ function restoreSnapshot(snapshot){
   if(snapshot.archDiag){
     state.archDiag = snapshot.archDiag;
     // 旧形式（親グループ機能追加前）のプロジェクトファイルとの後方互換
-    (state.archDiag.groups || []).forEach(g=>{ if(g.parentId === undefined) g.parentId = null; });
+    // 旧形式（親グループ・色の追加前）のプロジェクトファイルとの後方互換
+    (state.archDiag.groups || []).forEach(g=>{
+      if(g.parentId === undefined) g.parentId = null;
+      if(g.stroke === undefined) g.stroke = null;
+      delete g.fill;   // 枠の内側の塗りは廃止（中のサービスを覆い隠すため）
+    });
+    (state.archDiag.services || []).forEach(sv=>{ if(sv.color === undefined) sv.color = null; });
   }
   state.archGroupCounter = snapshot.archGroupCounter || state.archGroupCounter;
   state.archServiceCounter = snapshot.archServiceCounter || state.archServiceCounter;
@@ -5234,7 +5301,7 @@ const ARCH_DECL_RE = /^(group|service)\s+([A-Za-z0-9_]+)\(([^()]*)\)\[([\s\S]*)\
 const ARCH_EDGE_RE = /^([A-Za-z0-9_]+):([TBLR])\s*(<-->|-->|<--|--)\s*([TBLR]):([A-Za-z0-9_]+)$/;
 const ARCH_ICON_VALUES = ARCH_ICONS.map(i=>i.v);
 
-function importArchitecture(lines, rep){
+function importArchitecture(lines, rep, colors){
   const ar = emptyArchState();
   const groupById = new Map();
   const serviceById = new Map();
@@ -5268,11 +5335,11 @@ function importArchitecture(lines, rep){
       const q = /^"([\s\S]*)"$/.exec(rawLabel.trim());
       const title = (q ? q[1] : rawLabel).trim() || id;
       if(kind === 'group'){
-        const g = { id, title, icon, parentId:null };
+        const g = { id, title, icon, parentId:null, stroke:null };
         groupById.set(id, g); ar.groups.push(g);
         if(parent) pendingParents.push({ lineNo, line, g, parent });
       }else{
-        const s = { id, title, icon, groupId:null };
+        const s = { id, title, icon, groupId:null, color:null };
         serviceById.set(id, s); ar.services.push(s);
         if(parent) pendingParents.push({ lineNo, line, s, parent });
       }
@@ -5292,6 +5359,12 @@ function importArchitecture(lines, rep){
   });
 
   if(!headerSeen) blockLine(rep, 1, '', 'architecture-beta の宣言が見つかりません');
+
+  // フロントマターから復元した色を割り当てる
+  if(colors){
+    colors.services.forEach((c,id)=>{ const t = serviceById.get(id); if(t) t.color = c; });
+    colors.groups.forEach((c,id)=>{ const t = groupById.get(id); if(t) t.stroke = c.stroke; });
+  }
 
   // 所属先（in）は宣言順に依存しないよう、全行を読んでから解決する
   pendingParents.forEach(p=>{
@@ -5314,19 +5387,37 @@ function importArchitecture(lines, rep){
 
 /* このツールが出力したクラス図のフロントマター（関係線の色）だけを読み戻す。
    themeCSS に自分の出力以外が混ざっていたら、保持できないので取り込まない。 */
-function parseClassColorHeader(code){
+function parseThemeCssHeader(code){
   const m = /^---\r?\n(?:config:\r?\n {2}themeCSS: "([^"]*)"\r?\n)---\r?\n([\s\S]*)$/.exec(code);
   if(!m) return null;
-  const css = m[1];
+  // 行番号を本文と揃えるため、取り除いたヘッダの行数を返して空行で埋め直させる
+  const headerLines = code.slice(0, code.length - m[2].length).split('\n').length - 1;
+  return { css: m[1], body: m[2], headerLines };
+}
+
+/* themeCSS からクラス図の関係線の色を読み戻す。自分の出力以外が混ざっていたら null */
+function parseClassRelationColors(css){
   const ruleRe = /g\.edgePaths path\.relation:nth-of-type\((\d+)\)\{stroke:(#[0-9A-Fa-f]{3,8}) !important;\}/g;
   const colors = new Map();
   let mm;
   while((mm = ruleRe.exec(css))) colors.set(Number(mm[1]) - 1, mm[2]);
   if(!colors.size) return null;
   if(css.replace(/g\.edgePaths path\.relation:nth-of-type\(\d+\)\{stroke:#[0-9A-Fa-f]{3,8} !important;\}/g, '').trim()) return null;
-  // 行番号を本文と揃えるため、取り除いたヘッダの行数を返して空行で埋め直させる
-  const headerLines = code.slice(0, code.length - m[2].length).split('\n').length - 1;
-  return { body: m[2], headerLines, colors };
+  return colors;
+}
+
+/* themeCSS からアーキテクチャ図のサービス／グループの色を読み戻す */
+function parseArchColors(css){
+  const svcRe = new RegExp(ARCH_SVC_RULE_SRC.replace('([A-Za-z0-9_]+)', '([A-Za-z0-9_]+)'), 'g');
+  const grpRe = new RegExp(ARCH_GRP_RULE_SRC, 'g');
+  const services = new Map(), groups = new Map();
+  let mm;
+  while((mm = svcRe.exec(css))) services.set(mm[1], mm[2]);
+  while((mm = grpRe.exec(css))) groups.set(mm[1], { stroke: mm[2] });
+  if(!services.size && !groups.size) return null;
+  const residue = css.replace(new RegExp(ARCH_SVC_RULE_SRC, 'g'), '').replace(new RegExp(ARCH_GRP_RULE_SRC, 'g'), '').trim();
+  if(residue) return null;
+  return { services, groups };
 }
 
 /* 取り込みの入口。成功なら { ok:true, type, data }、失敗なら理由の一覧を rep に詰めて返す */
@@ -5334,15 +5425,16 @@ function tryImportCode(rawCode){
   const rep = newImportReport();
   let code = String(rawCode || '').trim();
   if(!code){ blockLine(rep, 1, '', 'コードが空です'); return { ok:false, rep }; }
-  let relationColors = null;
+  // Mermaidに色指定の構文が無い図種（クラス図の関係線、アーキテクチャ図）は
+  // フロントマターの themeCSS で色を出している。自分の出力に限り読み戻す
+  let themeCss = null;
   if(/^---\r?\n/.test(code)){
-    // 自分が出力したクラス図の色指定だけは読み戻せる。それ以外のフロントマターは保持できない
-    const header = parseClassColorHeader(code);
+    const header = parseThemeCssHeader(code);
     if(!header){
       blockLine(rep, 1, '---', 'フロントマター（--- で囲む設定）はビルダーで保持できません');
       return { ok:false, rep };
     }
-    relationColors = header.colors;
+    themeCss = header.css;
     // 取り除いた分を空行で埋め、報告する行番号を元のコードと揃える
     code = '\n'.repeat(header.headerLines) + header.body;
   }
@@ -5352,12 +5444,17 @@ function tryImportCode(rawCode){
     blockLine(rep, 1, code.split('\n')[0], 'このツールが取り込めるのは flowchart / graph、sequenceDiagram、stateDiagram、classDiagram、erDiagram、architecture-beta だけです');
     return { ok:false, rep };
   }
-  if(relationColors && type !== 'class'){
-    blockLine(rep, 1, '---', 'フロントマター（--- で囲む設定）はビルダーで保持できません');
-    return { ok:false, rep };
+  let colors = null;
+  if(themeCss){
+    if(type === 'class') colors = parseClassRelationColors(themeCss);
+    else if(type === 'arch') colors = parseArchColors(themeCss);
+    if(!colors){
+      blockLine(rep, 1, '---', 'フロントマター（--- で囲む設定）はビルダーで保持できません');
+      return { ok:false, rep };
+    }
   }
   const lines = code.split('\n');
-  const data = importers[type](lines, rep, relationColors);
+  const data = importers[type](lines, rep, colors);
   if(rep.blocked.length) return { ok:false, rep, type };
   return { ok:true, type, data, rep };
 }
