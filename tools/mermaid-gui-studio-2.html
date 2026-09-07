@@ -8,17 +8,17 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/favicon-16x16.png">
 <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
-<meta name="description" content="Mermaidのフローチャート・シーケンス図・状態遷移図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
+<meta name="description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
 <link rel="canonical" href="https://tossie85.site/tools/mermaid-gui-studio-2.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="tossie85 lab">
 <meta property="og:title" content="Mermaid GUI Studio 2">
-<meta property="og:description" content="Mermaidのフローチャート・シーケンス図・状態遷移図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
+<meta property="og:description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
 <meta property="og:url" content="https://tossie85.site/tools/mermaid-gui-studio-2.html">
 <meta property="og:image" content="https://tossie85.site/assets/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Mermaid GUI Studio 2">
-<meta name="twitter:description" content="Mermaidのフローチャート・シーケンス図・状態遷移図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
+<meta name="twitter:description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
 <meta name="twitter:image" content="https://tossie85.site/assets/og-default.png">
 <style>
   :root{
@@ -588,7 +588,7 @@
     <div class="brand-mark"></div>
     <div>
       <div class="brand-title">Mermaid GUI Studio 2</div>
-      <div class="brand-sub">Flowchart / Sequence / State — with Import</div>
+      <div class="brand-sub">Flowchart / Sequence / State / Class — with Import</div>
     </div>
   </div>
 
@@ -599,6 +599,7 @@
         <option value="flowchart">フローチャート</option>
         <option value="sequence">シーケンス図</option>
         <option value="state">状態遷移図</option>
+        <option value="class">クラス図</option>
       </select>
     </div>
 
@@ -697,19 +698,24 @@
       </p>
       <p>取り込めない代表的な記述は次のとおりです。</p>
       <ul style="margin:6px 0 0 18px; padding:0; line-height:1.9;">
-        <li><code>click</code>、<code>%%{init:…}%%</code>、フロントマター（<code>---</code>）</li>
+        <li><code>click</code>、<code>%%{init:…}%%</code>、フロントマター（<code>---</code>）<br>
+          <span class="hint">クラス図だけは事情が違います。Mermaidに関係線の色を直接指定する書き方が無く、本ツールもフロントマターの <code>themeCSS</code> で色を出力しているため、その形（本ツールが出力した関係線の色指定のみ）に限って取り込めます。</span></li>
         <li>フローチャートの <code>classDef</code> / <code>class</code> / <code>:::</code>（クラス定義）<br>
           <span class="hint">状態遷移図だけは事情が違います。Mermaidに状態の色を直接指定する書き方が無く、本ツールも <code>classDef</code> と <code>class</code> の組で色を出力しているため、この形（1つの状態に1つのクラスを割り当て、中身は塗りと枠線のみ）に限って取り込めます。</span></li>
         <li><code>A &amp; B --&gt; C</code> のまとめ書き、<code>subgraph</code> の入れ子、subgraphごとの <code>direction</code></li>
         <li>ビルダーに無い図形（台形など）、ハイフンを含むID</li>
         <li>シーケンス図の <code>autonumber</code> / <code>activate</code> / <code>box</code> / <code>rect</code> / <code>A-&gt;&gt;+B</code> の活性化指定</li>
         <li>状態遷移図の <code>note</code> / <code>direction</code> / <code>&lt;&lt;fork&gt;&gt;</code>・<code>&lt;&lt;join&gt;&gt;</code>・<code>&lt;&lt;choice&gt;&gt;</code> / 並行処理の区切り（<code>--</code>）</li>
+        <li>クラス図の <code>note</code> / <code>direction</code> / <code>cssClass</code> / <code>namespace</code> の入れ子 / 多重度付きの関係（<code>A "1" --&gt; "*" B</code>）</li>
       </ul>
       <p class="hint" style="margin-top:12px;">
         逆に、<code>A --&gt; B --&gt; C</code> の連鎖、<code>A -- ラベル --&gt; B</code> の書き方、<code>---&gt;</code> のような長さ違いの矢印、<code>graph</code> 始まりの旧表記は、意味が同じなので正規の形に直して取り込みます。コメント行（<code>%%</code>）は保持できないため、取り込む前に確認を出します。
       </p>
       <p class="hint">
         状態遷移図では、<code>state X { }</code> の中に書いた遷移も取り込めますが、再生成時はブロックの外にまとめて出力されます（Mermaidとしての意味は同じです）。
+      </p>
+      <p class="hint">
+        クラス図のクラスブロックの中身（<code>+String name</code> など）は解釈せず1行ずつそのまま保持するので、<code>&lt;&lt;interface&gt;&gt;</code> のような注釈もブロック内に書かれていれば往復できます。
       </p>
       <p class="hint">取り込みは<strong>一方向</strong>です。取り込んだ後はGUI側が正となり、コードはGUIから再生成されます。</p>
     </div>
@@ -734,7 +740,7 @@
     </div>
     <div class="modal-body">
       <h3>Mermaid GUI Studio 2</h3>
-      <p>Mermaidのフローチャート・シーケンス図・状態遷移図をGUIで組み立てられるツールです。既存のMermaidコードをGUIへ取り込む機能を備えています。ブラウザ単体で動作し、外部サーバーへの通信は行いません。</p>
+      <p>Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図をGUIで組み立てられるツールです。既存のMermaidコードをGUIへ取り込む機能を備えています。ブラウザ単体で動作し、外部サーバーへの通信は行いません。</p>
 
       <h3>使用ライブラリ</h3>
       <div class="credit-item">
@@ -831,6 +837,7 @@ mermaid.initialize({ startOnLoad:false, theme:'default', securityLevel:'loose', 
 function emptyFlowchartState(){ return { direction:'TD', nodes:[], edges:[], subgraphs:[], editNodeIdx:null, editEdgeIdx:null, editSubIdx:null }; }
 function emptySequenceState(){ return { participants:[], messages:[], editPartIdx:null, editMsgIdx:null, editNoteIdx:null, editBlockIdx:null, editDivIdx:null }; }
 function emptyStateDiagState(){ return { nodes:[], edges:[], composites:[], editNodeIdx:null, editEdgeIdx:null, editCompositeIdx:null }; }
+function emptyClassState(){ return { classes:[], relations:[], namespaces:[], editClassIdx:null, editRelationIdx:null, editNamespaceIdx:null }; }
 
 const state = {
   diagramType: 'flowchart',
@@ -840,6 +847,7 @@ const state = {
   flowchart: emptyFlowchartState(),
   sequence: emptySequenceState(),
   stateDiag: emptyStateDiagState(),
+  classDiag: emptyClassState(),
   nodeCounter: 1,
   edgeCounter: 1,
   subCounter: 1,
@@ -847,6 +855,8 @@ const state = {
   stCounter: 1,
   compCounter: 1,
   msgCounter: 1,
+  clsCounter: 1,
+  nsCounter: 1,
 };
 
 /* ============ サンプルデータ（「サンプルを読み込む」ボタン用） ============ */
@@ -924,11 +934,32 @@ function sampleStateDiagState(){
   });
 }
 
+function sampleClassState(){
+  // 継承2系統＋関連。動物側だけを名前空間でまとめ、名前空間の有無が混在する例にしている
+  return Object.assign(emptyClassState(), {
+    namespaces: [
+      { id:'Animals', label:'Animals' },
+    ],
+    classes: [
+      { id:'Animal', namespaceId:'Animals', members:'+String name\n+int age\n+makeSound()' },
+      { id:'Dog',    namespaceId:'Animals', members:'+fetch()' },
+      { id:'Cat',    namespaceId:'Animals', members:'+scratch()' },
+      { id:'Owner',  namespaceId:null,      members:'+String name\n+feed()' },
+    ],
+    relations: [
+      { from:'Animal', to:'Dog', type:'<|--', label:'', color:null },
+      { from:'Animal', to:'Cat', type:'<|--', label:'', color:null },
+      { from:'Owner', to:'Animal', type:'-->', label:'has', color:null },
+    ],
+  });
+}
+
 // 図の種類ごとに「stateのキー」「空/サンプルの作り方」「比較対象フィールド」「読み込み後のカウンタ初期値」をまとめる
 const DIAGRAM_META = {
   flowchart: { stateKey:'flowchart', empty:emptyFlowchartState, sample:sampleFlowchartState, contentFields:['direction','nodes','edges','subgraphs'], resetCounters(){ state.nodeCounter=1; state.subCounter=1; }, sampleCounters(){ state.nodeCounter=5; state.subCounter=3; } },
   sequence:  { stateKey:'sequence',  empty:emptySequenceState,  sample:sampleSequenceState,  contentFields:['participants','messages'], resetCounters(){ state.partCounter=1; }, sampleCounters(){ state.partCounter=5; } },
   state:     { stateKey:'stateDiag', empty:emptyStateDiagState, sample:sampleStateDiagState, contentFields:['nodes','edges','composites'], resetCounters(){ state.stCounter=1; state.compCounter=1; }, sampleCounters(){ state.stCounter=6; state.compCounter=2; } },
+  class:     { stateKey:'classDiag', empty:emptyClassState,     sample:sampleClassState,     contentFields:['classes','relations','namespaces'], resetCounters(){ state.clsCounter=1; state.nsCounter=1; }, sampleCounters(){ state.clsCounter=5; state.nsCounter=2; } },
 };
 
 function extractDiagramContent(obj, fields){
@@ -1045,6 +1076,24 @@ const SEQ_DIVIDERS = [
 ];
 // 区切りキーワードと対応するブロック種別（else→alt など）
 const DIV_BLOCK_TYPE = { else:'alt', and:'par', option:'critical' };
+// クラス図の関係線。矢印の向きは記号そのものが持つので、from/to を入れ替えずに種類で選ぶ
+const CLASS_RELATIONS = [
+  { v:'<|--', label:'継承 ◁─（to が from を継承）' },
+  { v:'--|>', label:'継承 ─▷（from が to を継承）' },
+  { v:'*--', label:'コンポジション ◆─' },
+  { v:'--*', label:'コンポジション ─◆' },
+  { v:'o--', label:'集約 ◇─' },
+  { v:'--o', label:'集約 ─◇' },
+  { v:'-->', label:'関連 ─→' },
+  { v:'<--', label:'関連 ←─' },
+  { v:'<-->', label:'関連 ←→（双方向）' },
+  { v:'--', label:'リンク（実線）' },
+  { v:'..>', label:'依存 ┄→' },
+  { v:'<..', label:'依存 ←┄' },
+  { v:'..|>', label:'実現 ┄▷' },
+  { v:'<|..', label:'実現 ◁┄' },
+  { v:'..', label:'リンク（破線）' },
+];
 /* Mermaidにクオートの仕組みが無く、記号がそのまま区切り文字として解釈されてしまう箇所がある。
    該当する文字だけ全角に置き換えて、図が壊れないようにする。
    ・シーケンス図のメッセージ/ノート … ; が文の区切りになる
@@ -1265,11 +1314,79 @@ function genStateCode(){
   return lines.join('\n');
 }
 
+function classMemberLines(members){
+  return String(members || '').split('\n').map(s=>s.trim()).filter(Boolean);
+}
+
+/* クラス1件分の宣言。属性・メソッドが無ければ1行、あればブロックで出力する */
+function classDeclLines(c, indent){
+  const memberLines = classMemberLines(c.members);
+  if(!memberLines.length) return [`${indent}class ${c.id}`];
+  return [
+    `${indent}class ${c.id} {`,
+    ...memberLines.map(l=>`${indent}    ${l}`),
+    `${indent}}`,
+  ];
+}
+
+function genClassCode(){
+  const { classes, relations, namespaces } = state.classDiag;
+  const lines = ['classDiagram'];
+
+  const membersByNs = new Map();
+  const topClasses = [];
+  classes.forEach(c=>{
+    if(c.namespaceId){
+      if(!membersByNs.has(c.namespaceId)) membersByNs.set(c.namespaceId, []);
+      membersByNs.get(c.namespaceId).push(c);
+    }else{
+      topClasses.push(c);
+    }
+  });
+
+  topClasses.forEach(c=>{ lines.push(...classDeclLines(c, '    ')); });
+
+  namespaces.forEach(ns=>{
+    const members = membersByNs.get(ns.id) || [];
+    // 空の namespace はMermaidがパースエラーになるため、所属クラスが無い間は出力しない
+    if(members.length===0) return;
+    lines.push(`    namespace ${ns.id} {`);
+    members.forEach(c=>{ lines.push(...classDeclLines(c, '        ')); });
+    lines.push(`    }`);
+  });
+
+  relations.forEach(r=>{
+    const labelPart = r.label ? ` : ${r.label}` : '';
+    lines.push(`    ${r.from} ${r.type} ${r.to}${labelPart}`);
+  });
+
+  if(classes.length===0 && relations.length===0){
+    lines.push('    %% 左側の「クラスを追加」からブロックを組み立ててください');
+  }
+  return classRelationStyleHeader(relations) + lines.join('\n');
+}
+
+/* クラス図には linkStyle 相当の関係線カラー指定が無い（構文は通るが描画に反映されない）ため、
+   フロントマターの themeCSS でSVGへ直接CSSを流し込んで色を付ける。
+   関係線は宣言順に g.edgePaths の子として描かれるので、nth-of-type で1本ずつ狙える。
+   矢印の先端（マーカー）は図全体で共有される定義なので、線だけが色付く点はMermaidの制約。 */
+function classRelationStyleHeader(relations){
+  const rules = [];
+  relations.forEach((r,i)=>{
+    if(!r.color) return;
+    rules.push(`g.edgePaths path.relation:nth-of-type(${i+1}){stroke:${r.color} !important;}`);
+  });
+  if(!rules.length) return '';
+  // themeCSS はYAMLのダブルクオート文字列として渡すので、色以外の文字が混ざらないようにしておく
+  return `---\nconfig:\n  themeCSS: "${rules.join(' ').replace(/"/g,'')}"\n---\n`;
+}
+
 function regenerateCode(){
   if(state.manualMode) return;
   if(state.diagramType==='flowchart') state.code = genFlowchartCode();
   else if(state.diagramType==='sequence') state.code = genSequenceCode();
   else if(state.diagramType==='state') state.code = genStateCode();
+  else if(state.diagramType==='class') state.code = genClassCode();
   document.getElementById('codeArea').value = state.code;
   refreshGutter();
   renderPreview();
@@ -1324,6 +1441,10 @@ function pickTargetsForType(type){
       { prefix:'state', listId:'stNodeList', list:()=>state.stateDiag.nodes,      pick(i){ state.stateDiag.editNodeIdx=i;      stFillNodeForm(state.stateDiag.nodes[i]); } },
       { prefix:'state', listId:'stCompList', list:()=>state.stateDiag.composites, pick(i){ state.stateDiag.editCompositeIdx=i; stFillCompForm(state.stateDiag.composites[i]); } },
     ];
+    case 'class': return [
+      { prefix:'classId', listId:'clsClassList', list:()=>state.classDiag.classes,   pick(i){ state.classDiag.editClassIdx=i;     clsFillClassForm(state.classDiag.classes[i]); } },
+      { prefix:'',        listId:'clsNsList',    list:()=>state.classDiag.namespaces, pick(i){ state.classDiag.editNamespaceIdx=i; clsFillNsForm(state.classDiag.namespaces[i]); } },
+    ];
     case 'sequence': return [
       { byName:true, listId:'sqPartList', list:()=>state.sequence.participants, pick(i){ state.sequence.editPartIdx=i; sqFillPartForm(state.sequence.participants[i]); } },
     ];
@@ -1343,6 +1464,10 @@ function pickEdgeTargetsForType(type){
     case 'state': return [
       { sel:'path.transition', byIdIndex:true, listId:'stEdgeList', list:()=>state.stateDiag.edges,
         pick(i){ state.stateDiag.editEdgeIdx=i; stFillEdgeForm(state.stateDiag.edges[i]); } },
+    ];
+    case 'class': return [
+      { sel:'path.relation', listId:'clsRelList', list:()=>state.classDiag.relations,
+        pick(i){ state.classDiag.editRelationIdx=i; clsFillRelForm(state.classDiag.relations[i]); } },
     ];
     case 'sequence': {
       // メッセージ一覧にはノートやブロックも混ざるので、矢印として描かれる要素だけを対応づける
@@ -1547,6 +1672,7 @@ function cancelBuilderEditing(type){
     case 'flowchart': fcResetNodeForm(); fcResetSubForm(); fcResetEdgeForm(); break;
     case 'sequence':  sqResetPartForm(); sqResetMsgForm(); sqResetNoteForm(); sqResetBlockForm(); break;
     case 'state':     stResetNodeForm(); stResetCompForm(); stResetEdgeForm(); break;
+    case 'class':     clsResetClassForm(); clsResetNsForm(); clsResetRelForm(); break;
   }
   document.querySelectorAll('.item-row.picked').forEach(r=>r.classList.remove('picked'));
 }
@@ -2300,6 +2426,7 @@ function sqResetBlockForm(){
 const groupCollapse = {
   fcNode:new Set(), fcEdge:new Set(),
   stNode:new Set(), stEdge:new Set(),
+  clsClass:new Set(), clsRel:new Set(),
 };
 const GROUP_UNGROUPED = ' ungrouped';
 function setSectionCollapsed(sec, isCollapsed){
@@ -2351,7 +2478,8 @@ function renderGroupedList(listEl, items, keyOf, groups, collapsed, rowFactory, 
   order.forEach(key=>{
     const entries = buckets.get(key);
     const g = key===GROUP_UNGROUPED ? null : groupById.get(key);
-    const label = g ? `${g.id}: ${g.label}` : ungroupedLabel;
+    // 表示名を持たないグループ（クラス図の namespace など）は、同じ名前を二度出さない
+    const label = g ? (g.label && g.label !== g.id ? `${g.id}: ${g.label}` : g.id) : ungroupedLabel;
     const isCol = collapsed.has(key);
     const sec = document.createElement('div');
     sec.className = 'group-sec' + (isCol ? ' collapsed' : '');
@@ -2885,16 +3013,307 @@ function refreshStateLists(){
   });
 }
 
+/* ============ ビルダーUI: クラス図 ============ */
+function renderClassBuilder(container){
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <h2>クラス図 ビルダー</h2>
+    <p class="hint">クラスと関係をフォームで追加します。属性・メソッドは任意で、1行に1つ（例: <code>+String name</code>、<code>+makeSound()</code>）入力してください。</p>
+
+    <div class="card">
+      <div class="card-title">名前空間 (namespace) を追加</div>
+      <p class="hint" style="margin:0 0 10px;">複数のクラスを1つの枠にまとめられます。下の「クラスを追加」で所属先を選べます。</p>
+      <div class="field" style="margin-bottom:8px;"><label for="clsNsId">名前空間名</label><input type="text" id="clsNsId" placeholder="例: Animals"></div>
+      <button class="add-row-btn" id="clsAddNs">＋ 名前空間を追加</button>
+      <button class="add-row-btn" id="clsNsCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <div class="item-list" id="clsNsList"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">クラスを追加</div>
+      <div class="field" style="margin-bottom:8px;"><label for="clsId">クラス名</label><input type="text" id="clsId" placeholder="例: Animal"></div>
+      <div class="field" style="margin-bottom:8px;"><label for="clsNamespace">所属名前空間</label>
+        <select id="clsNamespace"><option value="">（なし）</option></select>
+      </div>
+      <div class="field" style="margin-bottom:8px;">
+        <label for="clsMembers">属性・メソッド（任意・1行に1つ）</label>
+        <textarea id="clsMembers" rows="4" placeholder="+String name&#10;+int age&#10;+makeSound()"></textarea>
+      </div>
+      <button class="add-row-btn" id="clsAddClass">＋ クラスを追加</button>
+      <button class="add-row-btn" id="clsClassCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <div class="item-list" id="clsClassList"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">関係を追加</div>
+      <div class="row">
+        <div class="field"><label for="clsRelFrom">from</label><select id="clsRelFrom"></select></div>
+        <div class="field"><label for="clsRelTo">to</label><select id="clsRelTo"></select></div>
+      </div>
+      <div class="field" style="margin-bottom:8px;"><label for="clsRelType">関係の種類</label>
+        <select id="clsRelType">${CLASS_RELATIONS.map(r=>`<option value="${r.v}">${r.label}</option>`).join('')}</select>
+      </div>
+      <div class="field" style="margin-bottom:8px;"><label for="clsRelLabel">ラベル（任意）</label><input type="text" id="clsRelLabel" placeholder="例: has"></div>
+      <label class="toggle-edit" style="margin-bottom:8px;"><input type="checkbox" id="clsRelColorEnable">線の色を指定する</label>
+      <div class="row" id="clsRelColorRow" style="display:none;">
+        <div class="field"><label for="clsRelColor">線の色</label><input type="color" id="clsRelColor" value="#4fd1e8">${colorPresetsHtml('clsRelColor', 'line')}</div>
+      </div>
+      <p class="hint" style="margin:0 0 10px;">Mermaidの矢印先端（▷ ◆ など）は図全体で共通の定義を使うため、色が変わるのは線の部分だけです。</p>
+      <button class="add-row-btn" id="clsAddRel">＋ 関係を追加</button>
+      <button class="add-row-btn" id="clsRelCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <div class="item-list" id="clsRelList"></div>
+    </div>
+  `;
+  container.innerHTML = '';
+  container.appendChild(wrap);
+
+  document.getElementById('clsAddNs').addEventListener('click', ()=>{
+    const idInput = document.getElementById('clsNsId');
+    let id = idInput.value.trim() || ('NS' + state.nsCounter);
+    id = sanitizeMermaidId(id, 'NS');
+
+    // 同じ図の中でIDが衝突すると、参照が別の要素に付け替わってしまう
+    if(!checkDuplicateId(id, [...state.classDiag.classes, ...state.classDiag.namespaces].map(x=>x.id), state.classDiag.editNamespaceIdx !== null ? state.classDiag.namespaces[state.classDiag.editNamespaceIdx].id : null)) return;
+
+    if(state.classDiag.editNamespaceIdx !== null){
+      const idx = state.classDiag.editNamespaceIdx;
+      const oldId = state.classDiag.namespaces[idx].id;
+      if(oldId !== id){
+        state.classDiag.classes.forEach(c=>{ if(c.namespaceId===oldId) c.namespaceId = id; });
+      }
+      state.classDiag.namespaces[idx] = { id, label:id };
+    }else{
+      state.classDiag.namespaces.push({ id, label:id });
+      state.nsCounter++;
+    }
+    clsResetNsForm();
+    refreshClassLists();
+    regenerateCode();
+  });
+  document.getElementById('clsNsCancel').addEventListener('click', clsResetNsForm);
+
+  document.getElementById('clsAddClass').addEventListener('click', ()=>{
+    const idInput = document.getElementById('clsId');
+    const membersInput = document.getElementById('clsMembers');
+    const namespaceId = document.getElementById('clsNamespace').value || null;
+    let id = idInput.value.trim() || ('Class' + state.clsCounter);
+    id = sanitizeMermaidId(id, 'C_');
+
+    // 同じ図の中でIDが衝突すると、参照が別の要素に付け替わってしまう
+    if(!checkDuplicateId(id, [...state.classDiag.classes, ...state.classDiag.namespaces].map(x=>x.id), state.classDiag.editClassIdx !== null ? state.classDiag.classes[state.classDiag.editClassIdx].id : null)) return;
+    const members = membersInput.value;
+
+    if(state.classDiag.editClassIdx !== null){
+      const idx = state.classDiag.editClassIdx;
+      const oldId = state.classDiag.classes[idx].id;
+      if(oldId !== id){
+        state.classDiag.relations.forEach(r=>{
+          if(r.from===oldId) r.from = id;
+          if(r.to===oldId) r.to = id;
+        });
+      }
+      state.classDiag.classes[idx] = { id, namespaceId, members };
+    }else{
+      state.classDiag.classes.push({ id, namespaceId, members });
+      state.clsCounter++;
+    }
+    clsResetClassForm();
+    refreshClassLists();
+    regenerateCode();
+  });
+  document.getElementById('clsClassCancel').addEventListener('click', clsResetClassForm);
+
+  document.getElementById('clsRelColorEnable').addEventListener('change', e=>{
+    document.getElementById('clsRelColorRow').style.display = e.target.checked ? 'flex' : 'none';
+  });
+
+  document.getElementById('clsAddRel').addEventListener('click', ()=>{
+    const from = document.getElementById('clsRelFrom').value;
+    const to = document.getElementById('clsRelTo').value;
+    const type = document.getElementById('clsRelType').value;
+    const label = document.getElementById('clsRelLabel').value.trim();
+    const colorOn = document.getElementById('clsRelColorEnable').checked;
+    const color = colorOn ? document.getElementById('clsRelColor').value : null;
+    if(!from || !to) return;
+
+    if(state.classDiag.editRelationIdx !== null){
+      state.classDiag.relations[state.classDiag.editRelationIdx] = { from, to, type, label, color };
+    }else{
+      state.classDiag.relations.push({ from, to, type, label, color });
+    }
+    clsResetRelForm();
+    refreshClassLists();
+    regenerateCode();
+  });
+  document.getElementById('clsRelCancel').addEventListener('click', clsResetRelForm);
+
+  refreshClassLists();
+}
+
+function clsFillNsForm(ns){
+  document.getElementById('clsNsId').value = ns.id;
+  document.getElementById('clsAddNs').textContent = '✓ 名前空間を更新';
+  document.getElementById('clsNsCancel').style.display = 'block';
+}
+function clsResetNsForm(){
+  document.getElementById('clsNsId').value = '';
+  state.classDiag.editNamespaceIdx = null;
+  document.getElementById('clsAddNs').textContent = '＋ 名前空間を追加';
+  document.getElementById('clsNsCancel').style.display = 'none';
+}
+function clsFillClassForm(c){
+  document.getElementById('clsId').value = c.id;
+  document.getElementById('clsNamespace').value = c.namespaceId || '';
+  document.getElementById('clsMembers').value = c.members || '';
+  document.getElementById('clsAddClass').textContent = '✓ クラスを更新';
+  document.getElementById('clsClassCancel').style.display = 'block';
+}
+function clsResetClassForm(){
+  document.getElementById('clsId').value = '';
+  document.getElementById('clsNamespace').value = '';
+  document.getElementById('clsMembers').value = '';
+  state.classDiag.editClassIdx = null;
+  document.getElementById('clsAddClass').textContent = '＋ クラスを追加';
+  document.getElementById('clsClassCancel').style.display = 'none';
+}
+function clsFillRelForm(r){
+  document.getElementById('clsRelFrom').value = r.from;
+  document.getElementById('clsRelTo').value = r.to;
+  document.getElementById('clsRelType').value = r.type;
+  document.getElementById('clsRelLabel').value = r.label || '';
+  const hasColor = !!r.color;
+  document.getElementById('clsRelColorEnable').checked = hasColor;
+  document.getElementById('clsRelColorRow').style.display = hasColor ? 'flex' : 'none';
+  document.getElementById('clsRelColor').value = r.color || '#4fd1e8';
+  document.getElementById('clsAddRel').textContent = '✓ 関係を更新';
+  document.getElementById('clsRelCancel').style.display = 'block';
+}
+function clsResetRelForm(){
+  document.getElementById('clsRelLabel').value = '';
+  document.getElementById('clsRelColorEnable').checked = false;
+  document.getElementById('clsRelColorRow').style.display = 'none';
+  state.classDiag.editRelationIdx = null;
+  document.getElementById('clsAddRel').textContent = '＋ 関係を追加';
+  document.getElementById('clsRelCancel').style.display = 'none';
+}
+
+function refreshClassLists(){
+  const nsList = document.getElementById('clsNsList');
+  const classList = document.getElementById('clsClassList');
+  const relList = document.getElementById('clsRelList');
+  const classNsSel = document.getElementById('clsNamespace');
+  const fromSel = document.getElementById('clsRelFrom');
+  const toSel = document.getElementById('clsRelTo');
+  if(!classList) return;
+
+  nsList.innerHTML = state.classDiag.namespaces.length ? '' : '<div class="empty-note">まだ名前空間がありません</div>';
+  state.classDiag.namespaces.forEach((ns,i)=>{
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    row.innerHTML = `<span class="item-text">${ns.id}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+    row.querySelector('.edit-btn').addEventListener('click', ()=>{
+      state.classDiag.editNamespaceIdx = i;
+      clsFillNsForm(state.classDiag.namespaces[i]);
+    });
+    row.querySelector('.del-btn').addEventListener('click', ()=>{
+      // 名前空間を消してもクラス自体は残す（枠から出るだけ）
+      const removedId = state.classDiag.namespaces[i].id;
+      state.classDiag.namespaces.splice(i,1);
+      state.classDiag.classes.forEach(c=>{ if(c.namespaceId===removedId) c.namespaceId = null; });
+      if(state.classDiag.editNamespaceIdx===i) clsResetNsForm();
+      refreshClassLists(); regenerateCode();
+    });
+    nsList.appendChild(row);
+  });
+  makeSortable(nsList, state.classDiag.namespaces, ()=>{
+    clsResetNsForm();
+    refreshClassLists(); regenerateCode();
+  });
+
+  classNsSel.innerHTML = '<option value="">（なし）</option>' +
+    state.classDiag.namespaces.map(ns=>`<option value="${ns.id}">${ns.id}</option>`).join('');
+
+  if(!state.classDiag.classes.length){
+    classList.innerHTML = '<div class="empty-note">まだクラスがありません</div>';
+  }else{
+    // クラスは所属名前空間ごとに束ねる（見出しがグループ名を示すので行のバッジは省く）
+    renderGroupedList(classList, state.classDiag.classes,
+      c=> c.namespaceId || null,
+      state.classDiag.namespaces, groupCollapse.clsClass,
+      (c,i)=>{
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        const memberCount = classMemberLines(c.members).length;
+        row.innerHTML = `<span class="item-text">${c.id}${memberCount? ' ('+memberCount+'件)' : ''}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+        row.querySelector('.edit-btn').addEventListener('click', ()=>{
+          state.classDiag.editClassIdx = i;
+          clsFillClassForm(state.classDiag.classes[i]);
+        });
+        row.querySelector('.del-btn').addEventListener('click', ()=>{
+          const removedId = state.classDiag.classes[i].id;
+          state.classDiag.classes.splice(i,1);
+          state.classDiag.relations = state.classDiag.relations.filter(r=>r.from!==removedId && r.to!==removedId);
+          if(state.classDiag.editClassIdx===i) clsResetClassForm();
+          refreshClassLists(); regenerateCode();
+        });
+        return row;
+      }, '（グループなし）');
+  }
+  // クラスの並び順は宣言順としてMermaidのレイアウトに反映されるため、D&Dで入れ替えられるようにする
+  makeSortable(classList, state.classDiag.classes, ()=>{
+    clsResetClassForm();
+    refreshClassLists(); regenerateCode();
+  });
+
+  const opts = state.classDiag.classes.map(c=>`<option value="${c.id}">${c.id}</option>`).join('');
+  fromSel.innerHTML = opts; toSel.innerHTML = opts;
+
+  if(!state.classDiag.relations.length){
+    relList.innerHTML = '<div class="empty-note">まだ関係がありません</div>';
+  }else{
+    // 関係は起点クラスの所属名前空間ごとに束ねる（跨る関係は「グループなし」へ）
+    renderGroupedList(relList, state.classDiag.relations,
+      r=>{ const fc = state.classDiag.classes.find(c=>c.id===r.from); return fc ? (fc.namespaceId || null) : null; },
+      state.classDiag.namespaces, groupCollapse.clsRel,
+      (r,i)=>{
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        const swatch = r.color ? `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${r.color};flex-shrink:0;"></span>` : '';
+        row.innerHTML = `${swatch}<span class="item-text">${r.from} ${r.type} ${r.to}${r.label?' : '+r.label:''}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+        row.querySelector('.edit-btn').addEventListener('click', ()=>{
+          state.classDiag.editRelationIdx = i;
+          clsFillRelForm(state.classDiag.relations[i]);
+        });
+        row.querySelector('.del-btn').addEventListener('click', ()=>{
+          state.classDiag.relations.splice(i,1);
+          if(state.classDiag.editRelationIdx===i) clsResetRelForm();
+          refreshClassLists(); regenerateCode();
+        });
+        return row;
+      }, '（グループなし）');
+  }
+  makeSortable(relList, state.classDiag.relations, ()=>{
+    clsResetRelForm();
+    refreshClassLists(); regenerateCode();
+  });
+}
+
+/* 図種に対応するビルダーを描く。図種を増やすときはここだけ足せば
+   switchDiagramType とプロジェクト復元の両方に反映される */
+function renderBuilderFor(type, panel){
+  if(type==='sequence') renderSequenceBuilder(panel);
+  else if(type==='state') renderStateBuilder(panel);
+  else if(type==='class') renderClassBuilder(panel);
+  else renderFlowchartBuilder(panel);
+}
+
 function switchDiagramType(type){
   state.diagramType = type;
   state.manualMode = false;
   document.getElementById('editToggle').checked = false;
   document.getElementById('codeArea').readOnly = true;
 
-  const panel = document.getElementById('builderPanel');
-  if(type==='sequence') renderSequenceBuilder(panel);
-  else if(type==='state') renderStateBuilder(panel);
-  else renderFlowchartBuilder(panel);
+  renderBuilderFor(type, document.getElementById('builderPanel'));
   regenerateCode();
   updateImportStatus();
 }
@@ -2923,16 +3342,20 @@ function buildStateSnapshot(){
     flowchart: state.flowchart,
     sequence: state.sequence,
     stateDiag: state.stateDiag,
+    classDiag: state.classDiag,
     nodeCounter: state.nodeCounter,
     subCounter: state.subCounter,
     partCounter: state.partCounter,
     stCounter: state.stCounter,
     compCounter: state.compCounter,
+    clsCounter: state.clsCounter,
+    nsCounter: state.nsCounter,
   }));
   // 編集中インデックスはリセットしてから保存する
   if(snap.flowchart){ snap.flowchart.editNodeIdx=null; snap.flowchart.editEdgeIdx=null; snap.flowchart.editSubIdx=null; }
   if(snap.sequence){ snap.sequence.editPartIdx=null; snap.sequence.editMsgIdx=null; snap.sequence.editNoteIdx=null; snap.sequence.editBlockIdx=null; snap.sequence.editDivIdx=null; }
   if(snap.stateDiag){ snap.stateDiag.editNodeIdx=null; snap.stateDiag.editEdgeIdx=null; snap.stateDiag.editCompositeIdx=null; }
+  if(snap.classDiag){ snap.classDiag.editClassIdx=null; snap.classDiag.editRelationIdx=null; snap.classDiag.editNamespaceIdx=null; }
   return snap;
 }
 
@@ -2982,24 +3405,30 @@ function restoreSnapshot(snapshot){
     // 旧形式（サブステート機能追加前）のプロジェクトファイルとの後方互換
     if(!Array.isArray(state.stateDiag.composites)) state.stateDiag.composites = [];
   }
+  if(snapshot.classDiag){
+    state.classDiag = snapshot.classDiag;
+    // 旧形式（名前空間機能追加前／MGS無印）のプロジェクトファイルとの後方互換
+    if(!Array.isArray(state.classDiag.namespaces)) state.classDiag.namespaces = [];
+    if(state.classDiag.editNamespaceIdx === undefined) state.classDiag.editNamespaceIdx = null;
+    (state.classDiag.classes || []).forEach(c=>{ if(c.namespaceId === undefined) c.namespaceId = null; });
+  }
   state.nodeCounter = snapshot.nodeCounter || state.nodeCounter;
   state.subCounter = snapshot.subCounter || state.subCounter;
   state.partCounter = snapshot.partCounter || state.partCounter;
   state.stCounter = snapshot.stCounter || state.stCounter;
   state.compCounter = snapshot.compCounter || state.compCounter;
+  state.clsCounter = snapshot.clsCounter || state.clsCounter;
+  state.nsCounter = snapshot.nsCounter || state.nsCounter;
 
-  // MGS(無印)のプロジェクトファイルは他の図種も含むが、本ツールが扱えるのはこの2種のみ
-  const type = ['sequence','state'].includes(snapshot.diagramType) ? snapshot.diagramType : 'flowchart';
+  // MGS(無印)のプロジェクトファイルは他の図種も含むが、本ツールが扱えるのはこの4種のみ
+  const type = ['sequence','state','class'].includes(snapshot.diagramType) ? snapshot.diagramType : 'flowchart';
   document.getElementById('diagramType').value = type;
   state.diagramType = type;
   state.manualMode = false;
   document.getElementById('editToggle').checked = false;
   document.getElementById('codeArea').readOnly = true;
 
-  const panel = document.getElementById('builderPanel');
-  if(type==='sequence') renderSequenceBuilder(panel);
-  else if(type==='state') renderStateBuilder(panel);
-  else renderFlowchartBuilder(panel);
+  renderBuilderFor(type, document.getElementById('builderPanel'));
   regenerateCode();
 }
 
@@ -3472,23 +3901,167 @@ function importStateDiagram(lines, rep){
   return sd;
 }
 
+/* クラス図。クラス宣言・関係・namespace を読む。
+   属性やメソッドの中身は解釈せず1行ずつそのまま持つので、<<interface>> のような
+   注釈もクラスブロックの中に書かれていればそのまま往復できる。 */
+function escapeRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+// 長い記号から順に試さないと、--|> を --> と読み違える
+const CLASS_REL_ALT = CLASS_RELATIONS.map(r=>r.v).sort((a,b)=>b.length-a.length).map(escapeRe).join('|');
+const CLASS_REL_RE = new RegExp('^([^\\s:]+?)\\s*(' + CLASS_REL_ALT + ')\\s*([^\\s:]+?)\\s*(?::\\s*([\\s\\S]*))?$');
+const CLASS_REL_HAS = new RegExp('(?:' + CLASS_REL_ALT + ')');
+
+function importClassDiagram(lines, rep, relationColors){
+  const cd = emptyClassState();
+  const byId = new Map();
+  let headerSeen = false;
+  let curNs = null;      // namespace ブロックの中にいるか
+  let openClass = null;   // class ブロックの中にいるか（メンバー収集中）
+
+  const ensureClass = (id)=>{
+    let c = byId.get(id);
+    if(!c){
+      c = { id, namespaceId: curNs, members:'' };
+      byId.set(id, c);
+      cd.classes.push(c);
+    }else if(curNs && !c.namespaceId){
+      // 関係だけで先に作られていたクラスが、後から namespace の中で宣言された場合の補正
+      c.namespaceId = curNs;
+    }
+    return c;
+  };
+
+  lines.forEach((raw, i)=>{
+    const lineNo = i + 1;
+    const line = raw.trim();
+    if(!line) return;
+
+    // クラスブロックの中は「}」以外すべてメンバー行として持つ
+    if(openClass && line !== '}'){
+      if(line.startsWith('%%')){ dropLine(rep, lineNo, line, 'コメント行'); return; }
+      openClass.members += (openClass.members ? '\n' : '') + line;
+      return;
+    }
+
+    if(line.startsWith('%%')){
+      if(line.startsWith('%%{')) blockLine(rep, lineNo, line, 'ディレクティブ（%%{init:…}）はビルダーで保持できません');
+      else dropLine(rep, lineNo, line, 'コメント行');
+      return;
+    }
+    if(!headerSeen){
+      if(!/^classDiagram(-v2)?$/i.test(line)){ blockLine(rep, lineNo, line, '先頭が classDiagram の宣言ではありません'); return; }
+      headerSeen = true;
+      return;
+    }
+    if(line === '}'){
+      if(openClass){ openClass = null; return; }
+      if(curNs){ curNs = null; return; }
+      blockLine(rep, lineNo, line, '対応する class / namespace ブロックがありません');
+      return;
+    }
+    if(/^direction\b/i.test(line)){ blockLine(rep, lineNo, line, 'direction はビルダーで表現できません'); return; }
+    if(/^note\b/i.test(line)){ blockLine(rep, lineNo, line, 'note はビルダーで保持できません'); return; }
+    if(/^(click|link|callback|style|cssClass|classDef)\b/i.test(line)){ blockLine(rep, lineNo, line, 'click / style / cssClass などの装飾はビルダーで保持できません'); return; }
+
+    // namespace NS {
+    const ns = /^namespace\s+(\S+)\s*\{$/.exec(line);
+    if(ns){
+      if(curNs){ blockLine(rep, lineNo, line, 'namespace の入れ子はビルダーで表現できません'); return; }
+      const id = ns[1];
+      if(!IMPORT_ID_RE.test(id)){ blockLine(rep, lineNo, line, `名前空間の名前「${id}」に使えない文字が含まれています`); return; }
+      if(!cd.namespaces.some(x=>x.id===id)) cd.namespaces.push({ id, label:id });
+      curNs = id;
+      return;
+    }
+    if(/^namespace\b/i.test(line)){ blockLine(rep, lineNo, line, 'namespace の書き方を解釈できません'); return; }
+
+    // class X { … / class X
+    const cls = /^class\s+([^\s{:]+)\s*(\{)?$/.exec(line);
+    if(cls){
+      const id = cls[1];
+      if(!IMPORT_ID_RE.test(id)){ blockLine(rep, lineNo, line, `クラス名「${id}」に使えない文字が含まれています`); return; }
+      const c = ensureClass(id);
+      if(cls[2]) openClass = c;
+      return;
+    }
+    if(/^class\b/.test(line)){ blockLine(rep, lineNo, line, 'class は「class クラス名」または「class クラス名 {」の形だけ解釈できます'); return; }
+
+    // 関係: A <|-- B / A --> B : ラベル
+    const rel = CLASS_REL_RE.exec(line);
+    if(rel){
+      const [, from, type, to, label] = rel;
+      for(const t of [from, to]){
+        if(!IMPORT_ID_RE.test(t)){ blockLine(rep, lineNo, line, `クラス名「${t}」に使えない文字が含まれています`); return; }
+      }
+      ensureClass(from); ensureClass(to);
+      cd.relations.push({ from, to, type, label:(label || '').trim(), color:null });
+      return;
+    }
+    if(line.includes('"') && CLASS_REL_HAS.test(line)){
+      blockLine(rep, lineNo, line, '多重度（"1" や "*"）付きの関係はビルダーで表現できません');
+      return;
+    }
+    blockLine(rep, lineNo, line, '解釈できない行です');
+  });
+
+  if(openClass) blockLine(rep, lines.length, '', '} で閉じられていない class ブロックがあります');
+  if(curNs) blockLine(rep, lines.length, '', '} で閉じられていない namespace ブロックがあります');
+  if(!headerSeen) blockLine(rep, 1, '', 'classDiagram の宣言が見つかりません');
+
+  // フロントマターから復元した関係線の色を、宣言順で割り当てる
+  if(relationColors){
+    relationColors.forEach((color, idx)=>{
+      if(cd.relations[idx]) cd.relations[idx].color = color;
+    });
+  }
+  return cd;
+}
+
+/* このツールが出力したクラス図のフロントマター（関係線の色）だけを読み戻す。
+   themeCSS に自分の出力以外が混ざっていたら、保持できないので取り込まない。 */
+function parseClassColorHeader(code){
+  const m = /^---\r?\n(?:config:\r?\n {2}themeCSS: "([^"]*)"\r?\n)---\r?\n([\s\S]*)$/.exec(code);
+  if(!m) return null;
+  const css = m[1];
+  const ruleRe = /g\.edgePaths path\.relation:nth-of-type\((\d+)\)\{stroke:(#[0-9A-Fa-f]{3,8}) !important;\}/g;
+  const colors = new Map();
+  let mm;
+  while((mm = ruleRe.exec(css))) colors.set(Number(mm[1]) - 1, mm[2]);
+  if(!colors.size) return null;
+  if(css.replace(/g\.edgePaths path\.relation:nth-of-type\(\d+\)\{stroke:#[0-9A-Fa-f]{3,8} !important;\}/g, '').trim()) return null;
+  // 行番号を本文と揃えるため、取り除いたヘッダの行数を返して空行で埋め直させる
+  const headerLines = code.slice(0, code.length - m[2].length).split('\n').length - 1;
+  return { body: m[2], headerLines, colors };
+}
+
 /* 取り込みの入口。成功なら { ok:true, type, data }、失敗なら理由の一覧を rep に詰めて返す */
 function tryImportCode(rawCode){
   const rep = newImportReport();
-  const code = String(rawCode || '').trim();
+  let code = String(rawCode || '').trim();
   if(!code){ blockLine(rep, 1, '', 'コードが空です'); return { ok:false, rep }; }
+  let relationColors = null;
   if(/^---\r?\n/.test(code)){
+    // 自分が出力したクラス図の色指定だけは読み戻せる。それ以外のフロントマターは保持できない
+    const header = parseClassColorHeader(code);
+    if(!header){
+      blockLine(rep, 1, '---', 'フロントマター（--- で囲む設定）はビルダーで保持できません');
+      return { ok:false, rep };
+    }
+    relationColors = header.colors;
+    // 取り除いた分を空行で埋め、報告する行番号を元のコードと揃える
+    code = '\n'.repeat(header.headerLines) + header.body;
+  }
+  const type = detectDiagramType(code);
+  const importers = { flowchart:importFlowchart, sequence:importSequence, state:importStateDiagram, class:importClassDiagram };
+  if(!importers[type]){
+    blockLine(rep, 1, code.split('\n')[0], 'このツールが取り込めるのは flowchart / graph、sequenceDiagram、stateDiagram、classDiagram だけです');
+    return { ok:false, rep };
+  }
+  if(relationColors && type !== 'class'){
     blockLine(rep, 1, '---', 'フロントマター（--- で囲む設定）はビルダーで保持できません');
     return { ok:false, rep };
   }
-  const type = detectDiagramType(code);
-  const importers = { flowchart:importFlowchart, sequence:importSequence, state:importStateDiagram };
-  if(!importers[type]){
-    blockLine(rep, 1, code.split('\n')[0], 'このツールが取り込めるのは flowchart / graph、sequenceDiagram、stateDiagram だけです');
-    return { ok:false, rep };
-  }
   const lines = code.split('\n');
-  const data = importers[type](lines, rep);
+  const data = importers[type](lines, rep, relationColors);
   if(rep.blocked.length) return { ok:false, rep, type };
   return { ok:true, type, data, rep };
 }
@@ -3511,6 +4084,10 @@ function applyImport(type, data){
     state.stateDiag = data;
     state.stCounter = nextCounter(data.nodes.map(n=>n.id), 'S');
     state.compCounter = nextCounter(data.composites.map(c=>c.id), 'CS');
+  }else if(type === 'class'){
+    state.classDiag = data;
+    state.clsCounter = nextCounter(data.classes.map(c=>c.id), 'Class');
+    state.nsCounter = nextCounter(data.namespaces.map(n=>n.id), 'NS');
   }else{
     state.sequence = data;
     state.partCounter = nextCounter(data.participants.map(p=>p.id), 'P');
@@ -3536,6 +4113,7 @@ function detectDiagramType(code){
   if(firstLine.startsWith('flowchart') || firstLine.startsWith('graph')) return 'flowchart';
   if(firstLine.startsWith('sequencediagram')) return 'sequence';
   if(firstLine.startsWith('statediagram')) return 'state';
+  if(firstLine.startsWith('classdiagram')) return 'class';
   return null;
 }
 
