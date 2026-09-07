@@ -962,24 +962,43 @@ function sampleClassState(){
   });
 }
 
+/* サンプルの属性は具体的な型ではなく「役割」で持ち、DB種類ごとの実際の型に割り当てる。
+   こうしないと、MySQLを選んでいるのにPostgreSQLの serial が入った状態で読み込まれてしまう。
+   値はすべて DB_TYPES の各エンジンの一覧に存在するものを指す。 */
+const ER_SAMPLE_TYPES = {
+  postgresql: { pk:'serial',  str:'varchar',  int:'integer', date:'date', dec:'numeric' },
+  mysql:      { pk:'int',     str:'varchar',  int:'int',     date:'date', dec:'decimal' },
+  sqlserver:  { pk:'int',     str:'nvarchar', int:'int',     date:'date', dec:'decimal' },
+  oracle:     { pk:'number',  str:'varchar2', int:'number',  date:'date', dec:'number'  },
+  sqlite:     { pk:'INTEGER', str:'TEXT',     int:'INTEGER', date:'TEXT', dec:'REAL'    },
+};
+function erSampleAttr(role, name, logicalName, keys){
+  const engine = state.erDiag.dbEngine;
+  const type = (ER_SAMPLE_TYPES[engine] || ER_SAMPLE_TYPES.postgresql)[role];
+  const def = getTypeDef(engine, type);
+  return { name, logicalName, type, hasLength: !!def.hasLength, length: def.hasLength ? '255' : '',
+           pk: !!(keys && keys.pk), fk: !!(keys && keys.fk) };
+}
+
 function sampleERState(){
-  // 顧客・注文・商品の3エンティティ構成（多対多を含む）
+  // 顧客・注文・商品の3エンティティ構成（多対多を含む）。型はいま選んでいるDB種類に合わせる
   return Object.assign(emptyERState(), {
+    dbEngine: state.erDiag.dbEngine,
     entities: [
       { id:'CUSTOMER', headerFill:'#BBDEFB', headerStroke:'#1565C0', attributes: [
-        { name:'id', logicalName:'顧客ID', type:'serial', hasLength:false, length:'', pk:true, fk:false },
-        { name:'name', logicalName:'氏名', type:'varchar', hasLength:true, length:'255', pk:false, fk:false },
-        { name:'email', logicalName:'メールアドレス', type:'varchar', hasLength:true, length:'255', pk:false, fk:false },
+        erSampleAttr('pk',  'id',    '顧客ID', { pk:true }),
+        erSampleAttr('str', 'name',  '氏名'),
+        erSampleAttr('str', 'email', 'メールアドレス'),
       ]},
       { id:'ORDER', headerFill:'#FFE0B2', headerStroke:'#EF6C00', attributes: [
-        { name:'id', logicalName:'注文ID', type:'serial', hasLength:false, length:'', pk:true, fk:false },
-        { name:'customer_id', logicalName:'顧客ID', type:'integer', hasLength:false, length:'', pk:false, fk:true },
-        { name:'order_date', logicalName:'注文日', type:'date', hasLength:false, length:'', pk:false, fk:false },
+        erSampleAttr('pk',   'id',          '注文ID', { pk:true }),
+        erSampleAttr('int',  'customer_id', '顧客ID', { fk:true }),
+        erSampleAttr('date', 'order_date',  '注文日'),
       ]},
       { id:'PRODUCT', headerFill:'#C8E6C9', headerStroke:'#2E7D32', attributes: [
-        { name:'id', logicalName:'商品ID', type:'serial', hasLength:false, length:'', pk:true, fk:false },
-        { name:'name', logicalName:'商品名', type:'varchar', hasLength:true, length:'255', pk:false, fk:false },
-        { name:'price', logicalName:'価格', type:'numeric', hasLength:false, length:'', pk:false, fk:false },
+        erSampleAttr('pk',  'id',    '商品ID', { pk:true }),
+        erSampleAttr('str', 'name',  '商品名'),
+        erSampleAttr('dec', 'price', '価格'),
       ]},
     ],
     relations: [
@@ -995,7 +1014,9 @@ const DIAGRAM_META = {
   sequence:  { stateKey:'sequence',  empty:emptySequenceState,  sample:sampleSequenceState,  contentFields:['participants','messages'], resetCounters(){ state.partCounter=1; }, sampleCounters(){ state.partCounter=5; } },
   state:     { stateKey:'stateDiag', empty:emptyStateDiagState, sample:sampleStateDiagState, contentFields:['nodes','edges','composites'], resetCounters(){ state.stCounter=1; state.compCounter=1; }, sampleCounters(){ state.stCounter=6; state.compCounter=2; } },
   class:     { stateKey:'classDiag', empty:emptyClassState,     sample:sampleClassState,     contentFields:['classes','relations','namespaces'], resetCounters(){ state.clsCounter=1; state.nsCounter=1; }, sampleCounters(){ state.clsCounter=5; state.nsCounter=2; } },
-  er:        { stateKey:'erDiag',    empty:emptyERState,        sample:sampleERState,        contentFields:['dbEngine','entities','relations'], resetCounters(){ state.entCounter=1; }, sampleCounters(){ state.entCounter=4; } },
+  // DB種類は図の内容ではなく設定なので、クリアやサンプル読み込みでは選択中のものを引き継ぐ
+  er:        { stateKey:'erDiag',    empty:()=>Object.assign(emptyERState(), { dbEngine: state.erDiag.dbEngine }),
+               sample:sampleERState, contentFields:['dbEngine','entities','relations'], resetCounters(){ state.entCounter=1; }, sampleCounters(){ state.entCounter=4; } },
 };
 
 function extractDiagramContent(obj, fields){
@@ -3544,7 +3565,7 @@ function renderERBuilder(container){
     <div class="card">
       <div class="card-title">プロジェクトのDB種類</div>
       <div class="field"><select id="erDbEngine" aria-label="プロジェクトのDB種類">${DB_ENGINES.map(e=>`<option value="${e.v}">${e.label}</option>`).join('')}</select></div>
-      <p class="hint" style="margin:6px 0 0;">すべての属性の型の選択肢に反映されます。</p>
+      <p class="hint" style="margin:6px 0 0;">すべての属性の型の選択肢に反映されます。「サンプルを読み込む」もこのDB種類の型で作られます。</p>
     </div>
 
     <div class="card">
@@ -3600,7 +3621,12 @@ function renderERBuilder(container){
 
   document.getElementById('erDbEngine').value = state.erDiag.dbEngine;
   document.getElementById('erDbEngine').addEventListener('change', e=>{
+    // 判定は切り替える前の型で行う（切り替え後だと必ず不一致になる）
+    const wasSample = isDiagramSample('er');
     state.erDiag.dbEngine = e.target.value;
+    // サンプルをそのまま表示していたなら、新しいDB種類の型で作り直す。
+    // 手を入れた図は型を勝手に置き換えず、選択肢だけ差し替える
+    if(wasSample){ loadSampleDiagram('er'); return; }
     populateERTypeOptions();
     toggleERLengthField();
   });
