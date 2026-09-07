@@ -8,17 +8,17 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/favicon-16x16.png">
 <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
-<meta name="description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
+<meta name="description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
 <link rel="canonical" href="https://tossie85.site/tools/mermaid-gui-studio-2.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="tossie85 lab">
 <meta property="og:title" content="Mermaid GUI Studio 2">
-<meta property="og:description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
+<meta property="og:description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
 <meta property="og:url" content="https://tossie85.site/tools/mermaid-gui-studio-2.html">
 <meta property="og:image" content="https://tossie85.site/assets/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Mermaid GUI Studio 2">
-<meta name="twitter:description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
+<meta name="twitter:description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図をGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
 <meta name="twitter:image" content="https://tossie85.site/assets/og-default.png">
 <style>
   :root{
@@ -588,7 +588,7 @@
     <div class="brand-mark"></div>
     <div>
       <div class="brand-title">Mermaid GUI Studio 2</div>
-      <div class="brand-sub">Flowchart / Sequence / State / Class — with Import</div>
+      <div class="brand-sub">Flowchart / Sequence / State / Class / ER — with Import</div>
     </div>
   </div>
 
@@ -600,6 +600,7 @@
         <option value="sequence">シーケンス図</option>
         <option value="state">状態遷移図</option>
         <option value="class">クラス図</option>
+        <option value="er">ER図</option>
       </select>
     </div>
 
@@ -708,6 +709,8 @@
         <li>状態遷移図の <code>note</code> / <code>direction</code> / <code>&lt;&lt;fork&gt;&gt;</code>・<code>&lt;&lt;join&gt;&gt;</code>・<code>&lt;&lt;choice&gt;&gt;</code> / 並行処理の区切り（<code>--</code>）</li>
         <li>クラス図の <code>note</code> / <code>direction</code> / <code>cssClass</code> / <code>classDef</code> / <code>namespace</code> の入れ子 / 多重度付きの関係（<code>A "1" --&gt; "*" B</code>）<br>
           <span class="hint"><code>style</code> だけは、本ツールがクラスの色を出力する形（1つのクラスに塗りと枠線のみ）に限って取り込めます。</span></li>
+        <li>ER図の <code>direction</code> / エンティティの別名（<code>A["表示名"]</code>）/ <code>UK</code> のキー指定 / 破線（<code>..</code>）の非依存リレーション<br>
+          <span class="hint">エンティティの色も <code>style</code> で出力しているため、クラス図と同じくその形に限って取り込めます。</span></li>
       </ul>
       <p class="hint" style="margin-top:12px;">
         逆に、<code>A --&gt; B --&gt; C</code> の連鎖、<code>A -- ラベル --&gt; B</code> の書き方、<code>---&gt;</code> のような長さ違いの矢印、<code>graph</code> 始まりの旧表記は、意味が同じなので正規の形に直して取り込みます。コメント行（<code>%%</code>）は保持できないため、取り込む前に確認を出します。
@@ -741,7 +744,7 @@
     </div>
     <div class="modal-body">
       <h3>Mermaid GUI Studio 2</h3>
-      <p>Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図をGUIで組み立てられるツールです。既存のMermaidコードをGUIへ取り込む機能を備えています。ブラウザ単体で動作し、外部サーバーへの通信は行いません。</p>
+      <p>Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図をGUIで組み立てられるツールです。既存のMermaidコードをGUIへ取り込む機能を備えています。ブラウザ単体で動作し、外部サーバーへの通信は行いません。</p>
 
       <h3>使用ライブラリ</h3>
       <div class="credit-item">
@@ -839,6 +842,7 @@ function emptyFlowchartState(){ return { direction:'TD', nodes:[], edges:[], sub
 function emptySequenceState(){ return { participants:[], messages:[], editPartIdx:null, editMsgIdx:null, editNoteIdx:null, editBlockIdx:null, editDivIdx:null }; }
 function emptyStateDiagState(){ return { nodes:[], edges:[], composites:[], editNodeIdx:null, editEdgeIdx:null, editCompositeIdx:null }; }
 function emptyClassState(){ return { classes:[], relations:[], namespaces:[], editClassIdx:null, editRelationIdx:null, editNamespaceIdx:null }; }
+function emptyERState(){ return { entities:[], relations:[], editEntityIdx:null, editRelationIdx:null, activeEntityIdx:null, editAttrIdx:null, dbEngine:'postgresql' }; }
 
 const state = {
   diagramType: 'flowchart',
@@ -849,6 +853,7 @@ const state = {
   sequence: emptySequenceState(),
   stateDiag: emptyStateDiagState(),
   classDiag: emptyClassState(),
+  erDiag: emptyERState(),
   nodeCounter: 1,
   edgeCounter: 1,
   subCounter: 1,
@@ -858,6 +863,7 @@ const state = {
   msgCounter: 1,
   clsCounter: 1,
   nsCounter: 1,
+  entCounter: 1,
 };
 
 /* ============ サンプルデータ（「サンプルを読み込む」ボタン用） ============ */
@@ -956,12 +962,40 @@ function sampleClassState(){
   });
 }
 
+function sampleERState(){
+  // 顧客・注文・商品の3エンティティ構成（多対多を含む）
+  return Object.assign(emptyERState(), {
+    entities: [
+      { id:'CUSTOMER', headerFill:'#BBDEFB', headerStroke:'#1565C0', attributes: [
+        { name:'id', logicalName:'顧客ID', type:'serial', hasLength:false, length:'', pk:true, fk:false },
+        { name:'name', logicalName:'氏名', type:'varchar', hasLength:true, length:'255', pk:false, fk:false },
+        { name:'email', logicalName:'メールアドレス', type:'varchar', hasLength:true, length:'255', pk:false, fk:false },
+      ]},
+      { id:'ORDER', headerFill:'#FFE0B2', headerStroke:'#EF6C00', attributes: [
+        { name:'id', logicalName:'注文ID', type:'serial', hasLength:false, length:'', pk:true, fk:false },
+        { name:'customer_id', logicalName:'顧客ID', type:'integer', hasLength:false, length:'', pk:false, fk:true },
+        { name:'order_date', logicalName:'注文日', type:'date', hasLength:false, length:'', pk:false, fk:false },
+      ]},
+      { id:'PRODUCT', headerFill:'#C8E6C9', headerStroke:'#2E7D32', attributes: [
+        { name:'id', logicalName:'商品ID', type:'serial', hasLength:false, length:'', pk:true, fk:false },
+        { name:'name', logicalName:'商品名', type:'varchar', hasLength:true, length:'255', pk:false, fk:false },
+        { name:'price', logicalName:'価格', type:'numeric', hasLength:false, length:'', pk:false, fk:false },
+      ]},
+    ],
+    relations: [
+      { from:'CUSTOMER', to:'ORDER', type:'||--o{', label:'places' },
+      { from:'ORDER', to:'PRODUCT', type:'}o--o{', label:'contains' },
+    ],
+  });
+}
+
 // 図の種類ごとに「stateのキー」「空/サンプルの作り方」「比較対象フィールド」「読み込み後のカウンタ初期値」をまとめる
 const DIAGRAM_META = {
   flowchart: { stateKey:'flowchart', empty:emptyFlowchartState, sample:sampleFlowchartState, contentFields:['direction','nodes','edges','subgraphs'], resetCounters(){ state.nodeCounter=1; state.subCounter=1; }, sampleCounters(){ state.nodeCounter=5; state.subCounter=3; } },
   sequence:  { stateKey:'sequence',  empty:emptySequenceState,  sample:sampleSequenceState,  contentFields:['participants','messages'], resetCounters(){ state.partCounter=1; }, sampleCounters(){ state.partCounter=5; } },
   state:     { stateKey:'stateDiag', empty:emptyStateDiagState, sample:sampleStateDiagState, contentFields:['nodes','edges','composites'], resetCounters(){ state.stCounter=1; state.compCounter=1; }, sampleCounters(){ state.stCounter=6; state.compCounter=2; } },
   class:     { stateKey:'classDiag', empty:emptyClassState,     sample:sampleClassState,     contentFields:['classes','relations','namespaces'], resetCounters(){ state.clsCounter=1; state.nsCounter=1; }, sampleCounters(){ state.clsCounter=5; state.nsCounter=2; } },
+  er:        { stateKey:'erDiag',    empty:emptyERState,        sample:sampleERState,        contentFields:['dbEngine','entities','relations'], resetCounters(){ state.entCounter=1; }, sampleCounters(){ state.entCounter=4; } },
 };
 
 function extractDiagramContent(obj, fields){
@@ -1078,6 +1112,85 @@ const SEQ_DIVIDERS = [
 ];
 // 区切りキーワードと対応するブロック種別（else→alt など）
 const DIV_BLOCK_TYPE = { else:'alt', and:'par', option:'critical' };
+// ER図のリレーション（カーディナリティ）
+const ER_RELATIONS = [
+  { v:'||--||', label:'1 対 1（必須ー必須）' },
+  { v:'||--o{', label:'1 対 多（0以上）' },
+  { v:'||--|{', label:'1 対 多（1以上）' },
+  { v:'|o--o{', label:'0または1 対 多' },
+  { v:'}o--o{', label:'多 対 多（任意）' },
+  { v:'}|--|{', label:'多 対 多（必須）' },
+];
+// 属性の型は「プロジェクトのDB種類」で切り替える。hasLength の型だけ桁数の入力欄を出す
+const DB_ENGINES = [
+  { v:'postgresql', label:'PostgreSQL' },
+  { v:'mysql', label:'MySQL' },
+  { v:'sqlserver', label:'SQL Server' },
+  { v:'oracle', label:'Oracle' },
+  { v:'sqlite', label:'SQLite' },
+];
+const DB_TYPES = {
+  postgresql: [
+    { v:'serial', label:'serial（自動採番）' },
+    { v:'bigserial', label:'bigserial（自動採番・64bit）' },
+    { v:'smallserial', label:'smallserial（自動採番・16bit）' },
+    { v:'varchar', label:'varchar', hasLength:true },
+    { v:'text', label:'text' },
+    { v:'integer', label:'integer' },
+    { v:'bigint', label:'bigint' },
+    { v:'smallint', label:'smallint' },
+    { v:'numeric', label:'numeric' },
+    { v:'boolean', label:'boolean' },
+    { v:'date', label:'date' },
+    { v:'timestamp', label:'timestamp' },
+    { v:'uuid', label:'uuid' },
+    { v:'jsonb', label:'jsonb' },
+  ],
+  mysql: [
+    { v:'varchar', label:'varchar', hasLength:true },
+    { v:'text', label:'text' },
+    { v:'int', label:'int' },
+    { v:'bigint', label:'bigint' },
+    { v:'smallint', label:'smallint' },
+    { v:'decimal', label:'decimal' },
+    { v:'tinyint', label:'tinyint(boolean)' },
+    { v:'date', label:'date' },
+    { v:'datetime', label:'datetime' },
+    { v:'timestamp', label:'timestamp' },
+  ],
+  sqlserver: [
+    { v:'nvarchar', label:'nvarchar', hasLength:true },
+    { v:'varchar', label:'varchar', hasLength:true },
+    { v:'int', label:'int' },
+    { v:'bigint', label:'bigint' },
+    { v:'smallint', label:'smallint' },
+    { v:'decimal', label:'decimal' },
+    { v:'bit', label:'bit(boolean)' },
+    { v:'date', label:'date' },
+    { v:'datetime2', label:'datetime2' },
+    { v:'uniqueidentifier', label:'uniqueidentifier' },
+  ],
+  oracle: [
+    { v:'varchar2', label:'varchar2', hasLength:true },
+    { v:'char', label:'char', hasLength:true },
+    { v:'number', label:'number' },
+    { v:'date', label:'date' },
+    { v:'timestamp', label:'timestamp' },
+    { v:'clob', label:'clob' },
+  ],
+  sqlite: [
+    { v:'TEXT', label:'TEXT' },
+    { v:'INTEGER', label:'INTEGER' },
+    { v:'REAL', label:'REAL' },
+    { v:'BLOB', label:'BLOB' },
+    { v:'NUMERIC', label:'NUMERIC' },
+  ],
+};
+function getTypeDef(engine, typeVal){
+  const list = DB_TYPES[engine] || DB_TYPES.postgresql;
+  return list.find(t=>t.v===typeVal) || list[0];
+}
+
 // クラス図の関係線。矢印の向きは記号そのものが持つので、from/to を入れ替えずに種類で選ぶ
 const CLASS_RELATIONS = [
   { v:'<|--', label:'継承 ◁─（to が from を継承）' },
@@ -1392,12 +1505,90 @@ function classRelationStyleHeader(relations){
   return `---\nconfig:\n  themeCSS: "${rules.join(' ').replace(/"/g,'')}"\n---\n`;
 }
 
+function erAttrTypeToken(a){
+  return (a.hasLength && a.length) ? `${a.type}(${a.length})` : a.type;
+}
+
+/* エンティティブロックの1行（例: varchar(255) name PK "顧客ID"）を属性オブジェクトに戻す。
+   解釈できない書き方なら null。取り込みと、旧形式プロジェクトの読み直しで共用する。 */
+function parseERAttrLine(line){
+  let rest = String(line).trim();
+  let logicalName = '';
+  // 末尾の "コメント"（論理名）を先に切り離す
+  const cm = /\s*"([^"]*)"$/.exec(rest);
+  if(cm){ logicalName = cm[1]; rest = rest.slice(0, cm.index).trim(); }
+
+  const parts = rest.split(/\s+/).filter(Boolean);
+  if(parts.length < 2) return null;
+
+  const tm = /^([A-Za-z_][A-Za-z0-9_]*)(?:\(([^()]*)\))?$/.exec(parts[0]);
+  if(!tm) return null;
+  const name = parts[1];
+  if(!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) return null;
+
+  // 残りはキー指定。「PK, FK」のように , 区切りでも空白区切りでも書ける
+  const keys = parts.slice(2).join(' ').split(/[\s,]+/).map(s=>s.trim().toUpperCase()).filter(Boolean);
+  if(keys.some(k=> k!=='PK' && k!=='FK')) return null;
+
+  return { name, logicalName, type: tm[1], hasLength: tm[2] !== undefined, length: tm[2] || '',
+           pk: keys.includes('PK'), fk: keys.includes('FK') };
+}
+
+/* 旧バージョン（属性が1つのテキスト）のプロジェクトファイルを、属性の配列に直す */
+function parseLegacyERAttributes(text){
+  return String(text || '').split('\n').map(s=>s.trim()).filter(Boolean)
+    .map(parseERAttrLine).filter(Boolean);
+}
+
+function genERCode(){
+  const { entities, relations } = state.erDiag;
+  const lines = ['erDiagram'];
+
+  // リレーションを先に出す。取り込み時もこの順で読むので、
+  // path.relationshipLine の描画順＝relations の並び順になり、クリック選択が一致する
+  relations.forEach(r=>{
+    // 裸で書くと記号のほとんどが構文エラーになるため、常にダブルクオートで囲む
+    const label = r.label && r.label.trim() ? r.label.trim() : 'relates';
+    lines.push(`    ${r.from} ${r.type} ${r.to} : "${label.replace(/"/g,'”')}"`);
+  });
+
+  entities.forEach(en=>{
+    const attrs = en.attributes || [];
+    if(!attrs.length) return;
+    lines.push(`    ${en.id} {`);
+    attrs.forEach(a=>{
+      const keyParts = [];
+      if(a.pk) keyParts.push('PK');
+      if(a.fk) keyParts.push('FK');
+      const keyToken = keyParts.length ? ' ' + keyParts.join(', ') : '';
+      const commentToken = a.logicalName ? ` "${a.logicalName.replace(/"/g,'”')}"` : '';
+      lines.push(`        ${erAttrTypeToken(a)} ${a.name}${keyToken}${commentToken}`);
+    });
+    lines.push(`    }`);
+  });
+
+  /* style はエンティティ枠の地色を変える。属性行には行ごとの塗りが別に敷かれるので、
+     結果として見た目に色が乗るのは見出し（テーブル名）の帯と区切り線になる。 */
+  entities.forEach(en=>{
+    const parts = [];
+    if(en.headerFill) parts.push(`fill:${en.headerFill}`);
+    if(en.headerStroke) parts.push(`stroke:${en.headerStroke}`);
+    if(parts.length) lines.push(`    style ${en.id} ${parts.join(',')}`);
+  });
+
+  if(entities.length===0 && relations.length===0){
+    lines.push('    %% 左側からエンティティとリレーションを追加してください');
+  }
+  return lines.join('\n');
+}
+
 function regenerateCode(){
   if(state.manualMode) return;
   if(state.diagramType==='flowchart') state.code = genFlowchartCode();
   else if(state.diagramType==='sequence') state.code = genSequenceCode();
   else if(state.diagramType==='state') state.code = genStateCode();
   else if(state.diagramType==='class') state.code = genClassCode();
+  else if(state.diagramType==='er') state.code = genERCode();
   document.getElementById('codeArea').value = state.code;
   refreshGutter();
   renderPreview();
@@ -1462,6 +1653,9 @@ function pickTargetsForType(type){
       { prefix:'classId', listId:'clsClassList', list:()=>state.classDiag.classes,   pick(i){ state.classDiag.editClassIdx=i;     clsFillClassForm(state.classDiag.classes[i]); } },
       { prefix:'',        listId:'clsNsList',    list:()=>state.classDiag.namespaces, pick(i){ state.classDiag.editNamespaceIdx=i; clsFillNsForm(state.classDiag.namespaces[i]); } },
     ];
+    case 'er': return [
+      { prefix:'entity', listId:'erEntList', list:()=>state.erDiag.entities, pick(i){ state.erDiag.editEntityIdx=i; erFillEntForm(state.erDiag.entities[i]); } },
+    ];
     case 'sequence': return [
       { byName:true, listId:'sqPartList', list:()=>state.sequence.participants, pick(i){ state.sequence.editPartIdx=i; sqFillPartForm(state.sequence.participants[i]); } },
     ];
@@ -1485,6 +1679,10 @@ function pickEdgeTargetsForType(type){
     case 'class': return [
       { sel:'path.relation', listId:'clsRelList', list:()=>state.classDiag.relations,
         pick(i){ state.classDiag.editRelationIdx=i; clsFillRelForm(state.classDiag.relations[i]); } },
+    ];
+    case 'er': return [
+      { sel:'path.relationshipLine', listId:'erRelList', list:()=>state.erDiag.relations,
+        pick(i){ state.erDiag.editRelationIdx=i; erFillRelForm(state.erDiag.relations[i]); } },
     ];
     case 'sequence': {
       // メッセージ一覧にはノートやブロックも混ざるので、矢印として描かれる要素だけを対応づける
@@ -1690,6 +1888,7 @@ function cancelBuilderEditing(type){
     case 'sequence':  sqResetPartForm(); sqResetMsgForm(); sqResetNoteForm(); sqResetBlockForm(); break;
     case 'state':     stResetNodeForm(); stResetCompForm(); stResetEdgeForm(); break;
     case 'class':     clsResetClassForm(); clsResetNsForm(); clsResetRelForm(); break;
+    case 'er':        erResetEntForm(); erResetAttrForm(); erResetRelForm(); break;
   }
   document.querySelectorAll('.item-row.picked').forEach(r=>r.classList.remove('picked'));
 }
@@ -3335,12 +3534,364 @@ function refreshClassLists(){
   });
 }
 
+/* ============ ビルダーUI: ER図 ============ */
+function renderERBuilder(container){
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <h2>ER図 ビルダー</h2>
+    <p class="hint">エンティティを追加し、一覧から「☰属性」を選ぶとカラム（属性）を1つずつ追加・編集できます。属性の並び順は ⠿ のドラッグで入れ替えられます。</p>
+
+    <div class="card">
+      <div class="card-title">プロジェクトのDB種類</div>
+      <div class="field"><select id="erDbEngine" aria-label="プロジェクトのDB種類">${DB_ENGINES.map(e=>`<option value="${e.v}">${e.label}</option>`).join('')}</select></div>
+      <p class="hint" style="margin:6px 0 0;">すべての属性の型の選択肢に反映されます。</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">エンティティを追加</div>
+      <div class="field" style="margin-bottom:8px;"><label for="erEntId">エンティティ名</label><input type="text" id="erEntId" placeholder="例: CUSTOMER"></div>
+      <label class="toggle-edit" style="margin-bottom:8px;"><input type="checkbox" id="erEntColorEnable">ヘッダーの色を指定する</label>
+      <div class="row" id="erEntColorRow" style="display:none;">
+        <div class="field"><label for="erEntHeaderFill">ヘッダー色</label><input type="color" id="erEntHeaderFill" value="#e8f4fb">${colorPresetsHtml('erEntHeaderFill', 'fill')}</div>
+        <div class="field"><label for="erEntHeaderStroke">枠線</label><input type="color" id="erEntHeaderStroke" value="#16304f">${colorPresetsHtml('erEntHeaderStroke', 'stroke')}</div>
+      </div>
+      <button class="add-row-btn" id="erAddEnt">＋ エンティティを追加</button>
+      <button class="add-row-btn" id="erEntCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <div class="item-list" id="erEntList"></div>
+    </div>
+
+    <div class="card" id="erAttrCard" style="display:none;">
+      <div class="card-title">属性を追加</div>
+      <div class="attr-active-note" id="erAttrActiveNote"></div>
+      <div class="row">
+        <div class="field"><label for="erAttrName">カラム名</label><input type="text" id="erAttrName" placeholder="例: customer_id"></div>
+        <div class="field"><label for="erAttrLogical">論理名（任意）</label><input type="text" id="erAttrLogical" placeholder="例: 顧客ID"></div>
+      </div>
+      <div class="field" style="margin-bottom:8px;"><label for="erAttrType">型</label><select id="erAttrType"></select></div>
+      <div class="row" id="erAttrLengthRow" style="display:none;">
+        <div class="field"><label for="erAttrLength">桁数・長さ</label><input type="text" id="erAttrLength" placeholder="例: 255"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label class="toggle-edit" style="margin-bottom:0;"><input type="checkbox" id="erAttrPk">PK（主キー）</label></div>
+        <div class="field"><label class="toggle-edit" style="margin-bottom:0;"><input type="checkbox" id="erAttrFk">FK（外部キー）</label></div>
+      </div>
+      <button class="add-row-btn" id="erAddAttr" style="margin-top:8px;">＋ 属性を追加</button>
+      <button class="add-row-btn" id="erAttrCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <div class="item-list" id="erAttrList"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">リレーションを追加</div>
+      <div class="row">
+        <div class="field"><label for="erRelFrom">from</label><select id="erRelFrom"></select></div>
+        <div class="field"><label for="erRelTo">to</label><select id="erRelTo"></select></div>
+      </div>
+      <div class="field" style="margin-bottom:8px;"><label for="erRelType">関係の種類</label>
+        <select id="erRelType">${ER_RELATIONS.map(r=>`<option value="${r.v}">${r.label}</option>`).join('')}</select>
+      </div>
+      <div class="field" style="margin-bottom:8px;"><label for="erRelLabel">ラベル</label><input type="text" id="erRelLabel" placeholder="例: places"></div>
+      <button class="add-row-btn" id="erAddRel">＋ リレーションを追加</button>
+      <button class="add-row-btn" id="erRelCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <div class="item-list" id="erRelList"></div>
+    </div>
+  `;
+  container.innerHTML = '';
+  container.appendChild(wrap);
+
+  document.getElementById('erDbEngine').value = state.erDiag.dbEngine;
+  document.getElementById('erDbEngine').addEventListener('change', e=>{
+    state.erDiag.dbEngine = e.target.value;
+    populateERTypeOptions();
+    toggleERLengthField();
+  });
+
+  populateERTypeOptions();
+  document.getElementById('erAttrType').addEventListener('change', toggleERLengthField);
+  document.getElementById('erEntColorEnable').addEventListener('change', e=>{
+    document.getElementById('erEntColorRow').style.display = e.target.checked ? 'flex' : 'none';
+  });
+
+  document.getElementById('erAddEnt').addEventListener('click', ()=>{
+    const idInput = document.getElementById('erEntId');
+    let id = idInput.value.trim() || ('ENTITY' + state.entCounter);
+    id = sanitizeMermaidId(id, 'E_').toUpperCase();
+
+    // 同じ図の中でIDが衝突すると、参照が別の要素に付け替わってしまう
+    if(!checkDuplicateId(id, state.erDiag.entities.map(x=>x.id), state.erDiag.editEntityIdx !== null ? state.erDiag.entities[state.erDiag.editEntityIdx].id : null)) return;
+    const colorOn = document.getElementById('erEntColorEnable').checked;
+    const headerFill = colorOn ? document.getElementById('erEntHeaderFill').value : null;
+    const headerStroke = colorOn ? document.getElementById('erEntHeaderStroke').value : null;
+
+    if(state.erDiag.editEntityIdx !== null){
+      const idx = state.erDiag.editEntityIdx;
+      const oldId = state.erDiag.entities[idx].id;
+      if(oldId !== id){
+        state.erDiag.relations.forEach(r=>{
+          if(r.from===oldId) r.from = id;
+          if(r.to===oldId) r.to = id;
+        });
+      }
+      state.erDiag.entities[idx].id = id;
+      state.erDiag.entities[idx].headerFill = headerFill;
+      state.erDiag.entities[idx].headerStroke = headerStroke;
+    }else{
+      state.erDiag.entities.push({ id, attributes: [], headerFill, headerStroke });
+      state.entCounter++;
+    }
+    erResetEntForm();
+    refreshERLists();
+    regenerateCode();
+  });
+  document.getElementById('erEntCancel').addEventListener('click', erResetEntForm);
+
+  document.getElementById('erAddAttr').addEventListener('click', ()=>{
+    if(state.erDiag.activeEntityIdx === null) return;
+    const name = document.getElementById('erAttrName').value.trim();
+    if(!name) return;
+    const logicalName = document.getElementById('erAttrLogical').value.trim();
+    // 取り込んだ属性は今のDB種類に無い型を持つことがある。getTypeDef は
+    // 見つからないと先頭の型に倒れるので、一覧に無い型はそのまま残す
+    const typeVal = document.getElementById('erAttrType').value;
+    const known = (DB_TYPES[state.erDiag.dbEngine] || DB_TYPES.postgresql).find(t=>t.v===typeVal);
+    const type = known ? known.v : typeVal;
+    const hasLength = known ? !!known.hasLength : document.getElementById('erAttrLengthRow').style.display !== 'none';
+    const length = hasLength ? document.getElementById('erAttrLength').value.trim() : '';
+    const attr = { name, logicalName, type, hasLength, length,
+      pk: document.getElementById('erAttrPk').checked, fk: document.getElementById('erAttrFk').checked };
+
+    const entity = state.erDiag.entities[state.erDiag.activeEntityIdx];
+    if(state.erDiag.editAttrIdx !== null){
+      entity.attributes[state.erDiag.editAttrIdx] = attr;
+    }else{
+      entity.attributes.push(attr);
+    }
+    erResetAttrForm();
+    refreshERLists();
+    regenerateCode();
+  });
+  document.getElementById('erAttrCancel').addEventListener('click', erResetAttrForm);
+
+  document.getElementById('erAddRel').addEventListener('click', ()=>{
+    const from = document.getElementById('erRelFrom').value;
+    const to = document.getElementById('erRelTo').value;
+    const type = document.getElementById('erRelType').value;
+    const label = document.getElementById('erRelLabel').value.trim();
+    if(!from || !to) return;
+
+    if(state.erDiag.editRelationIdx !== null){
+      state.erDiag.relations[state.erDiag.editRelationIdx] = { from, to, type, label };
+    }else{
+      state.erDiag.relations.push({ from, to, type, label });
+    }
+    erResetRelForm();
+    refreshERLists();
+    regenerateCode();
+  });
+  document.getElementById('erRelCancel').addEventListener('click', erResetRelForm);
+
+  refreshERLists();
+}
+
+function populateERTypeOptions(){
+  const typeSel = document.getElementById('erAttrType');
+  if(!typeSel) return;
+  const list = DB_TYPES[state.erDiag.dbEngine] || DB_TYPES.postgresql;
+  const current = typeSel.value;
+  typeSel.innerHTML = list.map(t=>`<option value="${t.v}">${t.label}</option>`).join('');
+  if(list.some(t=>t.v===current)) typeSel.value = current;
+}
+function toggleERLengthField(){
+  const typeSel = document.getElementById('erAttrType');
+  if(!typeSel) return;
+  const typeDef = getTypeDef(state.erDiag.dbEngine, typeSel.value);
+  document.getElementById('erAttrLengthRow').style.display = typeDef.hasLength ? 'flex' : 'none';
+}
+
+function erFillEntForm(en){
+  document.getElementById('erEntId').value = en.id;
+  const hasColor = !!(en.headerFill || en.headerStroke);
+  document.getElementById('erEntColorEnable').checked = hasColor;
+  document.getElementById('erEntColorRow').style.display = hasColor ? 'flex' : 'none';
+  document.getElementById('erEntHeaderFill').value = en.headerFill || '#e8f4fb';
+  document.getElementById('erEntHeaderStroke').value = en.headerStroke || '#16304f';
+  document.getElementById('erAddEnt').textContent = '✓ エンティティを更新';
+  document.getElementById('erEntCancel').style.display = 'block';
+}
+function erResetEntForm(){
+  document.getElementById('erEntId').value = '';
+  document.getElementById('erEntColorEnable').checked = false;
+  document.getElementById('erEntColorRow').style.display = 'none';
+  state.erDiag.editEntityIdx = null;
+  document.getElementById('erAddEnt').textContent = '＋ エンティティを追加';
+  document.getElementById('erEntCancel').style.display = 'none';
+}
+
+function erOpenAttrEditor(entityIdx){
+  state.erDiag.activeEntityIdx = entityIdx;
+  state.erDiag.editAttrIdx = null;
+  document.getElementById('erAttrCard').style.display = 'block';
+  document.getElementById('erAttrActiveNote').textContent = `編集中のエンティティ: ${state.erDiag.entities[entityIdx].id}`;
+  erResetAttrForm();
+}
+function erFillAttrForm(a){
+  document.getElementById('erAttrName').value = a.name;
+  document.getElementById('erAttrLogical').value = a.logicalName || '';
+  populateERTypeOptions();
+  const typeSel = document.getElementById('erAttrType');
+  // 取り込んだ型が今のDB種類の一覧に無いことがある。
+  // 選択肢に足しておかないと、開いただけで別の型に化けてしまう
+  if(a.type && !DB_TYPES[state.erDiag.dbEngine].some(t=>t.v===a.type)){
+    typeSel.insertAdjacentHTML('afterbegin', `<option value="${a.type}">${a.type}（他のDB種類）</option>`);
+  }
+  typeSel.value = a.type;
+  toggleERLengthField();
+  // 一覧に無い型は hasLength が分からないので、元の指定に合わせて桁数欄を出す
+  if(a.hasLength) document.getElementById('erAttrLengthRow').style.display = 'flex';
+  document.getElementById('erAttrLength').value = a.length || '';
+  document.getElementById('erAttrPk').checked = !!a.pk;
+  document.getElementById('erAttrFk').checked = !!a.fk;
+  document.getElementById('erAddAttr').textContent = '✓ 属性を更新';
+  document.getElementById('erAttrCancel').style.display = 'block';
+}
+function erResetAttrForm(){
+  const nameInput = document.getElementById('erAttrName');
+  if(!nameInput) return;   // 他の図種を表示中は属性フォームが無い
+  nameInput.value = '';
+  document.getElementById('erAttrLogical').value = '';
+  document.getElementById('erAttrLength').value = '';
+  document.getElementById('erAttrPk').checked = false;
+  document.getElementById('erAttrFk').checked = false;
+  populateERTypeOptions();
+  toggleERLengthField();
+  state.erDiag.editAttrIdx = null;
+  document.getElementById('erAddAttr').textContent = '＋ 属性を追加';
+  document.getElementById('erAttrCancel').style.display = 'none';
+}
+function erFillRelForm(r){
+  document.getElementById('erRelFrom').value = r.from;
+  document.getElementById('erRelTo').value = r.to;
+  document.getElementById('erRelType').value = r.type;
+  document.getElementById('erRelLabel').value = r.label || '';
+  document.getElementById('erAddRel').textContent = '✓ リレーションを更新';
+  document.getElementById('erRelCancel').style.display = 'block';
+}
+function erResetRelForm(){
+  document.getElementById('erRelLabel').value = '';
+  state.erDiag.editRelationIdx = null;
+  document.getElementById('erAddRel').textContent = '＋ リレーションを追加';
+  document.getElementById('erRelCancel').style.display = 'none';
+}
+
+function refreshERLists(){
+  const entList = document.getElementById('erEntList');
+  const relList = document.getElementById('erRelList');
+  const fromSel = document.getElementById('erRelFrom');
+  const toSel = document.getElementById('erRelTo');
+  if(!entList) return;
+
+  entList.innerHTML = state.erDiag.entities.length ? '' : '<div class="empty-note">まだエンティティがありません</div>';
+  state.erDiag.entities.forEach((en,i)=>{
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    // 属性エディタで開いているエンティティは行を目立たせる。
+    // picked クラスはプレビュークリックのたびに外されるので、ここでは使わない
+    if(state.erDiag.activeEntityIdx === i) row.style.background = '#EEF6FF';
+    const swatch = en.headerFill ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${en.headerFill};border:1px solid ${en.headerStroke||'#999'};flex-shrink:0;"></span>` : '';
+    row.innerHTML = `${swatch}<span class="item-text">${en.id}${en.attributes.length? ' ('+en.attributes.length+'属性)' : ''}</span><button class="edit-btn attr-btn" data-i="${i}" title="属性を編集">☰属性</button><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+    row.querySelector('.attr-btn').addEventListener('click', ()=>{
+      erOpenAttrEditor(i);
+      refreshERLists();
+    });
+    row.querySelectorAll('.edit-btn')[1].addEventListener('click', ()=>{
+      state.erDiag.editEntityIdx = i;
+      erFillEntForm(state.erDiag.entities[i]);
+    });
+    row.querySelector('.del-btn').addEventListener('click', ()=>{
+      const removedId = state.erDiag.entities[i].id;
+      state.erDiag.entities.splice(i,1);
+      state.erDiag.relations = state.erDiag.relations.filter(r=>r.from!==removedId && r.to!==removedId);
+      if(state.erDiag.editEntityIdx===i) erResetEntForm();
+      if(state.erDiag.activeEntityIdx===i){
+        state.erDiag.activeEntityIdx = null;
+        document.getElementById('erAttrCard').style.display = 'none';
+      }
+      refreshERLists(); regenerateCode();
+    });
+    entList.appendChild(row);
+  });
+  // 属性エディタが開いているときは、並べ替え後も同じエンティティを指すように付け替える
+  const activeEntity = state.erDiag.activeEntityIdx !== null ? state.erDiag.entities[state.erDiag.activeEntityIdx] : null;
+  makeSortable(entList, state.erDiag.entities, ()=>{
+    erResetEntForm();
+    if(activeEntity) state.erDiag.activeEntityIdx = state.erDiag.entities.indexOf(activeEntity);
+    refreshERLists(); regenerateCode();
+  });
+
+  const opts = state.erDiag.entities.map(en=>`<option value="${en.id}">${en.id}</option>`).join('');
+  fromSel.innerHTML = opts; toSel.innerHTML = opts;
+
+  const attrList = document.getElementById('erAttrList');
+  if(attrList){
+    attrList.innerHTML = '';
+    const entity = state.erDiag.activeEntityIdx !== null ? state.erDiag.entities[state.erDiag.activeEntityIdx] : null;
+    if(state.erDiag.activeEntityIdx !== null && !entity){
+      state.erDiag.activeEntityIdx = null;
+      document.getElementById('erAttrCard').style.display = 'none';
+    }else if(entity){
+      attrList.innerHTML = entity.attributes.length ? '' : '<div class="empty-note">まだ属性がありません</div>';
+      entity.attributes.forEach((a,i)=>{
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        const badges = (a.pk? '<span class="key-badge pk">PK</span>':'') + (a.fk? '<span class="key-badge fk">FK</span>':'');
+        row.innerHTML = `${badges}<span class="item-text">${a.name} : ${erAttrTypeToken(a)}${a.logicalName? ' — '+a.logicalName : ''}</span>` +
+          `<button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+        row.querySelector('.edit-btn').addEventListener('click', ()=>{
+          state.erDiag.editAttrIdx = i;
+          erFillAttrForm(entity.attributes[i]);
+        });
+        row.querySelector('.del-btn').addEventListener('click', ()=>{
+          entity.attributes.splice(i,1);
+          if(state.erDiag.editAttrIdx===i) erResetAttrForm();
+          refreshERLists(); regenerateCode();
+        });
+        attrList.appendChild(row);
+      });
+      makeSortable(attrList, entity.attributes, ()=>{
+        erResetAttrForm();
+        refreshERLists(); regenerateCode();
+      });
+    }
+  }
+
+  relList.innerHTML = state.erDiag.relations.length ? '' : '<div class="empty-note">まだリレーションがありません</div>';
+  state.erDiag.relations.forEach((r,i)=>{
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    row.innerHTML = `<span class="item-text">${r.from} ${r.type} ${r.to}${r.label?' : '+r.label:''}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+    row.querySelector('.edit-btn').addEventListener('click', ()=>{
+      state.erDiag.editRelationIdx = i;
+      erFillRelForm(state.erDiag.relations[i]);
+    });
+    row.querySelector('.del-btn').addEventListener('click', ()=>{
+      state.erDiag.relations.splice(i,1);
+      if(state.erDiag.editRelationIdx===i) erResetRelForm();
+      refreshERLists(); regenerateCode();
+    });
+    relList.appendChild(row);
+  });
+  makeSortable(relList, state.erDiag.relations, ()=>{
+    erResetRelForm();
+    refreshERLists(); regenerateCode();
+  });
+}
+
 /* 図種に対応するビルダーを描く。図種を増やすときはここだけ足せば
    switchDiagramType とプロジェクト復元の両方に反映される */
 function renderBuilderFor(type, panel){
   if(type==='sequence') renderSequenceBuilder(panel);
   else if(type==='state') renderStateBuilder(panel);
   else if(type==='class') renderClassBuilder(panel);
+  else if(type==='er') renderERBuilder(panel);
   else renderFlowchartBuilder(panel);
 }
 
@@ -3380,6 +3931,7 @@ function buildStateSnapshot(){
     sequence: state.sequence,
     stateDiag: state.stateDiag,
     classDiag: state.classDiag,
+    erDiag: state.erDiag,
     nodeCounter: state.nodeCounter,
     subCounter: state.subCounter,
     partCounter: state.partCounter,
@@ -3387,12 +3939,14 @@ function buildStateSnapshot(){
     compCounter: state.compCounter,
     clsCounter: state.clsCounter,
     nsCounter: state.nsCounter,
+    entCounter: state.entCounter,
   }));
   // 編集中インデックスはリセットしてから保存する
   if(snap.flowchart){ snap.flowchart.editNodeIdx=null; snap.flowchart.editEdgeIdx=null; snap.flowchart.editSubIdx=null; }
   if(snap.sequence){ snap.sequence.editPartIdx=null; snap.sequence.editMsgIdx=null; snap.sequence.editNoteIdx=null; snap.sequence.editBlockIdx=null; snap.sequence.editDivIdx=null; }
   if(snap.stateDiag){ snap.stateDiag.editNodeIdx=null; snap.stateDiag.editEdgeIdx=null; snap.stateDiag.editCompositeIdx=null; }
   if(snap.classDiag){ snap.classDiag.editClassIdx=null; snap.classDiag.editRelationIdx=null; snap.classDiag.editNamespaceIdx=null; }
+  if(snap.erDiag){ snap.erDiag.editEntityIdx=null; snap.erDiag.editRelationIdx=null; snap.erDiag.activeEntityIdx=null; snap.erDiag.editAttrIdx=null; }
   return snap;
 }
 
@@ -3459,11 +4013,25 @@ function restoreSnapshot(snapshot){
   state.partCounter = snapshot.partCounter || state.partCounter;
   state.stCounter = snapshot.stCounter || state.stCounter;
   state.compCounter = snapshot.compCounter || state.compCounter;
+  if(snapshot.erDiag){
+    state.erDiag = snapshot.erDiag;
+    if(!state.erDiag.dbEngine) state.erDiag.dbEngine = 'postgresql';
+    if(state.erDiag.activeEntityIdx === undefined) state.erDiag.activeEntityIdx = null;
+    if(state.erDiag.editAttrIdx === undefined) state.erDiag.editAttrIdx = null;
+    // 旧バージョン（属性がテキスト形式）のプロジェクトファイルとの後方互換
+    (state.erDiag.entities || []).forEach(en=>{
+      if(typeof en.attributes === 'string') en.attributes = parseLegacyERAttributes(en.attributes);
+      if(!Array.isArray(en.attributes)) en.attributes = [];
+      if(en.headerFill === undefined) en.headerFill = null;
+      if(en.headerStroke === undefined) en.headerStroke = null;
+    });
+  }
   state.clsCounter = snapshot.clsCounter || state.clsCounter;
   state.nsCounter = snapshot.nsCounter || state.nsCounter;
+  state.entCounter = snapshot.entCounter || state.entCounter;
 
-  // MGS(無印)のプロジェクトファイルは他の図種も含むが、本ツールが扱えるのはこの4種のみ
-  const type = ['sequence','state','class'].includes(snapshot.diagramType) ? snapshot.diagramType : 'flowchart';
+  // MGS(無印)のプロジェクトファイルは他の図種も含むが、本ツールが扱えるのはこの5種のみ
+  const type = ['sequence','state','class','er'].includes(snapshot.diagramType) ? snapshot.diagramType : 'flowchart';
   document.getElementById('diagramType').value = type;
   state.diagramType = type;
   state.manualMode = false;
@@ -4077,6 +4645,120 @@ function importClassDiagram(lines, rep, relationColors){
   return cd;
 }
 
+/* ER図。リレーション・エンティティのブロック・エンティティの色（style）を読む。
+   カーディナリティは実線（--）のものだけ。破線（..）の非依存リレーションは
+   ビルダーに選択肢が無いので取り込まない。 */
+const ER_REL_ALT = ER_RELATIONS.map(r=>r.v).map(escapeRe).join('|');
+const ER_REL_RE = new RegExp('^(\\S+)\\s+(' + ER_REL_ALT + ')\\s+(\\S+)\\s*:\\s*([\\s\\S]*)$');
+const ER_ANY_REL_RE = /^\S+\s+[|}o][|o.\-]{4}[{|o]\s+\S+\s*:/;
+
+function importERDiagram(lines, rep){
+  const er = emptyERState();
+  const byId = new Map();
+  const styleAssign = [];
+  let headerSeen = false;
+  let openEntity = null;   // エンティティブロックの中にいるか
+
+  const ensureEntity = (id)=>{
+    let en = byId.get(id);
+    if(!en){
+      en = { id, attributes:[], headerFill:null, headerStroke:null };
+      byId.set(id, en);
+      er.entities.push(en);
+    }
+    return en;
+  };
+
+  lines.forEach((raw, i)=>{
+    const lineNo = i + 1;
+    const line = raw.trim();
+    if(!line) return;
+
+    // エンティティブロックの中は属性行として読む
+    if(openEntity && line !== '}'){
+      if(line.startsWith('%%')){ dropLine(rep, lineNo, line, 'コメント行'); return; }
+      const attr = parseERAttrLine(line);
+      if(!attr){
+        if(/\b(UK)\b/i.test(line)) blockLine(rep, lineNo, line, 'ビルダーが扱えるキー指定は PK と FK だけです');
+        else blockLine(rep, lineNo, line, '属性の書き方を解釈できません（型 カラム名 [PK, FK] "論理名"）');
+        return;
+      }
+      openEntity.attributes.push(attr);
+      return;
+    }
+
+    if(line.startsWith('%%')){
+      if(line.startsWith('%%{')) blockLine(rep, lineNo, line, 'ディレクティブ（%%{init:…}）はビルダーで保持できません');
+      else dropLine(rep, lineNo, line, 'コメント行');
+      return;
+    }
+    if(!headerSeen){
+      if(!/^erDiagram$/i.test(line)){ blockLine(rep, lineNo, line, '先頭が erDiagram の宣言ではありません'); return; }
+      headerSeen = true;
+      return;
+    }
+    if(line === '}'){
+      if(!openEntity){ blockLine(rep, lineNo, line, '対応するエンティティのブロックがありません'); return; }
+      openEntity = null;
+      return;
+    }
+    if(/^direction\b/i.test(line)){ blockLine(rep, lineNo, line, 'direction はビルダーで表現できません'); return; }
+    if(/^(click|classDef|class)\b/i.test(line)){ blockLine(rep, lineNo, line, 'click / classDef などの装飾はビルダーで保持できません'); return; }
+
+    // style は、生成側と同じ「エンティティ1件に塗りと枠線」の形だけ受け入れる
+    const st = /^style\s+(\S+)\s+(.+)$/.exec(line);
+    if(st){
+      const props = parseStyleProps(st[2], ['fill','stroke','stroke-width']);
+      if(!props){ blockLine(rep, lineNo, line, 'ビルダーが保持できるのは塗り（fill）と枠線（stroke）だけです'); return; }
+      styleAssign.push({ lineNo, line, id:st[1], props });
+      return;
+    }
+    if(/^style\b/i.test(line)){ blockLine(rep, lineNo, line, 'style は「style エンティティ名 fill:…,stroke:…」の形だけ解釈できます'); return; }
+
+    // リレーション: A ||--o{ B : "ラベル"
+    const rel = ER_REL_RE.exec(line);
+    if(rel){
+      const [, from, type, to, rawLabel] = rel;
+      for(const t of [from, to]){
+        if(!IMPORT_ID_RE.test(t)){ blockLine(rep, lineNo, line, `エンティティ名「${t}」に使えない文字が含まれています`); return; }
+      }
+      ensureEntity(from); ensureEntity(to);
+      const q = /^"([\s\S]*)"$/.exec(rawLabel.trim());
+      er.relations.push({ from, to, type, label:(q ? q[1] : rawLabel).trim() });
+      return;
+    }
+    if(ER_ANY_REL_RE.test(line)){
+      blockLine(rep, lineNo, line, 'ビルダーに無いカーディナリティです（破線 .. の非依存リレーションなど）');
+      return;
+    }
+
+    // エンティティ名 {  … ブロックの始まり
+    const open = /^([^\s{}]+)\s*\{$/.exec(line);
+    if(open){
+      const id = open[1];
+      if(!IMPORT_ID_RE.test(id)){ blockLine(rep, lineNo, line, `エンティティ名「${id}」に使えない文字が含まれています`); return; }
+      const en = ensureEntity(id);
+      if(en.attributes.length){ blockLine(rep, lineNo, line, `エンティティ「${id}」のブロックが複数あります`); return; }
+      openEntity = en;
+      return;
+    }
+    // 属性を持たないエンティティの単独宣言
+    if(IMPORT_ID_RE.test(line)){ ensureEntity(line); return; }
+    blockLine(rep, lineNo, line, '解釈できない行です');
+  });
+
+  if(openEntity) blockLine(rep, lines.length, '', '} で閉じられていないエンティティのブロックがあります');
+  if(!headerSeen) blockLine(rep, 1, '', 'erDiagram の宣言が見つかりません');
+
+  styleAssign.forEach(a=>{
+    const target = byId.get(a.id);
+    if(!target){ blockLine(rep, a.lineNo, a.line, `style の対象「${a.id}」が見つかりません`); return; }
+    if(a.props.fill) target.headerFill = a.props.fill;
+    if(a.props.stroke) target.headerStroke = a.props.stroke;
+  });
+  return er;
+}
+
 /* このツールが出力したクラス図のフロントマター（関係線の色）だけを読み戻す。
    themeCSS に自分の出力以外が混ざっていたら、保持できないので取り込まない。 */
 function parseClassColorHeader(code){
@@ -4112,9 +4794,9 @@ function tryImportCode(rawCode){
     code = '\n'.repeat(header.headerLines) + header.body;
   }
   const type = detectDiagramType(code);
-  const importers = { flowchart:importFlowchart, sequence:importSequence, state:importStateDiagram, class:importClassDiagram };
+  const importers = { flowchart:importFlowchart, sequence:importSequence, state:importStateDiagram, class:importClassDiagram, er:importERDiagram };
   if(!importers[type]){
-    blockLine(rep, 1, code.split('\n')[0], 'このツールが取り込めるのは flowchart / graph、sequenceDiagram、stateDiagram、classDiagram だけです');
+    blockLine(rep, 1, code.split('\n')[0], 'このツールが取り込めるのは flowchart / graph、sequenceDiagram、stateDiagram、classDiagram、erDiagram だけです');
     return { ok:false, rep };
   }
   if(relationColors && type !== 'class'){
@@ -4149,6 +4831,11 @@ function applyImport(type, data){
     state.classDiag = data;
     state.clsCounter = nextCounter(data.classes.map(c=>c.id), 'Class');
     state.nsCounter = nextCounter(data.namespaces.map(n=>n.id), 'NS');
+  }else if(type === 'er'){
+    // DB種類はコードから判別できないので、いま選んでいる設定を引き継ぐ
+    data.dbEngine = state.erDiag.dbEngine;
+    state.erDiag = data;
+    state.entCounter = nextCounter(data.entities.map(e=>e.id), 'ENTITY');
   }else{
     state.sequence = data;
     state.partCounter = nextCounter(data.participants.map(p=>p.id), 'P');
@@ -4175,6 +4862,7 @@ function detectDiagramType(code){
   if(firstLine.startsWith('sequencediagram')) return 'sequence';
   if(firstLine.startsWith('statediagram')) return 'state';
   if(firstLine.startsWith('classdiagram')) return 'class';
+  if(firstLine.startsWith('erdiagram')) return 'er';
   return null;
 }
 
