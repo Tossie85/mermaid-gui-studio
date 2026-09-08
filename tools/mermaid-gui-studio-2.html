@@ -1660,6 +1660,37 @@ function emptySequenceBlockIndexes(messages){
   return skip;
 }
 
+/* シーケンス図には style / classDef が無く、パーサが受け付けない。
+   クラス図やアーキテクチャ図と同じく、フロントマターの themeCSS でSVGへCSSを流し込む。
+   ・参加者には name 属性が付くので、1人ずつ狙える
+   ・四角（participant）は rect.actor、人型（actor）は g.actor-man の circle と line
+   ・名前の文字は rect と同じ <g> の中にある text.actor の tspan にあるので、
+     兄弟セレクタで一緒に色を変える（塗りを濃くしたときに黒文字が残らないように） */
+const SEQ_ACTOR_RULE_SRC = "rect\\.actor\\[name='([A-Za-z0-9_]+)'\\]\\{fill:(#[0-9A-Fa-f]{3,8}) !important;stroke:(#[0-9A-Fa-f]{3,8}) !important;\\}";
+const SEQ_ACTOR_TEXT_RULE_SRC = "rect\\.actor\\[name='([A-Za-z0-9_]+)'\\] ~ text\\.actor tspan\\{fill:(#[0-9A-Fa-f]{3,8}) !important;\\}";
+const SEQ_MAN_RULE_SRC = "g\\.actor-man\\[name='([A-Za-z0-9_]+)'\\] circle,g\\.actor-man\\[name='\\1'\\] line\\{stroke:(#[0-9A-Fa-f]{3,8}) !important;\\}";
+const SEQ_MAN_FILL_RULE_SRC = "g\\.actor-man\\[name='([A-Za-z0-9_]+)'\\] circle\\{fill:(#[0-9A-Fa-f]{3,8}) !important;\\}";
+
+function sequenceStyleHeader(participants){
+  const rules = [];
+  participants.forEach(p=>{
+    if(!p.fill && !p.stroke) return;
+    const fill = p.fill || 'transparent';
+    const stroke = p.stroke || '#333333';
+    if(p.kind === 'actor'){
+      // 人型は線で描かれるので、頭の丸だけ塗り、体の線は枠線の色に合わせる
+      rules.push(`g.actor-man[name='${p.id}'] circle,g.actor-man[name='${p.id}'] line{stroke:${stroke} !important;}`);
+      if(p.fill) rules.push(`g.actor-man[name='${p.id}'] circle{fill:${fill} !important;}`);
+    }else{
+      rules.push(`rect.actor[name='${p.id}']{fill:${fill} !important;stroke:${stroke} !important;}`);
+      const text = p.fill ? readableTextColor(p.fill) : null;
+      if(text) rules.push(`rect.actor[name='${p.id}'] ~ text.actor tspan{fill:${text} !important;}`);
+    }
+  });
+  if(!rules.length) return '';
+  return `---\nconfig:\n  themeCSS: "${rules.join(' ').replace(/"/g,'')}"\n---\n`;
+}
+
 function genSequenceCode(){
   const { participants, messages } = state.sequence;
   const lines = ['sequenceDiagram'];
@@ -1689,7 +1720,7 @@ function genSequenceCode(){
   if(participants.length===0 && messages.length===0){
     lines.push('    %% 左側から参加者とメッセージを追加してください');
   }
-  return lines.join('\n');
+  return sequenceStyleHeader(participants) + lines.join('\n');
 }
 
 function genStateCode(){
@@ -2946,6 +2977,12 @@ function renderSequenceBuilder(container){
       <div class="field" style="margin-bottom:8px;"><label for="sqPartKind">表示の種類</label>
         <select id="sqPartKind">${SEQ_PARTICIPANT_KINDS.map(k=>`<option value="${k.v}">${k.label}</option>`).join('')}</select>
       </div>
+      <label class="toggle-edit" style="margin-bottom:8px;"><input type="checkbox" id="sqPartColorEnable">色を指定する</label>
+      <div class="row" id="sqPartColorRow" style="display:none;">
+        <div class="field"><label for="sqPartFill">塗りつぶし</label><input type="color" id="sqPartFill" value="#e8f4fb">${colorPresetsHtml('sqPartFill', 'fill')}</div>
+        <div class="field"><label for="sqPartStroke">枠線</label><input type="color" id="sqPartStroke" value="#16304f">${colorPresetsHtml('sqPartStroke', 'stroke')}</div>
+      </div>
+      <p class="hint" style="margin:0 0 10px;">人型（actor）は線で描かれるため、頭の丸だけ塗りつぶされます。</p>
       <button class="add-row-btn" id="sqAddPart">＋ 参加者を追加</button>
       <button class="add-row-btn" id="sqPartCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
       <div class="item-list" id="sqPartList"></div>
@@ -3017,6 +3054,10 @@ function renderSequenceBuilder(container){
   container.innerHTML='';
   container.appendChild(wrap);
 
+  document.getElementById('sqPartColorEnable').addEventListener('change', e=>{
+    document.getElementById('sqPartColorRow').style.display = e.target.checked ? 'flex' : 'none';
+  });
+
   document.getElementById('sqAddPart').addEventListener('click', ()=>{
     const idInput = document.getElementById('sqPartId');
     const labelInput = document.getElementById('sqPartLabel');
@@ -3027,6 +3068,9 @@ function renderSequenceBuilder(container){
     if(!checkDuplicateId(id, state.sequence.participants.map(x=>x.id), state.sequence.editPartIdx !== null ? state.sequence.participants[state.sequence.editPartIdx].id : null)) return;
     const label = labelInput.value.trim() || id;
     const kind = document.getElementById('sqPartKind').value;
+    const colorOn = document.getElementById('sqPartColorEnable').checked;
+    const fill = colorOn ? document.getElementById('sqPartFill').value : null;
+    const stroke = colorOn ? document.getElementById('sqPartStroke').value : null;
 
     if(state.sequence.editPartIdx !== null){
       const idx = state.sequence.editPartIdx;
@@ -3037,9 +3081,9 @@ function renderSequenceBuilder(container){
           if(m.to===oldId) m.to = id;
         });
       }
-      state.sequence.participants[idx] = { id, label, kind };
+      state.sequence.participants[idx] = { id, label, kind, fill, stroke };
     }else{
-      state.sequence.participants.push({ id, label, kind });
+      state.sequence.participants.push({ id, label, kind, fill, stroke });
       state.partCounter++;
     }
     sqResetPartForm();
@@ -3130,6 +3174,11 @@ function sqFillPartForm(p){
   document.getElementById('sqPartId').value = p.id;
   document.getElementById('sqPartLabel').value = p.label;
   document.getElementById('sqPartKind').value = p.kind === 'actor' ? 'actor' : 'participant';
+  const hasColor = !!(p.fill || p.stroke);
+  document.getElementById('sqPartColorEnable').checked = hasColor;
+  document.getElementById('sqPartColorRow').style.display = hasColor ? 'flex' : 'none';
+  document.getElementById('sqPartFill').value = p.fill || '#e8f4fb';
+  document.getElementById('sqPartStroke').value = p.stroke || '#16304f';
   document.getElementById('sqAddPart').textContent = '✓ 参加者を更新';
   document.getElementById('sqPartCancel').style.display = 'block';
 }
@@ -3137,6 +3186,8 @@ function sqResetPartForm(){
   document.getElementById('sqPartId').value='';
   document.getElementById('sqPartLabel').value='';
   document.getElementById('sqPartKind').value='participant';
+  document.getElementById('sqPartColorEnable').checked=false;
+  document.getElementById('sqPartColorRow').style.display='none';
   state.sequence.editPartIdx = null;
   document.getElementById('sqAddPart').textContent = '＋ 参加者を追加';
   document.getElementById('sqPartCancel').style.display = 'none';
@@ -3394,7 +3445,8 @@ function refreshSequenceLists(){
   state.sequence.participants.forEach((p,i)=>{
     const row = document.createElement('div');
     row.className='item-row';
-    row.innerHTML = `<span class="item-text">${p.kind === 'actor' ? '👤 ' : '▭ '}${p.id} = ${p.label}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+    const swatch = p.fill ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${p.fill};border:1px solid ${p.stroke||'var(--border-swatch)'};flex-shrink:0;"></span>` : '';
+    row.innerHTML = `${swatch}<span class="item-text">${p.kind === 'actor' ? '👤 ' : '▭ '}${p.id} = ${p.label}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
     row.querySelector('.edit-btn').addEventListener('click', ()=>{
       state.sequence.editPartIdx = i;
       sqFillPartForm(state.sequence.participants[i]);
@@ -5280,7 +5332,12 @@ function restoreSnapshot(snapshot){
     if(state.sequence.editBlockIdx === undefined) state.sequence.editBlockIdx = null;
     if(state.sequence.editDivIdx === undefined) state.sequence.editDivIdx = null;
     // 旧形式（actor選択機能追加前）は全員 participant 扱い
-    (state.sequence.participants || []).forEach(p=>{ if(!p.kind) p.kind = 'participant'; });
+    // 旧形式（参加者の色を追加する前）との後方互換
+    (state.sequence.participants || []).forEach(p=>{
+      if(!p.kind) p.kind = 'participant';
+      if(p.fill === undefined) p.fill = null;
+      if(p.stroke === undefined) p.stroke = null;
+    });
   }
   if(snapshot.stateDiag){
     state.stateDiag = snapshot.stateDiag;
@@ -5608,7 +5665,7 @@ function importFlowchart(lines, rep){
   return fc;
 }
 
-function importSequence(lines, rep){
+function importSequence(lines, rep, colors){
   const sq = emptySequenceState();
   const partById = new Map();
   const stack = [];
@@ -5617,7 +5674,7 @@ function importSequence(lines, rep){
   // 宣言されずにメッセージだけに出てくる参加者は、Mermaid同様その場で作る
   const ensurePart = (id)=>{
     if(partById.has(id)) return partById.get(id);
-    const p = { id, label:id, kind:'participant' };
+    const p = { id, label:id, kind:'participant', fill:null, stroke:null };
     partById.set(id, p);
     sq.participants.push(p);
     return p;
@@ -5703,6 +5760,14 @@ function importSequence(lines, rep){
 
   if(stack.length) blockLine(rep, lines.length, '', 'end で閉じられていないブロックがあります');
   if(!headerSeen) blockLine(rep, 1, '', 'sequenceDiagram の宣言が見つかりません');
+
+  // フロントマターから復元した参加者の色を割り当てる
+  if(colors){
+    colors.forEach((c, id)=>{
+      const p = partById.get(id);
+      if(p){ p.fill = c.fill; p.stroke = c.stroke; }
+    });
+  }
   return sq;
 }
 
@@ -6341,6 +6406,32 @@ function parseClassRelationColors(css){
   return colors;
 }
 
+/* themeCSS からシーケンス図の参加者の色を読み戻す */
+function parseSequenceColors(css){
+  const parts = new Map();
+  const put = (id, key, val)=>{
+    if(!parts.has(id)) parts.set(id, { fill:null, stroke:null });
+    parts.get(id)[key] = val;
+  };
+  let mm;
+  const box = new RegExp(SEQ_ACTOR_RULE_SRC, 'g');
+  while((mm = box.exec(css))){ put(mm[1], 'fill', mm[2]==='transparent'?null:mm[2]); put(mm[1], 'stroke', mm[3]); }
+  const man = new RegExp(SEQ_MAN_RULE_SRC, 'g');
+  while((mm = man.exec(css))) put(mm[1], 'stroke', mm[2]);
+  const manFill = new RegExp(SEQ_MAN_FILL_RULE_SRC, 'g');
+  while((mm = manFill.exec(css))) put(mm[1], 'fill', mm[2]);
+  if(!parts.size) return null;
+  // 文字色は塗りから導いているので、読み飛ばして残りが無いことだけ確かめる
+  const residue = css
+    .replace(new RegExp(SEQ_ACTOR_RULE_SRC, 'g'), '')
+    .replace(new RegExp(SEQ_ACTOR_TEXT_RULE_SRC, 'g'), '')
+    .replace(new RegExp(SEQ_MAN_RULE_SRC, 'g'), '')
+    .replace(new RegExp(SEQ_MAN_FILL_RULE_SRC, 'g'), '')
+    .trim();
+  if(residue) return null;
+  return parts;
+}
+
 /* themeCSS からアーキテクチャ図のサービス／グループの色を読み戻す */
 function parseArchColors(css){
   const svcRe = new RegExp(ARCH_SVC_RULE_SRC.replace('([A-Za-z0-9_]+)', '([A-Za-z0-9_]+)'), 'g');
@@ -6405,6 +6496,7 @@ function tryImportCode(rawCode){
     if(type === 'class') colors = parseClassRelationColors(themeCss);
     else if(type === 'arch') colors = parseArchColors(themeCss);
     else if(type === 'gantt') colors = parseGanttColors(themeCss);
+    else if(type === 'sequence') colors = parseSequenceColors(themeCss);
     if(!colors){
       blockLine(rep, 1, '---', 'フロントマター（--- で囲む設定）はビルダーで保持できません');
       return { ok:false, rep };
