@@ -1510,6 +1510,38 @@ const CLASS_RELATIONS = [
 function safeSequenceText(s){ return String(s == null ? '' : s).replace(/;/g, '；'); }
 function safeGanttName(s){ return String(s == null ? '' : s).replace(/:/g, '：'); }
 
+/* ============ 塗り色に合わせた文字色 ============ */
+/* Mermaidは fill を指定されても文字色を調整しない。テーマごとに文字色が決まっており、
+   dark テーマは一律で淡い文字にするため、明るい塗りを指定すると文字が読めなくなる
+   （実測で1.0〜1.5）。塗りの明るさから濃い／淡いを選び、color: も一緒に出力する。 */
+const TEXT_ON_LIGHT = '#16233A';
+const TEXT_ON_DARK = '#FFFFFF';
+
+function relativeLuminance(hex){
+  const m = /^#?([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.exec(String(hex || '').trim());
+  if(!m) return null;
+  let h = m[1];
+  if(h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  const v = [0,2,4].map(i=>{
+    const c = parseInt(h.slice(i, i+2), 16) / 255;
+    return c <= 0.03928 ? c/12.92 : Math.pow((c+0.055)/1.055, 2.4);
+  });
+  return 0.2126*v[0] + 0.7152*v[1] + 0.0722*v[2];
+}
+/* 濃い文字と淡い文字のうち、その塗りに対してコントラストが高い方を返す */
+function readableTextColor(fill){
+  const L = relativeLuminance(fill);
+  if(L === null) return null;   // transparent など、判断できないものには付けない
+  const withDark = (L + 0.05) / (relativeLuminance(TEXT_ON_LIGHT) + 0.05);
+  const withLight = (relativeLuminance(TEXT_ON_DARK) + 0.05) / (L + 0.05);
+  return withDark >= withLight ? TEXT_ON_LIGHT : TEXT_ON_DARK;
+}
+/* 塗りを指定したときだけ color: を足す（枠線だけの指定では文字色は変えない） */
+function textColorPart(fill){
+  const c = fill ? readableTextColor(fill) : null;
+  return c ? `,color:${c}` : '';
+}
+
 function quoteLabel(s){
   return '"' + String(s == null ? '' : s).replace(/"/g, '”') + '"';
 }
@@ -1573,7 +1605,7 @@ function genFlowchartCode(){
       const parts = [];
       if(n.fill) parts.push(`fill:${n.fill}`);
       if(n.stroke) parts.push(`stroke:${n.stroke},stroke-width:2px`);
-      styleLines.push(`    style ${n.id} ${parts.join(',')}`);
+      styleLines.push(`    style ${n.id} ${parts.join(',')}${textColorPart(n.fill)}`);
     }
   });
   subgraphs.forEach(sg=>{
@@ -1581,7 +1613,7 @@ function genFlowchartCode(){
       const parts = [];
       if(sg.fill) parts.push(`fill:${sg.fill}`);
       if(sg.stroke) parts.push(`stroke:${sg.stroke},stroke-width:2px`);
-      styleLines.push(`    style ${sg.id} ${parts.join(',')}`);
+      styleLines.push(`    style ${sg.id} ${parts.join(',')}${textColorPart(sg.fill)}`);
     }
   });
   edges.forEach((e,i)=>{
@@ -1713,7 +1745,7 @@ function genStateCode(){
       const parts = [];
       parts.push(`fill:${n.fill || 'transparent'}`);
       parts.push(`stroke:${n.stroke || '#333333'},stroke-width:2px`);
-      styleLines.push(`    classDef ${cls} ${parts.join(',')}`);
+      styleLines.push(`    classDef ${cls} ${parts.join(',')}${textColorPart(n.fill)}`);
       styleLines.push(`    class ${n.id} ${cls}`);
     }
   });
@@ -1780,7 +1812,7 @@ function genClassCode(){
   // クラスの色は style 文で1行ずつ指定する（namespace の枠はMermaidが色指定を受け付けない）
   declared.forEach(c=>{
     if(!c.fill && !c.stroke) return;
-    lines.push(`    style ${c.id} fill:${c.fill || 'transparent'},stroke:${c.stroke || '#333333'},stroke-width:2px`);
+    lines.push(`    style ${c.id} fill:${c.fill || 'transparent'},stroke:${c.stroke || '#333333'},stroke-width:2px${textColorPart(c.fill)}`);
   });
 
   return classRelationStyleHeader(relations) + lines.join('\n');
@@ -1869,7 +1901,7 @@ function genERCode(){
     const parts = [];
     if(en.headerFill) parts.push(`fill:${en.headerFill}`);
     if(en.headerStroke) parts.push(`stroke:${en.headerStroke}`);
-    if(parts.length) lines.push(`    style ${en.id} ${parts.join(',')}`);
+    if(parts.length) lines.push(`    style ${en.id} ${parts.join(',')}${textColorPart(en.headerFill)}`);
   });
 
   if(entities.length===0 && relations.length===0){
@@ -5508,7 +5540,7 @@ function importFlowchart(lines, rep){
     if(/^style\b/.test(line)){
       const sm = /^style\s+(\S+)\s+(.+)$/.exec(line);
       if(!sm){ blockLine(rep, lineNo, line, 'style の書き方を解釈できません'); return; }
-      const props = parseStyleProps(sm[2], ['fill','stroke','stroke-width']);
+      const props = parseStyleProps(sm[2], ['fill','stroke','stroke-width','color']);
       if(!props){ blockLine(rep, lineNo, line, 'ビルダーが図形に保持できるのは塗り（fill）と枠線（stroke）だけです'); return; }
       styles.push({ lineNo, line, id: sm[1], props });
       return;
@@ -5732,7 +5764,7 @@ function importStateDiagram(lines, rep){
     // classDef と class は、色付けの組み合わせのときだけ受け入れる
     const cd = /^classDef\s+(\S+)\s+(.+)$/.exec(line);
     if(cd){
-      const props = parseStyleProps(cd[2], ['fill','stroke','stroke-width']);
+      const props = parseStyleProps(cd[2], ['fill','stroke','stroke-width','color']);
       if(!props){ blockLine(rep, lineNo, line, 'ビルダーが保持できるのは塗り（fill）と枠線（stroke）だけです'); return; }
       classDefs.set(cd[1], props);
       return;
@@ -5871,7 +5903,7 @@ function importClassDiagram(lines, rep, relationColors){
     // style は、生成側と同じ「クラス1件に塗りと枠線」の形だけ受け入れる
     const st = /^style\s+(\S+)\s+(.+)$/.exec(line);
     if(st){
-      const props = parseStyleProps(st[2], ['fill','stroke','stroke-width']);
+      const props = parseStyleProps(st[2], ['fill','stroke','stroke-width','color']);
       if(!props){ blockLine(rep, lineNo, line, 'ビルダーが保持できるのは塗り（fill）と枠線（stroke）だけです'); return; }
       styleAssign.push({ lineNo, line, id:st[1], props });
       return;
@@ -6003,7 +6035,7 @@ function importERDiagram(lines, rep){
     // style は、生成側と同じ「エンティティ1件に塗りと枠線」の形だけ受け入れる
     const st = /^style\s+(\S+)\s+(.+)$/.exec(line);
     if(st){
-      const props = parseStyleProps(st[2], ['fill','stroke','stroke-width']);
+      const props = parseStyleProps(st[2], ['fill','stroke','stroke-width','color']);
       if(!props){ blockLine(rep, lineNo, line, 'ビルダーが保持できるのは塗り（fill）と枠線（stroke）だけです'); return; }
       styleAssign.push({ lineNo, line, id:st[1], props });
       return;
