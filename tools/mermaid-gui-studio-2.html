@@ -431,6 +431,15 @@
     flex-shrink:0;
   }
   .color-swatch:hover{ border-color:var(--accent); transform:scale(1.12); }
+  /* 色を戻す・既定に戻す。プリセットの並びの末尾に置く */
+  .color-actions{ display:flex; gap:4px; margin-left:auto; }
+  .color-act{
+    font-size:10px; padding:2px 6px; border-radius:4px; cursor:pointer;
+    background:var(--surface-card); color:var(--text-dim);
+    border:1px solid var(--border-strong); white-space:nowrap;
+  }
+  .color-act:hover:not(:disabled){ border-color:var(--accent); color:var(--accent-dim); }
+  .color-act:disabled{ opacity:0.4; cursor:default; }
 
   .add-row-btn{
     width:100%; margin-top:2px;
@@ -1308,8 +1317,84 @@ function colorPresetsHtml(targetId, kind){
   const palette = theme.base.concat([theme[k + 'Default']]);
   return `<div class="color-presets" data-target="${targetId}" data-kind="${k}">` +
     palette.map(c=>`<button type="button" class="color-swatch" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('') +
+    `<span class="color-actions">` +
+      `<button type="button" class="color-act color-undo" data-target="${targetId}" title="ひとつ前の色に戻す" disabled>↩ 戻す</button>` +
+      `<button type="button" class="color-act color-default" data-target="${targetId}" title="色の指定をやめて既定に戻す">既定に戻す</button>` +
+    `</span>` +
     `</div>`;
 }
+
+/* ============ 色の取り消し ============ */
+/* 色を変えてしまうと元の値が分からなくなるので、変更前の値を積んでおく。
+   ネイティブのカラーピッカーはドラッグ中ずっと input が飛ぶため、
+   「触り始め」の値だけを1回控え、確定(change)したときに履歴へ入れる。 */
+const colorHistory = new Map();   // 入力欄のid -> 直前までの値の配列
+
+function pushColorHistory(input, value){
+  if(value === undefined || value === null) return;
+  const hist = colorHistory.get(input.id) || [];
+  if(hist[hist.length - 1] === value) return;   // 同じ値は積まない
+  hist.push(value);
+  if(hist.length > 20) hist.shift();            // 際限なく増やさない
+  colorHistory.set(input.id, hist);
+  refreshColorUndoState(input.id);
+}
+function refreshColorUndoState(targetId){
+  const hist = colorHistory.get(targetId) || [];
+  document.querySelectorAll(`.color-undo[data-target="${targetId}"]`).forEach(b=>{
+    b.disabled = hist.length === 0;
+  });
+}
+/* 値を入れ直したうえで、変更を見ている処理にも伝える */
+function setColorValue(input, value){
+  input.value = value;
+  input.dispatchEvent(new Event('input', { bubbles:true }));
+  input.dispatchEvent(new Event('change', { bubbles:true }));
+}
+
+/* 触り始めの値を控える。ピッカーを開く前とプリセット押下前の両方で通る */
+document.addEventListener('pointerdown', e=>{
+  const input = e.target.closest && e.target.closest('input[type=color]');
+  if(input && input.id) input.__colorBefore = input.value;
+}, true);
+document.addEventListener('focusin', e=>{
+  const input = e.target.closest && e.target.closest('input[type=color]');
+  if(input && input.id && input.__colorBefore === undefined) input.__colorBefore = input.value;
+});
+/* 確定したら履歴へ */
+document.addEventListener('change', e=>{
+  const input = e.target.closest && e.target.closest('input[type=color]');
+  if(!input || !input.id || input.__colorBefore === undefined) return;
+  if(input.__colorBefore !== input.value) pushColorHistory(input, input.__colorBefore);
+  input.__colorBefore = undefined;
+});
+
+document.addEventListener('click', e=>{
+  const undo = e.target.closest('.color-undo');
+  if(undo){
+    const input = document.getElementById(undo.dataset.target);
+    const hist = colorHistory.get(undo.dataset.target) || [];
+    if(!input || !hist.length) return;
+    const prev = hist.pop();
+    colorHistory.set(undo.dataset.target, hist);
+    input.__colorBefore = undefined;      // 戻した操作自体は履歴に積まない
+    setColorValue(input, prev);
+    refreshColorUndoState(undo.dataset.target);
+    return;
+  }
+  const def = e.target.closest('.color-default');
+  if(def){
+    const input = document.getElementById(def.dataset.target);
+    if(!input) return;
+    // 「色を指定する」を外すのが既定の状態。同じカードの中の切り替えを探す
+    const card = input.closest('.card');
+    const toggle = card && card.querySelector('input[type=checkbox][id$="ColorEnable"]');
+    if(toggle && toggle.checked){
+      toggle.checked = false;
+      toggle.dispatchEvent(new Event('change', { bubbles:true }));
+    }
+  }
+});
 function refreshAllColorPresets(){
   document.querySelectorAll('.color-presets').forEach(el=>{
     el.outerHTML = colorPresetsHtml(el.dataset.target, el.dataset.kind);
@@ -6794,7 +6879,10 @@ document.addEventListener('click', e=>{
   if(!swatch) return;
   const wrap = swatch.closest('.color-presets');
   const input = wrap && document.getElementById(wrap.dataset.target);
-  if(input){ input.value = swatch.dataset.color; }
+  if(input && input.value !== swatch.dataset.color){
+    pushColorHistory(input, input.value);   // プリセットはchangeが飛ばないのでここで積む
+    setColorValue(input, swatch.dataset.color);
+  }
 });
 
 /* ============ キャンバス（プレビューの地）の色 ============ */
