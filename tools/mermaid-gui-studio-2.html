@@ -21,19 +21,63 @@
 <meta name="twitter:description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図・アーキテクチャ図・ガントチャート・円グラフをGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
 <meta name="twitter:image" content="https://tossie85.site/assets/og-default.png">
 <style>
+  /* 配色トークン。ここだけ差し替えれば全体の色が変わる。
+     VS Code拡張では、この値を --vscode-* で上書きしてエディタのテーマに合わせる。 */
   :root{
-    --ink-900:#0A1830;
-    --ink-800:#10233F;
-    --ink-700:#16304F;
-    --ink-line:#2B4364;
-    --cyan:#4FD1E8;
-    --cyan-dim:#3AA8BC;
-    --amber:#F2B84B;
-    --paper:#F3F5F8;
-    --paper-line: rgba(79,209,232,0.14);
-    --text-ink:#16233A;
-    --text-soft:#5B6B84;
+    /* 面 */
+    --surface-app:#0A1830;        /* 最外周 */
+    --surface-header:#10233F;     /* ヘッダー・コード欄 */
+    --surface-control:#16304F;    /* ヘッダー内のボタン・入力 */
+    --surface-panel:#F3F5F8;      /* ビルダーパネルの地 */
+    --surface-card:#FFFFFF;       /* カード・モーダル */
+    --surface-input:#FAFBFD;      /* 入力欄・一覧の行 */
+    --surface-canvas:#FBFCFE;     /* プレビューの地 */
+    --surface-subtle:#F0F3F7;     /* ホバーなどの淡い面 */
+    --surface-note:#EEF4FB;       /* 注記ブロック */
+    /* 文字 */
+    --text-main:#16233A;
+    --text-strong:#10233F;      /* 見出しなど、本文より濃い文字 */
+    --text-on-accent:#0A1830;   /* アクセント色の面に載る文字 */
+    --text-dim:#5B6B84;
+    --text-note:#3C516C;
+    --text-faint:#A9B6C6;
+    --text-on-dark:#EAF2FA;
+    --text-on-dark-dim:#9AB0C9;
+    --text-on-dark-strong:#FFFFFF;
+    /* 線 */
+    --border-dark:#2B4364;
+    --border-strong:#CBD6E4;
+    --border-soft:#E1E8F0;
+    --border-dashed:#B9C7DA;
+    --border-note:#D3E1EF;
+    --border-swatch:#999999;
+    --surface-cancel:#8697AC;   /* 「編集をキャンセル」ボタン */
+    --surface-picked:#EEF6FF;   /* 属性編集中のエンティティ行 */
+    /* アクセント */
+    --accent:#4FD1E8;
+    --accent-dim:#3AA8BC;
+    --accent-tint:#E3F6FA;
+    --accent-tint-soft:#EDF6F9;
+    --accent-tint-strong:#E1F1F5;
+    --accent-border:#D5E7EC;
+    --grid-line: rgba(79,209,232,0.14);
+    /* 注意・危険 */
+    --warn:#F2B84B;
+    --warn-tint:#FFF6DF;
     --danger:#E8637A;
+    --danger-tint:#FFF1F3;
+    --danger-text:#9B2C43;
+    --danger-on-dark:#F2A0B0;
+    --danger-on-dark-strong:#FF8DA1;
+    /* コード欄 */
+    --code-text:#D7E8F5;
+    --code-text-dim:#8FA6C2;
+    --code-gutter:#4E6A88;
+    --code-selection:#264866;
+    --grip-dark:#3E577A;
+    /* バッジ */
+    --badge-pk-bg:#FBE7C6; --badge-pk-text:#8A5A00;
+    --badge-fk-bg:#D9E8FB; --badge-fk-text:#1D4E89;
     --font-sans: "Segoe UI", "Yu Gothic UI", "Meiryo UI", "Hiragino Kaku Gothic ProN", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
     --font-display: "Segoe UI Semibold", "Segoe UI", "Yu Gothic UI", "Meiryo UI", sans-serif;
     --font-mono: Consolas, "Cascadia Mono", "SF Mono", "Yu Gothic UI", "Courier New", monospace;
@@ -44,20 +88,20 @@
   html,body{height:100%;}
   body{
     margin:0;
-    background:var(--ink-900);
-    color:var(--text-ink);
+    background:var(--surface-app);
+    color:var(--text-main);
     font-family:var(--font-sans);
     display:flex;
     flex-direction:column;
     overflow:hidden;
   }
   h1,h2,h3,.display{font-family:var(--font-display);}
-  ::selection{background:var(--cyan); color:var(--ink-900);}
+  ::selection{background:var(--accent); color:var(--text-on-accent);}
 
   /* ---------- TOP BAR ---------- */
   header{
-    background:var(--ink-800);
-    border-bottom:1px solid var(--ink-line);
+    background:var(--surface-header);
+    border-bottom:1px solid var(--border-dark);
     padding:10px 18px;
     display:flex;
     align-items:center;
@@ -69,29 +113,29 @@
   .brand{display:flex; align-items:center; gap:10px; margin-right:6px;}
   .brand-mark{
     width:30px; height:30px; border-radius:7px;
-    background:linear-gradient(135deg, var(--cyan), var(--cyan-dim));
+    background:linear-gradient(135deg, var(--accent), var(--accent-dim));
     position:relative;
     flex-shrink:0;
   }
   .brand-mark::before, .brand-mark::after{
     content:"";
-    position:absolute; background:var(--ink-900);
+    position:absolute; background:var(--surface-app);
   }
   .brand-mark::before{ top:8px; left:5px; right:5px; height:2px; }
   .brand-mark::after{ top:16px; left:5px; right:9px; height:2px; }
-  .brand-title{color:#fff; font-size:16px; font-weight:700; letter-spacing:0.2px;}
-  .brand-sub{color:var(--cyan); font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; font-weight:600;}
+  .brand-title{color:var(--text-on-dark-strong); font-size:16px; font-weight:700; letter-spacing:0.2px;}
+  .brand-sub{color:var(--accent); font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; font-weight:600;}
 
   .field-group{display:flex; flex-direction:column; gap:3px;}
-  .field-group label{font-size:10px; color:#9AB0C9; text-transform:uppercase; letter-spacing:0.8px; font-weight:600;}
+  .field-group label{font-size:10px; color:var(--text-on-dark-dim); text-transform:uppercase; letter-spacing:0.8px; font-weight:600;}
   select, .btn, input[type=text]{
     font-family:var(--font-sans);
     font-size:13px;
   }
   select{
-    background:var(--ink-700);
-    color:#fff;
-    border:1px solid var(--ink-line);
+    background:var(--surface-control);
+    color:var(--text-on-dark-strong);
+    border:1px solid var(--border-dark);
     border-radius:6px;
     padding:6px 10px;
     outline:none;
@@ -105,29 +149,29 @@
   .toolbar-spacer{flex:1;}
   .btn{
     display:inline-flex; align-items:center; gap:6px;
-    background:var(--ink-700);
-    color:#EAF2FA;
-    border:1px solid var(--ink-line);
+    background:var(--surface-control);
+    color:var(--text-on-dark);
+    border:1px solid var(--border-dark);
     border-radius:6px;
     padding:7px 12px;
     cursor:pointer;
     transition:border-color .15s, color .15s, transform .05s;
     white-space:nowrap;
   }
-  .btn:hover{border-color:var(--cyan); color:var(--cyan);}
+  .btn:hover{border-color:var(--accent); color:var(--accent);}
   .btn:active{transform:translateY(1px);}
   .btn-accent{
-    background:var(--amber);
-    border-color:var(--amber);
-    color:var(--ink-900);
+    background:var(--warn);
+    border-color:var(--warn);
+    color:var(--text-on-accent);
     font-weight:600;
   }
-  .btn-accent:hover{ color:var(--ink-900); border-color:#fff; }
+  .btn-accent:hover{ color:var(--text-on-accent); border-color:var(--text-on-dark-strong); }
   .btn-ghost{ background:transparent; }
   .btn-sm{ padding:5px 9px; font-size:12px; border-radius:5px;}
   .btn-danger{ color:var(--danger); }
   .btn-danger:hover{ border-color:var(--danger); color:var(--danger); }
-  .btn-import{ border-color:var(--cyan-dim); color:var(--cyan); }
+  .btn-import{ border-color:var(--accent-dim); color:var(--accent); }
 
   /* 取り込み結果（取り込めなかった行の一覧） */
   .import-lead{ margin:0 0 12px; line-height:1.7; }
@@ -135,16 +179,16 @@
   .import-issues li{
     border-left:3px solid var(--danger); padding:6px 0 6px 10px; margin-bottom:10px;
   }
-  .import-issues li.drop{ border-left-color:var(--amber); }
+  .import-issues li.drop{ border-left-color:var(--warn); }
   .import-issues li[data-line]{ cursor:pointer; border-radius:0 5px 5px 0; }
-  .import-issues li[data-line]:hover{ background:#F5F8FC; }
+  .import-issues li[data-line]:hover{ background:var(--surface-subtle); }
   .import-issues .import-line{
     display:inline-block; min-width:64px; font-family:var(--font-mono);
-    font-size:11.5px; color:var(--text-soft);
+    font-size:11.5px; color:var(--text-dim);
   }
   .import-issues pre{
     margin:5px 0 0; padding:6px 8px; border-radius:5px;
-    background:#F0F3F7; border:1px solid #DCE3EC;
+    background:var(--surface-subtle); border:1px solid var(--border-soft);
     font-family:var(--font-mono); font-size:11.5px; white-space:pre-wrap; word-break:break-all;
   }
 
@@ -157,8 +201,8 @@
   .panel-builder{
     width:360px;
     flex-shrink:0;
-    background:var(--paper);
-    border-right:1px solid var(--ink-line);
+    background:var(--surface-panel);
+    border-right:1px solid var(--border-dark);
     overflow-y:auto;
     padding:18px;
   }
@@ -173,16 +217,16 @@
     flex:1;
     overflow:auto;
     position:relative;
-    background-color:#FBFCFE;
+    background-color:var(--surface-canvas);
     background-image:
-      linear-gradient(var(--paper-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--paper-line) 1px, transparent 1px);
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
     background-size:26px 26px;
     padding:30px;
   }
   .canvas-corner{
     position:absolute; width:14px; height:14px;
-    border-color:var(--cyan-dim); opacity:.55;
+    border-color:var(--accent-dim); opacity:.55;
   }
   .canvas-corner.tl{top:10px; left:10px; border-top:2px solid; border-left:2px solid;}
   .canvas-corner.tr{top:10px; right:10px; border-top:2px solid; border-right:2px solid;}
@@ -195,11 +239,11 @@
   }
   #preview svg{ max-width:100%; height:auto; }
   .preview-placeholder{
-    margin:auto; text-align:center; color:var(--text-soft); font-size:13.5px; max-width:320px;
+    margin:auto; text-align:center; color:var(--text-dim); font-size:13.5px; max-width:320px;
   }
   .preview-error{
     margin:20px auto; max-width:520px;
-    background:#FFF1F3; border:1px solid var(--danger); color:#9B2C43;
+    background:var(--danger-tint); border:1px solid var(--danger); color:var(--danger-text);
     padding:12px 14px; border-radius:8px; font-size:12.5px; white-space:pre-wrap;
     font-family:var(--font-mono);
   }
@@ -212,15 +256,15 @@
     position:absolute; right:14px; bottom:14px; z-index:5;
     display:flex; align-items:center; gap:2px;
     background:rgba(255,255,255,.93);
-    border:1px solid #D3DEEA; border-radius:8px;
+    border:1px solid var(--border-soft); border-radius:8px;
     box-shadow:0 2px 8px rgba(16,35,63,.14);
     padding:3px;
   }
   .zoom-bar button{
-    border:none; background:none; cursor:pointer; color:var(--text-ink);
+    border:none; background:none; cursor:pointer; color:var(--text-main);
     font-family:var(--font-sans); border-radius:5px; padding:4px 7px; line-height:1;
   }
-  .zoom-bar button:hover{ background:#EAF1F8; }
+  .zoom-bar button:hover{ background:var(--surface-subtle); }
   .zoom-btn{ font-size:15px; width:26px; }
   .zoom-level{ font-size:11.5px; min-width:48px; font-variant-numeric:tabular-nums; }
 
@@ -231,21 +275,21 @@
   /* ---------- コード欄の高さ調整 ---------- */
   .drawer-resizer{
     flex-shrink:0; height:8px; cursor:row-resize; touch-action:none;
-    background:var(--ink-800); border-top:1px solid var(--ink-line);
+    background:var(--surface-header); border-top:1px solid var(--border-dark);
     display:flex; align-items:center; justify-content:center;
   }
   .drawer-resizer::before{
-    content:""; width:38px; height:3px; border-radius:2px; background:#3E577A;
+    content:""; width:38px; height:3px; border-radius:2px; background:var(--grip-dark);
   }
-  .drawer-resizer:hover::before, .drawer-resizer.dragging::before{ background:var(--cyan-dim); }
+  .drawer-resizer:hover::before, .drawer-resizer.dragging::before{ background:var(--accent-dim); }
   /* ドラッグ中に高さのアニメーションが効くと、指の動きから遅れて追従してしまう */
   .code-drawer.resizing{ transition:none; }
 
   /* ---------- CODE DRAWER ---------- */
   .code-drawer{
     flex-shrink:0;
-    background:var(--ink-900);
-    border-top:1px solid var(--ink-line);
+    background:var(--surface-app);
+    border-top:1px solid var(--border-dark);
     display:flex;
     flex-direction:column;
     height:230px;
@@ -256,18 +300,18 @@
     display:flex; align-items:center; gap:10px;
     padding:7px 14px;
     flex-shrink:0;
-    border-bottom:1px solid var(--ink-line);
+    border-bottom:1px solid var(--border-dark);
   }
-  .code-drawer-bar .title{color:#EAF2FA; font-size:12.5px; font-weight:600; letter-spacing:.3px;}
+  .code-drawer-bar .title{color:var(--text-on-dark); font-size:12.5px; font-weight:600; letter-spacing:.3px;}
   .toggle-edit{
     display:flex; align-items:center; gap:6px;
-    color:#9AB0C9; font-size:11.5px; cursor:pointer; user-select:none;
+    color:var(--text-on-dark-dim); font-size:11.5px; cursor:pointer; user-select:none;
   }
-  .toggle-edit input{ accent-color:var(--cyan); }
+  .toggle-edit input{ accent-color:var(--accent); }
   /* 手編集中のコードが取り込めるかどうかの表示 */
-  .import-status{ font-size:11.5px; color:#9AB0C9; }
-  .import-status.ready{ color:var(--cyan); }
-  .import-status.ng{ color:#F2A0B0; }
+  .import-status{ font-size:11.5px; color:var(--text-on-dark-dim); }
+  .import-status.ready{ color:var(--accent); }
+  .import-status.ng{ color:var(--danger-on-dark); }
   /* 行番号の桁と本文は、字送り・行送り・上下パディングを完全に揃える必要がある。
      ずれると番号と行が食い違い、エラー箇所の案内がかえって害になる。
      揃えるべき値は --code-* にまとめ、両方から参照する。 */
@@ -281,9 +325,9 @@
     flex-shrink:0;
     padding:var(--code-pad-y) 8px var(--code-pad-y) 12px;
     margin:0;
-    background:var(--ink-900);
-    border-right:1px solid var(--ink-line);
-    color:#4E6A88;
+    background:var(--surface-app);
+    border-right:1px solid var(--border-dark);
+    color:var(--code-gutter);
     font-family:var(--font-mono);
     font-size:var(--code-font-size);
     line-height:var(--code-line-height);
@@ -294,14 +338,14 @@
   }
   #codeGutter b{ display:block; font-weight:normal; }
   /* 取り込めなかった行。番号だけで示し、本文には触れない */
-  #codeGutter b.err{ color:#FF8DA1; font-weight:600; }
+  #codeGutter b.err{ color:var(--danger-on-dark-strong); font-weight:600; }
   #codeArea{
     flex:1;
     resize:none;
     border:none;
     outline:none;
-    background:var(--ink-900);
-    color:#D7E8F5;
+    background:var(--surface-app);
+    color:var(--code-text);
     font-family:var(--font-mono);
     font-size:var(--code-font-size);
     line-height:var(--code-line-height);
@@ -310,136 +354,136 @@
     white-space:pre;
     overflow-x:auto;
   }
-  #codeArea[readonly]{ color:#8FA6C2; }
-  #codeArea::selection{ background:#264866; }
+  #codeArea[readonly]{ color:var(--code-text-dim); }
+  #codeArea::selection{ background:var(--code-selection); }
 
   /* ---------- BUILDER PANEL CONTENTS ---------- */
   .panel-builder h2{
-    font-size:14px; margin:0 0 2px; color:var(--ink-800);
+    font-size:14px; margin:0 0 2px; color:var(--text-strong);
   }
   .panel-builder .hint{
-    font-size:11.5px; color:var(--text-soft); margin:0 0 16px; line-height:1.6;
+    font-size:11.5px; color:var(--text-dim); margin:0 0 16px; line-height:1.6;
   }
   .card{
-    background:#fff;
-    border:1px dashed #B9C7DA;
+    background:var(--surface-card);
+    border:1px dashed var(--border-dashed);
     border-radius:9px;
     padding:12px 13px;
     margin-bottom:14px;
   }
   .card-title{
     font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.7px;
-    color:var(--cyan-dim); margin-bottom:10px; display:flex; align-items:center; gap:6px;
+    color:var(--accent-dim); margin-bottom:10px; display:flex; align-items:center; gap:6px;
   }
   .card-title::before{
-    content:""; width:6px; height:6px; border-radius:50%; background:var(--amber);
+    content:""; width:6px; height:6px; border-radius:50%; background:var(--warn);
   }
   .row{ display:flex; gap:8px; margin-bottom:8px; }
   .row > *{ flex:1; min-width:0; }
   .field label{
-    display:block; font-size:10px; color:var(--text-soft); margin-bottom:3px;
+    display:block; font-size:10px; color:var(--text-dim); margin-bottom:3px;
     text-transform:uppercase; letter-spacing:.5px; font-weight:600;
   }
   .field input[type=text], .field select{
     width:100%;
     padding:6px 8px;
-    border:1px solid #CBD6E4;
+    border:1px solid var(--border-strong);
     border-radius:5px;
-    background:#FAFBFD;
-    color:var(--text-ink);
+    background:var(--surface-input);
+    color:var(--text-main);
     font-size:12.5px;
   }
-  .field input[type=text]:focus, .field select:focus{ outline:2px solid var(--cyan); outline-offset:0; border-color:var(--cyan); }
+  .field input[type=text]:focus, .field select:focus{ outline:2px solid var(--accent); outline-offset:0; border-color:var(--accent); }
   .field textarea, .field input[type=date]{
     width:100%;
     padding:6px 8px;
-    border:1px solid #CBD6E4;
+    border:1px solid var(--border-strong);
     border-radius:5px;
-    background:#FAFBFD;
-    color:var(--text-ink);
+    background:var(--surface-input);
+    color:var(--text-main);
     font-size:12px;
     font-family:var(--font-mono);
     resize:vertical;
   }
-  .field textarea:focus, .field input[type=date]:focus{ outline:2px solid var(--cyan); outline-offset:0; border-color:var(--cyan); }
+  .field textarea:focus, .field input[type=date]:focus{ outline:2px solid var(--accent); outline-offset:0; border-color:var(--accent); }
 
   .field input[type=color]{
     width:100%;
     height:30px;
     padding:2px;
-    border:1px solid #CBD6E4;
+    border:1px solid var(--border-strong);
     border-radius:5px;
-    background:#FAFBFD;
+    background:var(--surface-input);
     cursor:pointer;
   }
   .color-presets{ display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
   .color-swatch{
     width:18px; height:18px;
     border-radius:4px;
-    border:1px solid #CBD6E4;
+    border:1px solid var(--border-strong);
     padding:0;
     cursor:pointer;
     flex-shrink:0;
   }
-  .color-swatch:hover{ border-color:var(--cyan); transform:scale(1.12); }
+  .color-swatch:hover{ border-color:var(--accent); transform:scale(1.12); }
 
   .add-row-btn{
     width:100%; margin-top:2px;
-    background:var(--ink-800); color:#fff; border:none; border-radius:6px;
+    background:var(--surface-header); color:var(--text-on-dark-strong); border:none; border-radius:6px;
     padding:8px; font-size:12.5px; font-weight:600; cursor:pointer;
     display:flex; align-items:center; justify-content:center; gap:6px;
   }
-  .add-row-btn:hover{ background:var(--ink-700); }
+  .add-row-btn:hover{ background:var(--surface-control); }
 
   .item-list{ margin-top:10px; display:flex; flex-direction:column; gap:6px; }
   .item-row{
     display:flex; align-items:center; gap:8px;
-    background:#FAFBFD; border:1px solid #E1E8F0; border-radius:6px;
+    background:var(--surface-input); border:1px solid var(--border-soft); border-radius:6px;
     padding:6px 8px; font-size:12px;
   }
-  .item-row .item-text{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:var(--font-mono); font-size:11.5px; color:var(--ink-800);}
+  .item-row .item-text{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:var(--font-mono); font-size:11.5px; color:var(--text-strong);}
   .item-row button{
     background:none; border:none; color:var(--danger); cursor:pointer; font-size:15px;
     line-height:1; padding:2px 5px; border-radius:4px;
   }
-  .item-row button:hover{ background:#FFE7EB; }
-  .item-row button.edit-btn{ color:var(--cyan-dim); font-size:13px; }
-  .item-row button.edit-btn:hover{ background:#E3F6FA; }
+  .item-row button:hover{ background:var(--danger-tint); }
+  .item-row button.edit-btn{ color:var(--accent-dim); font-size:13px; }
+  .item-row button.edit-btn:hover{ background:var(--accent-tint); }
   .item-row.dragging{ opacity:0.4; }
-  .item-row.drag-over{ box-shadow: inset 0 2px 0 var(--cyan-dim); }
+  .item-row.drag-over{ box-shadow: inset 0 2px 0 var(--accent-dim); }
   /* ブロック構造が崩れる移動を差し戻したときの合図 */
   .item-row.drop-rejected{ animation: dropReject 0.6s ease-out; }
   @keyframes dropReject{
-    0%, 60%{ background:#FDE7EA; box-shadow: inset 0 0 0 2px var(--danger); }
+    0%, 60%{ background:var(--danger-tint); box-shadow: inset 0 0 0 2px var(--danger); }
     100%{ background:transparent; box-shadow:none; }
   }
-  .item-row .drag-handle{ cursor:grab; color:var(--text-soft); font-size:13px; line-height:1; user-select:none; flex:none; }
+  .item-row .drag-handle{ cursor:grab; color:var(--text-dim); font-size:13px; line-height:1; user-select:none; flex:none; }
   .item-row .drag-handle:active{ cursor:grabbing; }
   /* プレビューの図形をクリックして選ばれた行 */
-  .item-row.picked{ background:#FFF6DF; box-shadow: inset 0 0 0 2px var(--amber); }
+  .item-row.picked{ background:var(--warn-tint); box-shadow: inset 0 0 0 2px var(--warn); }
   /* ---------- 折りたたみグループ見出し（サブグループ/サブステート等で束ねる） ---------- */
   .group-toolbar{ display:flex; gap:6px; }
   .group-toolbar button{
-    background:#EEF3F8; border:1px solid #E1E8F0; color:var(--text-soft);
+    background:var(--surface-subtle); border:1px solid var(--border-soft); color:var(--text-dim);
     font-size:10.5px; padding:2px 9px; border-radius:5px; cursor:pointer; font-family:var(--font-sans);
   }
-  .group-toolbar button:hover{ background:#E3F6FA; color:var(--cyan-dim); border-color:var(--cyan); }
+  .group-toolbar button:hover{ background:var(--accent-tint); color:var(--accent-dim); border-color:var(--accent); }
   .group-sec{ display:flex; flex-direction:column; gap:6px; }
   .group-head{
     display:flex; align-items:center; gap:6px; cursor:pointer; user-select:none;
     padding:4px 8px; border-radius:6px;
-    background:#EDF6F9; border:1px solid #D5E7EC;
-    font-size:11px; color:var(--ink-800);
+    background:var(--accent-tint-soft); border:1px solid var(--accent-border);
+    font-size:11px; color:var(--text-strong);
   }
-  .group-head:hover{ background:#E1F1F5; }
-  .group-caret{ font-size:10px; color:var(--cyan-dim); width:10px; flex:none; text-align:center; }
-  .group-swatch{ display:inline-block; width:10px; height:10px; border-radius:3px; border:1px solid #999; flex:none; }
+  .group-head:hover{ background:var(--accent-tint-strong); }
+  .group-caret{ font-size:10px; color:var(--accent-dim); width:10px; flex:none; text-align:center; }
+  .group-swatch{ display:inline-block; width:10px; height:10px; border-radius:3px; border:1px solid var(--border-swatch); flex:none; }
   .group-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:var(--font-mono); }
   .group-count{
-    flex:none; font-family:var(--font-mono); font-size:10px; color:var(--text-soft);
-    background:#fff; border:1px solid #D5E7EC; border-radius:10px; padding:0 7px; min-width:20px; text-align:center;
+    flex:none; font-family:var(--font-mono); font-size:10px; color:var(--text-dim);
+    background:var(--surface-card); border:1px solid var(--accent-border); border-radius:10px; padding:0 7px; min-width:20px; text-align:center;
   }
-  .group-body{ display:flex; flex-direction:column; gap:6px; padding-left:10px; border-left:2px solid #E1EDF1; margin-left:4px; }
+  .group-body{ display:flex; flex-direction:column; gap:6px; padding-left:10px; border-left:2px solid var(--accent-border); margin-left:4px; }
   .group-sec.collapsed .group-body{ display:none; }
   /* プレビュー上でビルダーに対応する図形は、クリックできることを示す（PREVIEW_PICK_SELECTORと対） */
   #preview g.node, #preview g.statediagram-cluster, #preview g.cluster, #preview rect.node-bkg,
@@ -458,32 +502,32 @@
     display:inline-block; font-size:9.5px; font-weight:700; letter-spacing:0.3px;
     padding:1px 5px; border-radius:3px; margin-right:4px; flex-shrink:0;
   }
-  .key-badge.pk{ background:#FBE7C6; color:#8A5A00; }
-  .key-badge.fk{ background:#D9E8FB; color:#1D4E89; }
+  .key-badge.pk{ background:var(--badge-pk-bg); color:var(--badge-pk-text); }
+  .key-badge.fk{ background:var(--badge-fk-bg); color:var(--badge-fk-text); }
   .attr-active-note{
-    background:#EEF4FB; border:1px solid #D3E1EF; border-radius:8px;
-    padding:8px 10px; font-size:11.5px; color:#3C516C; margin-bottom:10px;
+    background:var(--surface-note); border:1px solid var(--border-note); border-radius:8px;
+    padding:8px 10px; font-size:11.5px; color:var(--text-note); margin-bottom:10px;
   }
-  .empty-note{ font-size:11.5px; color:#A9B6C6; text-align:center; padding:8px 0; }
+  .empty-note{ font-size:11.5px; color:var(--text-faint); text-align:center; padding:8px 0; }
 
   .template-note{
-    background:#EEF4FB; border:1px solid #D3E1EF; border-radius:8px;
-    padding:12px; font-size:12px; color:#3C516C; line-height:1.7;
+    background:var(--surface-note); border:1px solid var(--border-note); border-radius:8px;
+    padding:12px; font-size:12px; color:var(--text-note); line-height:1.7;
   }
   .template-note code{
-    background:#fff; border:1px solid #D3E1EF; border-radius:4px; padding:1px 5px;
+    background:var(--surface-card); border:1px solid var(--border-note); border-radius:4px; padding:1px 5px;
     font-family:var(--font-mono); font-size:11px;
   }
   .chip-row{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
   .chip{
-    background:#fff; border:1px solid #CBD6E4; border-radius:14px;
-    padding:5px 11px; font-size:11.5px; cursor:pointer; color:var(--ink-800);
+    background:var(--surface-card); border:1px solid var(--border-strong); border-radius:14px;
+    padding:5px 11px; font-size:11.5px; cursor:pointer; color:var(--text-strong);
   }
-  .chip:hover{ border-color:var(--cyan); color:var(--cyan-dim); }
+  .chip:hover{ border-color:var(--accent); color:var(--accent-dim); }
 
   ::-webkit-scrollbar{ width:10px; height:10px; }
-  ::-webkit-scrollbar-thumb{ background:#C7D2DF; border-radius:6px; }
-  .panel-builder::-webkit-scrollbar-thumb{ background:#CBD6E4; }
+  ::-webkit-scrollbar-thumb{ background:var(--border-strong); border-radius:6px; }
+  .panel-builder::-webkit-scrollbar-thumb{ background:var(--border-strong); }
 
   /* ---------- CREDITS MODAL ---------- */
   .modal-overlay{
@@ -494,44 +538,44 @@
   }
   .modal-overlay.open{ display:flex; }
   .modal-box{
-    background:#fff; border-radius:10px; width:min(520px, 90vw);
+    background:var(--surface-card); border-radius:10px; width:min(520px, 90vw);
     max-height:80vh; display:flex; flex-direction:column;
     box-shadow:0 20px 60px rgba(0,0,0,0.35);
   }
   .modal-header{
     display:flex; align-items:center; justify-content:space-between;
-    padding:14px 18px; border-bottom:1px solid #E1E8F0;
-    font-weight:700; font-size:14px; color:var(--ink-800);
+    padding:14px 18px; border-bottom:1px solid var(--border-soft);
+    font-weight:700; font-size:14px; color:var(--text-strong);
     flex-shrink:0;
   }
   .modal-close{
-    background:none; border:none; font-size:18px; cursor:pointer; color:var(--text-soft);
+    background:none; border:none; font-size:18px; cursor:pointer; color:var(--text-dim);
     padding:2px 8px; border-radius:5px;
   }
-  .modal-close:hover{ background:#F0F3F7; color:var(--ink-800); }
-  .modal-body{ padding:16px 18px; overflow-y:auto; font-size:12.5px; color:var(--text-ink); line-height:1.7; }
+  .modal-close:hover{ background:var(--surface-subtle); color:var(--text-strong); }
+  .modal-body{ padding:16px 18px; overflow-y:auto; font-size:12.5px; color:var(--text-main); line-height:1.7; }
   /* 確認ダイアログのボタン列。改行や記号をそのまま見せたいので本文は pre-wrap */
   .modal-actions{
     display:flex; justify-content:flex-end; gap:8px;
-    padding:12px 18px; border-top:1px solid #E1E8F0; flex-shrink:0;
+    padding:12px 18px; border-top:1px solid var(--border-soft); flex-shrink:0;
   }
   #dialogBody{ white-space:pre-wrap; }
-  .btn-primary{ background:var(--cyan); border-color:var(--cyan); color:var(--ink-900); font-weight:700; }
-  .btn-primary:hover{ background:var(--cyan-dim); border-color:var(--cyan-dim); color:var(--ink-900); }
-  .modal-body h3{ font-size:12.5px; color:var(--ink-800); margin:16px 0 6px; }
+  .btn-primary{ background:var(--accent); border-color:var(--accent); color:var(--text-on-accent); font-weight:700; }
+  .btn-primary:hover{ background:var(--accent-dim); border-color:var(--accent-dim); color:var(--text-on-accent); }
+  .modal-body h3{ font-size:12.5px; color:var(--text-strong); margin:16px 0 6px; }
   .modal-body h3:first-child{ margin-top:0; }
   .credit-item{
-    background:#F7F9FB; border:1px solid #E1E8F0; border-radius:8px; padding:10px 12px;
+    background:var(--surface-subtle); border:1px solid var(--border-soft); border-radius:8px; padding:10px 12px;
   }
-  .credit-name{ font-weight:700; color:var(--ink-800); font-size:12.5px; }
-  .credit-version{ font-weight:400; color:var(--text-soft); font-size:11px; }
-  .credit-detail{ margin-top:4px; font-size:11.5px; color:var(--text-soft); }
-  .credit-link{ font-family:var(--font-mono); color:var(--cyan-dim); }
+  .credit-name{ font-weight:700; color:var(--text-strong); font-size:12.5px; }
+  .credit-version{ font-weight:400; color:var(--text-dim); font-size:11px; }
+  .credit-detail{ margin-top:4px; font-size:11.5px; color:var(--text-dim); }
+  .credit-link{ font-family:var(--font-mono); color:var(--accent-dim); }
   .credit-license{ margin-top:8px; }
-  .credit-license summary{ cursor:pointer; font-size:11px; color:var(--cyan-dim); }
+  .credit-license summary{ cursor:pointer; font-size:11px; color:var(--accent-dim); }
   .credit-license pre{
-    margin-top:6px; padding:10px; background:#fff; border:1px solid #E1E8F0; border-radius:6px;
-    font-family:var(--font-mono); font-size:10px; white-space:pre-wrap; color:var(--text-soft);
+    margin-top:6px; padding:10px; background:var(--surface-card); border:1px solid var(--border-soft); border-radius:6px;
+    font-family:var(--font-mono); font-size:10px; white-space:pre-wrap; color:var(--text-dim);
     max-height:220px; overflow-y:auto;
   }
 
@@ -564,14 +608,14 @@
     .panel-resizer{
       display:flex; align-items:center; justify-content:center;
       height:16px; flex-shrink:0;
-      background:var(--paper);
-      border-top:1px solid var(--ink-line); border-bottom:1px solid var(--ink-line);
+      background:var(--surface-panel);
+      border-top:1px solid var(--border-dark); border-bottom:1px solid var(--border-dark);
       cursor:row-resize; touch-action:none;
     }
     .panel-resizer::before{
-      content:""; width:36px; height:4px; border-radius:2px; background:#CBD6E4;
+      content:""; width:36px; height:4px; border-radius:2px; background:var(--border-strong);
     }
-    .panel-resizer:hover::before, .panel-resizer.dragging::before{ background:var(--cyan-dim); }
+    .panel-resizer:hover::before, .panel-resizer.dragging::before{ background:var(--accent-dim); }
 
     /* ツールバー（種類・テーマ・保存系ボタン）を折りたたみ可能にして作業領域を確保する */
     .header-controls{ flex-basis:100%; order:2; }
@@ -580,8 +624,8 @@
       display:block;
       position:absolute; left:50%; bottom:-11px; transform:translateX(-50%);
       width:34px; z-index:5;
-      background:var(--cyan-dim); color:#EAF2FA;
-      border:1px solid var(--cyan); border-radius:8px;
+      background:var(--accent-dim); color:var(--text-on-dark);
+      border:1px solid var(--accent); border-radius:8px;
       padding:2px 0; font-size:13px; line-height:1.3; text-align:center; cursor:pointer;
       box-shadow:0 1px 4px rgba(10,24,48,0.35);
     }
@@ -2461,7 +2505,7 @@ function renderFlowchartBuilder(container){
         <div class="field"><label for="fcSubStroke">枠線</label><input type="color" id="fcSubStroke" value="#16304f">${colorPresetsHtml('fcSubStroke', 'stroke')}</div>
       </div>
       <button class="add-row-btn" id="fcAddSub">＋ サブグループを追加</button>
-      <button class="add-row-btn" id="fcSubCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <button class="add-row-btn" id="fcSubCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
       <div class="item-list" id="fcSubList"></div>
     </div>
 
@@ -2485,7 +2529,7 @@ function renderFlowchartBuilder(container){
         <div class="field"><label for="fcNodeStroke">枠線</label><input type="color" id="fcNodeStroke" value="#16304f">${colorPresetsHtml('fcNodeStroke', 'stroke')}</div>
       </div>
       <button class="add-row-btn" id="fcAddNode">＋ ノードを追加</button>
-      <button class="add-row-btn" id="fcNodeCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <button class="add-row-btn" id="fcNodeCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
       <div class="item-list" id="fcNodeList"></div>
     </div>
 
@@ -2506,7 +2550,7 @@ function renderFlowchartBuilder(container){
         <div class="field"><label for="fcEdgeColor">線の色</label><input type="color" id="fcEdgeColor" value="#4fd1e8">${colorPresetsHtml('fcEdgeColor', 'line')}</div>
       </div>
       <button class="add-row-btn" id="fcAddEdge">＋ エッジを追加</button>
-      <button class="add-row-btn" id="fcEdgeCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <button class="add-row-btn" id="fcEdgeCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
       <div class="item-list" id="fcEdgeList"></div>
     </div>
   `;
@@ -2742,7 +2786,7 @@ function refreshFlowchartLists(){
   state.flowchart.subgraphs.forEach((sg,i)=>{
     const row = document.createElement('div');
     row.className='item-row';
-    const swatch = sg.fill ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${sg.fill};border:1px solid ${sg.stroke||'#999'};flex-shrink:0;"></span>` : '';
+    const swatch = sg.fill ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${sg.fill};border:1px solid ${sg.stroke||'var(--border-swatch)'};flex-shrink:0;"></span>` : '';
     row.innerHTML = `${swatch}<span class="item-text">${sg.id}: ${sg.label}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
     row.querySelector('.edit-btn').addEventListener('click', ()=>{
       state.flowchart.editSubIdx = i;
@@ -2776,7 +2820,7 @@ function refreshFlowchartLists(){
       (n,i)=>{
         const row = document.createElement('div');
         row.className='item-row';
-        const swatch = n.fill ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${n.fill};border:1px solid ${n.stroke||'#999'};flex-shrink:0;"></span>` : '';
+        const swatch = n.fill ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${n.fill};border:1px solid ${n.stroke||'var(--border-swatch)'};flex-shrink:0;"></span>` : '';
         row.innerHTML = `${swatch}<span class="item-text">${n.id}: ${n.label}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
         row.querySelector('.edit-btn').addEventListener('click', ()=>{
           state.flowchart.editNodeIdx = i;
@@ -2850,7 +2894,7 @@ function renderSequenceBuilder(container){
         <select id="sqPartKind">${SEQ_PARTICIPANT_KINDS.map(k=>`<option value="${k.v}">${k.label}</option>`).join('')}</select>
       </div>
       <button class="add-row-btn" id="sqAddPart">＋ 参加者を追加</button>
-      <button class="add-row-btn" id="sqPartCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <button class="add-row-btn" id="sqPartCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
       <div class="item-list" id="sqPartList"></div>
     </div>
 
@@ -2867,7 +2911,7 @@ function renderSequenceBuilder(container){
       </div>
       <div class="field" style="margin-bottom:8px;"><label for="sqMsgText">メッセージ内容</label><input type="text" id="sqMsgText" placeholder="例: リクエスト送信"></div>
       <button class="add-row-btn" id="sqAddMsg">＋ メッセージを追加</button>
-      <button class="add-row-btn" id="sqMsgCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <button class="add-row-btn" id="sqMsgCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
     </div>
 
     <div class="card">
@@ -2886,7 +2930,7 @@ function renderSequenceBuilder(container){
       </div>
       <div class="field" style="margin-bottom:8px;"><label for="sqNoteText">ノート内容</label><input type="text" id="sqNoteText" placeholder="例: 認証処理"></div>
       <button class="add-row-btn" id="sqAddNote">＋ ノートを追加</button>
-      <button class="add-row-btn" id="sqNoteCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <button class="add-row-btn" id="sqNoteCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
     </div>
 
     <div class="card">
@@ -2899,7 +2943,7 @@ function renderSequenceBuilder(container){
         <div class="field"><label for="sqBlockLabel">ラベル(任意)</label><input type="text" id="sqBlockLabel" placeholder="例: 条件が真の間"></div>
       </div>
       <button class="add-row-btn" id="sqAddBlock">＋ ブロック開始を追加</button>
-      <button class="add-row-btn" id="sqBlockCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <button class="add-row-btn" id="sqBlockCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
       <div class="row" style="margin-top:10px;">
         <div class="field"><label for="sqDivType">区切り種別</label>
           <select id="sqDivType">${SEQ_DIVIDERS.map(d=>`<option value="${d.v}">${d.label}</option>`).join('')}</select>
@@ -2907,7 +2951,7 @@ function renderSequenceBuilder(container){
         <div class="field"><label for="sqDivLabel">区切りラベル(任意)</label><input type="text" id="sqDivLabel" placeholder="例: それ以外"></div>
       </div>
       <button class="add-row-btn" id="sqAddDiv">＋ 区切り(else/and)を追加</button>
-      <button class="add-row-btn" id="sqDivCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <button class="add-row-btn" id="sqDivCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
       <button class="add-row-btn" id="sqAddEnd" style="margin-top:10px;">＋ ブロック終了(end)を追加</button>
     </div>
 
@@ -3170,7 +3214,7 @@ function renderGroupedList(listEl, items, keyOf, groups, collapsed, rowFactory, 
     const head = document.createElement('div');
     head.className = 'group-head';
     const swatch = g && g.fill
-      ? `<span class="group-swatch" style="background:${g.fill};border-color:${g.stroke||'#999'};"></span>`
+      ? `<span class="group-swatch" style="background:${g.fill};border-color:${g.stroke||'var(--border-swatch)'};"></span>`
       : '';
     head.innerHTML = `<span class="group-caret">${isCol?'▸':'▾'}</span>${swatch}<span class="group-name">${label}</span><span class="group-count">${entries.length}</span>`;
     const body = document.createElement('div');
@@ -3405,7 +3449,7 @@ function renderStateBuilder(container){
         <div class="field"><label for="stCompStroke">枠線</label><input type="color" id="stCompStroke" value="#16304f">${colorPresetsHtml('stCompStroke', 'stroke')}</div>
       </div>
       <button class="add-row-btn" id="stAddComp">＋ サブステートを追加</button>
-      <button class="add-row-btn" id="stCompCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <button class="add-row-btn" id="stCompCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
       <div class="item-list" id="stCompList"></div>
     </div>
 
@@ -3424,7 +3468,7 @@ function renderStateBuilder(container){
         <div class="field"><label for="stNodeStroke">枠線</label><input type="color" id="stNodeStroke" value="#16304f">${colorPresetsHtml('stNodeStroke', 'stroke')}</div>
       </div>
       <button class="add-row-btn" id="stAddNode">＋ 状態を追加</button>
-      <button class="add-row-btn" id="stNodeCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <button class="add-row-btn" id="stNodeCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
       <div class="item-list" id="stNodeList"></div>
     </div>
 
@@ -3436,7 +3480,7 @@ function renderStateBuilder(container){
       </div>
       <div class="field" style="margin-bottom:8px;"><label for="stEdgeLabel">条件・ラベル（任意）</label><input type="text" id="stEdgeLabel" placeholder="例: start"></div>
       <button class="add-row-btn" id="stAddEdge">＋ 遷移を追加</button>
-      <button class="add-row-btn" id="stEdgeCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <button class="add-row-btn" id="stEdgeCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
       <div class="item-list" id="stEdgeList"></div>
     </div>
   `;
@@ -3607,7 +3651,7 @@ function refreshStateLists(){
   state.stateDiag.composites.forEach((c,i)=>{
     const row = document.createElement('div');
     row.className='item-row';
-    const swatch = c.fill ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${c.fill};border:1px solid ${c.stroke||'#999'};flex-shrink:0;"></span>` : '';
+    const swatch = c.fill ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${c.fill};border:1px solid ${c.stroke||'var(--border-swatch)'};flex-shrink:0;"></span>` : '';
     row.innerHTML = `${swatch}<span class="item-text">${c.id}: ${c.label}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
     row.querySelector('.edit-btn').addEventListener('click', ()=>{
       state.stateDiag.editCompositeIdx = i;
@@ -3641,7 +3685,7 @@ function refreshStateLists(){
       (n,i)=>{
         const row = document.createElement('div');
         row.className='item-row';
-        const swatch = n.fill ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${n.fill};border:1px solid ${n.stroke||'#999'};flex-shrink:0;"></span>` : '';
+        const swatch = n.fill ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${n.fill};border:1px solid ${n.stroke||'var(--border-swatch)'};flex-shrink:0;"></span>` : '';
         row.innerHTML = `${swatch}<span class="item-text">${n.id}: ${n.label}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
         row.querySelector('.edit-btn').addEventListener('click', ()=>{
           state.stateDiag.editNodeIdx = i;
@@ -3709,7 +3753,7 @@ function renderClassBuilder(container){
       <p class="hint" style="margin:0 0 10px;">複数のクラスを1つの枠にまとめられます。下の「クラスを追加」で所属先を選べます。Mermaidが名前空間の枠に色指定を受け付けないため、色を変えられるのはクラス側だけです。</p>
       <div class="field" style="margin-bottom:8px;"><label for="clsNsId">名前空間名</label><input type="text" id="clsNsId" placeholder="例: Animals"></div>
       <button class="add-row-btn" id="clsAddNs">＋ 名前空間を追加</button>
-      <button class="add-row-btn" id="clsNsCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <button class="add-row-btn" id="clsNsCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
       <div class="item-list" id="clsNsList"></div>
     </div>
 
@@ -3729,7 +3773,7 @@ function renderClassBuilder(container){
         <div class="field"><label for="clsClassStroke">枠線</label><input type="color" id="clsClassStroke" value="#16304f">${colorPresetsHtml('clsClassStroke', 'stroke')}</div>
       </div>
       <button class="add-row-btn" id="clsAddClass">＋ クラスを追加</button>
-      <button class="add-row-btn" id="clsClassCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <button class="add-row-btn" id="clsClassCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
       <div class="item-list" id="clsClassList"></div>
     </div>
 
@@ -3749,7 +3793,7 @@ function renderClassBuilder(container){
       </div>
       <p class="hint" style="margin:0 0 10px;">Mermaidの矢印先端（▷ ◆ など）は図全体で共通の定義を使うため、色が変わるのは線の部分だけです。</p>
       <button class="add-row-btn" id="clsAddRel">＋ 関係を追加</button>
-      <button class="add-row-btn" id="clsRelCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <button class="add-row-btn" id="clsRelCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
       <div class="item-list" id="clsRelList"></div>
     </div>
   `;
@@ -3947,7 +3991,7 @@ function refreshClassLists(){
         const row = document.createElement('div');
         row.className = 'item-row';
         const memberCount = classMemberLines(c.members).length;
-        const swatch = c.fill ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${c.fill};border:1px solid ${c.stroke||'#999'};flex-shrink:0;"></span>` : '';
+        const swatch = c.fill ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${c.fill};border:1px solid ${c.stroke||'var(--border-swatch)'};flex-shrink:0;"></span>` : '';
         row.innerHTML = `${swatch}<span class="item-text">${c.id}${memberCount? ' ('+memberCount+'件)' : ''}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
         row.querySelector('.edit-btn').addEventListener('click', ()=>{
           state.classDiag.editClassIdx = i;
@@ -4024,7 +4068,7 @@ function renderERBuilder(container){
         <div class="field"><label for="erEntHeaderStroke">枠線</label><input type="color" id="erEntHeaderStroke" value="#16304f">${colorPresetsHtml('erEntHeaderStroke', 'stroke')}</div>
       </div>
       <button class="add-row-btn" id="erAddEnt">＋ エンティティを追加</button>
-      <button class="add-row-btn" id="erEntCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <button class="add-row-btn" id="erEntCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
       <div class="item-list" id="erEntList"></div>
     </div>
 
@@ -4044,7 +4088,7 @@ function renderERBuilder(container){
         <div class="field"><label class="toggle-edit" style="margin-bottom:0;"><input type="checkbox" id="erAttrFk">FK（外部キー）</label></div>
       </div>
       <button class="add-row-btn" id="erAddAttr" style="margin-top:8px;">＋ 属性を追加</button>
-      <button class="add-row-btn" id="erAttrCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <button class="add-row-btn" id="erAttrCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
       <div class="item-list" id="erAttrList"></div>
     </div>
 
@@ -4059,7 +4103,7 @@ function renderERBuilder(container){
       </div>
       <div class="field" style="margin-bottom:8px;"><label for="erRelLabel">ラベル</label><input type="text" id="erRelLabel" placeholder="例: places"></div>
       <button class="add-row-btn" id="erAddRel">＋ リレーションを追加</button>
-      <button class="add-row-btn" id="erRelCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <button class="add-row-btn" id="erRelCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
       <div class="item-list" id="erRelList"></div>
     </div>
   `;
@@ -4268,8 +4312,8 @@ function refreshERLists(){
     row.className = 'item-row';
     // 属性エディタで開いているエンティティは行を目立たせる。
     // picked クラスはプレビュークリックのたびに外されるので、ここでは使わない
-    if(state.erDiag.activeEntityIdx === i) row.style.background = '#EEF6FF';
-    const swatch = en.headerFill ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${en.headerFill};border:1px solid ${en.headerStroke||'#999'};flex-shrink:0;"></span>` : '';
+    if(state.erDiag.activeEntityIdx === i) row.style.background = 'var(--surface-picked)';
+    const swatch = en.headerFill ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${en.headerFill};border:1px solid ${en.headerStroke||'var(--border-swatch)'};flex-shrink:0;"></span>` : '';
     row.innerHTML = `${swatch}<span class="item-text">${en.id}${en.attributes.length? ' ('+en.attributes.length+'属性)' : ''}</span><button class="edit-btn attr-btn" data-i="${i}" title="属性を編集">☰属性</button><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
     row.querySelector('.attr-btn').addEventListener('click', ()=>{
       erOpenAttrEditor(i);
@@ -4385,7 +4429,7 @@ function renderArchBuilder(container){
       </div>
       <p class="hint" style="margin:0 0 10px;">Mermaidがグループの枠を最前面に描くため、枠の内側は塗りつぶせません（中のサービスが隠れてしまいます）。</p>
       <button class="add-row-btn" id="archAddGroup">＋ グループを追加</button>
-      <button class="add-row-btn" id="archGroupCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <button class="add-row-btn" id="archGroupCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
       <div class="item-list" id="archGroupList"></div>
     </div>
 
@@ -4405,7 +4449,7 @@ function renderArchBuilder(container){
       </div>
       <p class="hint" style="margin:0 0 10px;">アイコンの土台の色が変わります。白い装飾部分はそのまま残ります。</p>
       <button class="add-row-btn" id="archAddService">＋ サービスを追加</button>
-      <button class="add-row-btn" id="archServiceCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <button class="add-row-btn" id="archServiceCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
       <div class="item-list" id="archServiceList"></div>
     </div>
 
@@ -4424,7 +4468,7 @@ function renderArchBuilder(container){
         <select id="archEdgeArrow">${arrowOpts}</select>
       </div>
       <button class="add-row-btn" id="archAddEdge">＋ エッジを追加</button>
-      <button class="add-row-btn" id="archEdgeCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <button class="add-row-btn" id="archEdgeCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
       <div class="item-list" id="archEdgeList"></div>
     </div>
   `;
@@ -4752,7 +4796,7 @@ function renderGanttBuilder(container){
       </div>
       <p class="hint" style="margin:0 0 10px;">指定しないタスクは状態（通常／進行中／完了／重要）に応じた自動色のままです。</p>
       <button class="add-row-btn" id="ganttAddTask">＋ タスクを追加</button>
-      <button class="add-row-btn" id="ganttTaskCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <button class="add-row-btn" id="ganttTaskCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
       <div class="item-list" id="ganttTaskList"></div>
     </div>
 
@@ -4929,7 +4973,7 @@ function refreshGanttSectionColors(){
     row.className = 'item-row';
     const swatch = cur ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${cur};border:1px solid #999;flex-shrink:0;"></span>` : '';
     row.innerHTML = `${swatch}<span class="item-text">${name}</span>`
-      + `<input type="color" value="${cur || '#E3F2FD'}" aria-label="${name} の色" style="width:40px;height:24px;padding:0;border:1px solid #2A3B54;border-radius:4px;background:none;cursor:pointer;flex-shrink:0;">`
+      + `<input type="color" value="${cur || '#E3F2FD'}" aria-label="${name} の色" style="width:40px;height:24px;padding:0;border:1px solid var(--border-dark);border-radius:4px;background:none;cursor:pointer;flex-shrink:0;">`
       + `<button class="del-btn" title="色の指定を外す"${cur ? '' : ' disabled style="opacity:0.35;cursor:default;"'}>×</button>`;
     const picker = row.querySelector('input[type=color]');
     picker.addEventListener('input', ()=>{
@@ -4970,7 +5014,7 @@ function renderPieBuilder(container){
       </div>
       <p class="hint" style="margin:0 0 10px;">色を指定できるのは先頭から12項目までです（Mermaidが13個目以降は先頭の色を使い回すため）。指定しない項目は自動色のままです。</p>
       <button class="add-row-btn" id="pieAddItem">＋ 項目を追加</button>
-      <button class="add-row-btn" id="pieItemCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <button class="add-row-btn" id="pieItemCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
       <div class="item-list" id="pieItemList"></div>
     </div>
   `;
