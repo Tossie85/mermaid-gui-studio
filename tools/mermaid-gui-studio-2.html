@@ -510,6 +510,14 @@
   }
   .modal-close:hover{ background:#F0F3F7; color:var(--ink-800); }
   .modal-body{ padding:16px 18px; overflow-y:auto; font-size:12.5px; color:var(--text-ink); line-height:1.7; }
+  /* 確認ダイアログのボタン列。改行や記号をそのまま見せたいので本文は pre-wrap */
+  .modal-actions{
+    display:flex; justify-content:flex-end; gap:8px;
+    padding:12px 18px; border-top:1px solid #E1E8F0; flex-shrink:0;
+  }
+  #dialogBody{ white-space:pre-wrap; }
+  .btn-primary{ background:var(--cyan); border-color:var(--cyan); color:var(--ink-900); font-weight:700; }
+  .btn-primary:hover{ background:var(--cyan-dim); border-color:var(--cyan-dim); color:var(--ink-900); }
   .modal-body h3{ font-size:12.5px; color:var(--ink-800); margin:16px 0 6px; }
   .modal-body h3:first-child{ margin-top:0; }
   .credit-item{
@@ -735,6 +743,22 @@
   </div>
 </div>
 
+<!-- alert / confirm の置き換え。ブラウザ既定のダイアログはVS CodeのWebviewでは動かないため、
+     通知も確認もこのモーダルに一本化する（Host.alert / Host.confirm から使う） -->
+<div class="modal-overlay" id="dialogOverlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span id="dialogTitle">確認</span>
+      <button class="modal-close" id="dialogClose">×</button>
+    </div>
+    <div class="modal-body" id="dialogBody"></div>
+    <div class="modal-actions">
+      <button class="btn btn-sm" id="dialogCancel">キャンセル</button>
+      <button class="btn btn-sm btn-primary" id="dialogOk">OK</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="importOverlay">
   <div class="modal-box">
     <div class="modal-header">
@@ -844,6 +868,75 @@ SOFTWARE.</pre>
 
 <script>
 mermaid.initialize({ startOnLoad:false, theme:'default', securityLevel:'loose', fontFamily:'Inter, sans-serif' });
+
+/* ============ ホスト抽象 ============ */
+/* ブラウザ固有の機能（保存・読み込み・ダイアログ・同梱ファイルの参照）を1か所に集める。
+   VS Codeの拡張として動かすときは、この Host だけを差し替えれば本体は変更しなくてよい。
+   Webviewでは alert / confirm が機能せず、<a download> も禁止されているため、
+   これらを直接呼ばずに必ず Host 経由にすること。 */
+const Host = {
+  /* テキストをファイルとして保存する */
+  saveFile(filename, mime, content){
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  },
+  /* ファイルを1つ選ばせて中身を返す。選ばれなければ null */
+  openFile(){
+    return new Promise(resolve=>{
+      const input = document.getElementById('fileInput');
+      input.onchange = async ()=>{
+        const file = input.files[0];
+        input.value = '';                       // 同じファイルを連続で選べるようにする
+        if(!file){ resolve(null); return; }
+        try{ resolve({ name:file.name, text: await file.text() }); }
+        catch(err){ resolve({ error: err }); }
+      };
+      input.click();
+    });
+  },
+  /* 同梱アセットのURL。拡張では asWebviewUri で解決したURLに差し替える */
+  assetUrl(path){ return path; },
+  /* 通知。await すると閉じるまで待てる */
+  alert(message, title){ return openDialog(message, { title: title || 'お知らせ', okOnly:true }); },
+  /* 確認。OKなら true */
+  confirm(message, title){ return openDialog(message, { title: title || '確認' }); },
+};
+
+/* Host.alert / Host.confirm の実体。ブラウザ既定のダイアログを使わず、
+   ツール内のモーダルで統一する（見た目もVS Codeでの動作も揃うため） */
+let dialogResolve = null;
+function openDialog(message, opts){
+  const o = opts || {};
+  const overlay = document.getElementById('dialogOverlay');
+  document.getElementById('dialogTitle').textContent = o.title || '確認';
+  document.getElementById('dialogBody').textContent = message;
+  const cancelBtn = document.getElementById('dialogCancel');
+  cancelBtn.style.display = o.okOnly ? 'none' : '';
+  overlay.classList.add('open');
+  document.getElementById('dialogOk').focus();
+  return new Promise(resolve=>{ dialogResolve = resolve; });
+}
+function closeDialog(result){
+  document.getElementById('dialogOverlay').classList.remove('open');
+  const r = dialogResolve;
+  dialogResolve = null;
+  if(r) r(result);
+}
+document.getElementById('dialogOk').addEventListener('click', ()=>closeDialog(true));
+document.getElementById('dialogCancel').addEventListener('click', ()=>closeDialog(false));
+document.getElementById('dialogClose').addEventListener('click', ()=>closeDialog(false));
+document.getElementById('dialogOverlay').addEventListener('click', e=>{
+  if(e.target.id === 'dialogOverlay') closeDialog(false);
+});
+document.addEventListener('keydown', e=>{
+  if(dialogResolve === null) return;
+  if(e.key === 'Escape') closeDialog(false);
+  else if(e.key === 'Enter') closeDialog(true);
+});
 
 /* ============ 状態管理 ============ */
 /* ============ 各図の「空の状態」ファクトリ（初期化・クリアで共用） ============ */
@@ -1112,10 +1205,10 @@ function loadSampleDiagram(type){
   meta.sampleCounters();
   switchDiagramType(type);
 }
-function clearDiagram(type){
+async function clearDiagram(type){
   const meta = DIAGRAM_META[type];
   const needsConfirm = !isDiagramEmpty(type) && !isDiagramSample(type);
-  if(needsConfirm && !confirm('現在の内容をクリアします。よろしいですか？（この操作は元に戻せません）')) return;
+  if(needsConfirm && !await Host.confirm('現在の内容をクリアします。よろしいですか？（この操作は元に戻せません）', '図をクリア')) return;
   state[meta.stateKey] = meta.empty();
   meta.resetCounters();
   switchDiagramType(type);
@@ -1360,7 +1453,8 @@ function quoteLabel(s){
    oldId には編集中の項目の元IDを渡す（自分自身との衝突は重複としない）。 */
 function checkDuplicateId(id, takenIds, oldId){
   if(takenIds.some(x => x === id && x !== oldId)){
-    alert(`ID「${id}」はすでに使われています。\n図の中でIDが重複しないように、別のIDを指定してください。`);
+    // 通知だけなので閉じるのを待たない（呼び出し側は同期のまま false を返す）
+    Host.alert(`ID「${id}」はすでに使われています。\n図の中でIDが重複しないように、別のIDを指定してください。`, 'IDが重複しています');
     return false;
   }
   return true;
@@ -4700,7 +4794,7 @@ function renderGanttBuilder(container){
     const colorOn = document.getElementById('ganttTaskColorEnable').checked;
     const color = colorOn ? document.getElementById('ganttTaskColor').value : null;
     // after の基準タスクが無いまま追加すると参照先の無いコードになる
-    if(startType==='after' && !startValue){ alert('基準にするタスクがありません。先に日付指定のタスクを追加してください。'); return; }
+    if(startType==='after' && !startValue){ Host.alert('基準にするタスクがありません。先に日付指定のタスクを追加してください。'); return; }
 
     if(state.ganttDiag.editTaskIdx !== null){
       const idx = state.ganttDiag.editTaskIdx;
@@ -5056,7 +5150,7 @@ async function exportProjectMd(){
   const code = document.getElementById('codeArea').value;
   const header = `<!--mermaid-gui-studio:v1:${hash}:${b64}-->`;
   const content = `${header}\n\n\`\`\`mermaid\n${code}\n\`\`\`\n`;
-  downloadBlob(content, 'diagram-project.md', 'text/markdown');
+  Host.saveFile('diagram-project.md', 'text/markdown', content);
 }
 
 async function tryLoadProject(text){
@@ -6297,7 +6391,7 @@ function detectDiagramType(code){
 function loadCodeIntoEditor(text){
   const { code, multiple } = extractMermaidCode(text);
   if(!code){
-    alert('Mermaidのコードが見つかりませんでした。');
+    Host.alert('Mermaidのコードが見つかりませんでした。');
     return;
   }
   const detected = detectDiagramType(code);
@@ -6422,9 +6516,9 @@ function markImportErrorLines(blocked){
 
 /* コードをビルダーへ取り込む。取り込めなければコードのみの読み込みへ倒す。
    戻り値は取り込めたかどうか。 */
-function importOrFallback(text, flashTargetId){
+async function importOrFallback(text, flashTargetId){
   const { code } = extractMermaidCode(text);
-  if(!code){ alert('Mermaidのコードが見つかりませんでした。'); return false; }
+  if(!code){ Host.alert('Mermaidのコードが見つかりませんでした。'); return false; }
   const result = tryImportCode(code);
   if(!result.ok){
     loadCodeIntoEditor(text);
@@ -6434,9 +6528,10 @@ function importOrFallback(text, flashTargetId){
   // 取り込めるが失われるもの（コメントなど）は、黙って消さずに同意を取る
   if(result.rep.dropped.length){
     const list = result.rep.dropped.map(d=>`  ${d.lineNo}行目: ${d.text}`).join('\n');
-    const ok = confirm(
+    const ok = await Host.confirm(
       'GUIに取り込めますが、次の行は保持できないため失われます。\n\n' + list +
-      '\n\n取り込みますか？（キャンセルするとコードのみ読み込みます）'
+      '\n\n取り込みますか？（キャンセルするとコードのみ読み込みます）',
+      '取り込みの確認'
     );
     if(!ok){ loadCodeIntoEditor(text); return false; }
   }
@@ -6452,30 +6547,26 @@ document.getElementById('btnClear').addEventListener('click', ()=>{
   clearDiagram(state.diagramType);
 });
 
-document.getElementById('btnOpenFile').addEventListener('click', ()=>{
-  document.getElementById('fileInput').click();
-});
-document.getElementById('fileInput').addEventListener('change', async e=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  try{
-    const text = await file.text();
-    const result = await tryLoadProject(text);
-    if(result.matched && result.valid){
-      restoreSnapshot(result.snapshot);
-      flashBtn('btnOpenFile', 'プロジェクトを復元しました');
-    }else if(result.matched && !result.valid){
-      // 埋め込みJSONが信用できない以上、GUIへは載せない。中身のコードだけ拾う
-      loadCodeIntoEditor(text);
-      alert('プロジェクト情報のハッシュ検証に失敗したため、コードのみを読み込みました（ファイルが改変された可能性があります）。');
-    }else{
-      // 外から来たコードは、まずGUIへの取り込みを試す
-      importOrFallback(text, 'btnOpenFile');
-    }
-  }catch(err){
-    alert('ファイルの読み込みに失敗しました: ' + err.message);
+document.getElementById('btnOpenFile').addEventListener('click', async ()=>{
+  const picked = await Host.openFile();
+  if(!picked) return;
+  if(picked.error){
+    Host.alert('ファイルの読み込みに失敗しました: ' + picked.error.message, '読み込めませんでした');
+    return;
   }
-  e.target.value = '';
+  const text = picked.text;
+  const result = await tryLoadProject(text);
+  if(result.matched && result.valid){
+    restoreSnapshot(result.snapshot);
+    flashBtn('btnOpenFile', 'プロジェクトを復元しました');
+  }else if(result.matched && !result.valid){
+    // 埋め込みJSONが信用できない以上、GUIへは載せない。中身のコードだけ拾う
+    loadCodeIntoEditor(text);
+    Host.alert('プロジェクト情報のハッシュ検証に失敗したため、コードのみを読み込みました（ファイルが改変された可能性があります）。', '検証に失敗しました');
+  }else{
+    // 外から来たコードは、まずGUIへの取り込みを試す
+    importOrFallback(text, 'btnOpenFile');
+  }
 });
 
 document.getElementById('btnImport').addEventListener('click', ()=>{
@@ -6803,27 +6894,27 @@ document.getElementById('btnCopyMd').addEventListener('click', ()=>{
 });
 document.getElementById('btnDownloadMd').addEventListener('click', ()=>{
   const md = '```mermaid\n' + document.getElementById('codeArea').value + '\n```\n';
-  downloadBlob(md, 'diagram.md', 'text/markdown');
+  Host.saveFile('diagram.md', 'text/markdown', md);
 });
 document.getElementById('btnDownloadSvg').addEventListener('click', ()=>{
   const svgEl = document.querySelector('#preview svg');
-  if(!svgEl){ alert('先に図を作成してください。'); return; }
+  if(!svgEl){ Host.alert('先に図を作成してください。'); return; }
   // クリック用に重ねている透明線は保存物に含めない
   const clean = svgEl.cloneNode(true);
   clean.querySelectorAll('.' + PREVIEW_HIT_CLASS).forEach(el=>el.remove());
   const svgText = new XMLSerializer().serializeToString(clean);
-  downloadBlob('<?xml version="1.0" encoding="UTF-8"?>\n' + svgText, 'diagram.svg', 'image/svg+xml');
+  Host.saveFile('diagram.svg', 'image/svg+xml', '<?xml version="1.0" encoding="UTF-8"?>\n' + svgText);
 });
 document.getElementById('btnDownloadHtml').addEventListener('click', async ()=>{
   const code = document.getElementById('codeArea').value;
   // Mermaid.js は外部ファイル参照なので、保存時に取得して本文へ埋め込む
   let libSrc;
   try{
-    const res = await fetch('../assets/vendor/mermaid.min.js');
+    const res = await fetch(Host.assetUrl('../assets/vendor/mermaid.min.js'));
     if(!res.ok) throw new Error(`HTTP ${res.status}`);
     libSrc = await res.text();
   }catch(err){
-    alert('Mermaid.js の読み込みに失敗したため、.html を保存できませんでした。\n' + (err && err.message ? err.message : err));
+    Host.alert('Mermaid.js の読み込みに失敗したため、.html を保存できませんでした。\n' + (err && err.message ? err.message : err), '保存できませんでした');
     return;
   }
   // 埋め込むスクリプト・図コードが外側のタグを閉じてしまわないよう無害化する
@@ -6841,7 +6932,7 @@ ${safeCode}
 </pre>
 <script>mermaid.initialize({ startOnLoad: true, theme: '${state.theme}' });</scr` + `ipt>
 </body></html>`;
-  downloadBlob(html, 'diagram.html', 'text/html');
+  Host.saveFile('diagram.html', 'text/html', html);
 });
 document.getElementById('btnDownloadProject').addEventListener('click', ()=>{
   exportProjectMd();
@@ -6874,14 +6965,6 @@ function flashBtn(id, text){
   const original = btn.textContent;
   btn.textContent = text;
   setTimeout(()=>{ btn.textContent = original; }, 1200);
-}
-function downloadBlob(content, filename, mime){
-  const blob = new Blob([content], { type: mime });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
 }
 
 /* ============ 初期化 ============ */
