@@ -37,7 +37,8 @@
     /* 文字 */
     --text-main:#16233A;
     --text-strong:#10233F;      /* 見出しなど、本文より濃い文字 */
-    --text-on-accent:#0A1830;   /* アクセント色の面に載る文字 */
+    --text-on-accent:#0A1830;   /* アクセント色（シアン）の面に載る文字 */
+    --text-on-warn:#0A1830;     /* 注意色（アンバー）の面に載る文字 */
     --text-dim:#5B6B84;
     --text-note:#3C516C;
     --text-faint:#A9B6C6;
@@ -51,6 +52,10 @@
     --border-dashed:#B9C7DA;
     --border-note:#D3E1EF;
     --border-swatch:#999999;
+    --surface-overlay:rgba(255,255,255,.93);  /* プレビュー上に浮くバー */
+    --overlay-veil:rgba(10,24,48,0.55);       /* モーダルの背後を覆う幕 */
+    --shadow-soft:rgba(16,35,63,.14);
+    --shadow-strong:rgba(0,0,0,0.35);
     --surface-cancel:#8697AC;   /* 「編集をキャンセル」ボタン */
     --surface-picked:#EEF6FF;   /* 属性編集中のエンティティ行 */
     /* アクセント */
@@ -163,10 +168,10 @@
   .btn-accent{
     background:var(--warn);
     border-color:var(--warn);
-    color:var(--text-on-accent);
+    color:var(--text-on-warn);
     font-weight:600;
   }
-  .btn-accent:hover{ color:var(--text-on-accent); border-color:var(--text-on-dark-strong); }
+  .btn-accent:hover{ color:var(--text-on-warn); border-color:var(--text-on-dark-strong); }
   .btn-ghost{ background:transparent; }
   .btn-sm{ padding:5px 9px; font-size:12px; border-radius:5px;}
   .btn-danger{ color:var(--danger); }
@@ -255,9 +260,9 @@
   .zoom-bar{
     position:absolute; right:14px; bottom:14px; z-index:5;
     display:flex; align-items:center; gap:2px;
-    background:rgba(255,255,255,.93);
+    background:var(--surface-overlay);
     border:1px solid var(--border-soft); border-radius:8px;
-    box-shadow:0 2px 8px rgba(16,35,63,.14);
+    box-shadow:0 2px 8px var(--shadow-soft);
     padding:3px;
   }
   .zoom-bar button{
@@ -532,7 +537,7 @@
   /* ---------- CREDITS MODAL ---------- */
   .modal-overlay{
     display:none;
-    position:fixed; inset:0; background:rgba(10,24,48,0.55);
+    position:fixed; inset:0; background:var(--overlay-veil);
     z-index:1000;
     align-items:center; justify-content:center;
   }
@@ -540,7 +545,7 @@
   .modal-box{
     background:var(--surface-card); border-radius:10px; width:min(520px, 90vw);
     max-height:80vh; display:flex; flex-direction:column;
-    box-shadow:0 20px 60px rgba(0,0,0,0.35);
+    box-shadow:0 20px 60px var(--shadow-strong);
   }
   .modal-header{
     display:flex; align-items:center; justify-content:space-between;
@@ -627,7 +632,7 @@
       background:var(--accent-dim); color:var(--text-on-dark);
       border:1px solid var(--accent); border-radius:8px;
       padding:2px 0; font-size:13px; line-height:1.3; text-align:center; cursor:pointer;
-      box-shadow:0 1px 4px rgba(10,24,48,0.35);
+      box-shadow:0 1px 4px var(--shadow-strong);
     }
     .header-toggle-bar:hover{ filter:brightness(1.15); }
   }
@@ -667,6 +672,20 @@
         <option value="dark">Dark</option>
         <option value="forest">Forest</option>
       </select>
+    </div>
+
+    <div class="field-group">
+      <label for="canvasBgSelect">キャンバス</label>
+      <select id="canvasBgSelect">
+        <option value="auto">図に合わせる</option>
+        <option value="light">明るい</option>
+        <option value="dark">暗い</option>
+        <option value="custom">色を指定</option>
+      </select>
+    </div>
+    <div class="field-group" id="canvasBgCustomWrap" style="display:none;">
+      <label for="canvasBgColor">背景色</label>
+      <input type="color" id="canvasBgColor" value="#FBFCFE" aria-label="キャンバスの背景色">
     </div>
 
     <button class="btn btn-sm" id="btnLoadSample">📋 サンプルを読み込む</button>
@@ -996,6 +1015,8 @@ function emptyGanttState(){ return { title:'プロジェクト計画', tasks:[],
 const state = {
   diagramType: 'flowchart',
   theme: 'default',
+  canvasBg: 'auto',          /* 図に合わせる / light / dark / custom */
+  canvasBgCustom: '#FBFCFE',
   manualMode: false,
   code: '',
   flowchart: emptyFlowchartState(),
@@ -5154,6 +5175,8 @@ async function sha256Hex(text){
 function buildStateSnapshot(){
   const snap = JSON.parse(JSON.stringify({
     diagramType: state.diagramType,
+    canvasBg: state.canvasBg,
+    canvasBgCustom: state.canvasBgCustom,
     flowchart: state.flowchart,
     sequence: state.sequence,
     stateDiag: state.stateDiag,
@@ -5295,6 +5318,12 @@ function restoreSnapshot(snapshot){
   state.archGroupCounter = snapshot.archGroupCounter || state.archGroupCounter;
   state.archServiceCounter = snapshot.archServiceCounter || state.archServiceCounter;
   state.taskCounter = snapshot.taskCounter || state.taskCounter;
+  // キャンバスの色は見え方の設定。旧形式のファイルには無いので既定のまま
+  if(snapshot.canvasBg) state.canvasBg = snapshot.canvasBg;
+  if(snapshot.canvasBgCustom) state.canvasBgCustom = snapshot.canvasBgCustom;
+  document.getElementById('canvasBgSelect').value = state.canvasBg;
+  document.getElementById('canvasBgColor').value = state.canvasBgCustom;
+  applyCanvasBg();
 
   // MGS(無印)のプロジェクトファイルは他の図種も含むが、本ツールが扱えるのはこの8種のみ
   const type = ['sequence','state','class','er','arch','gantt','pie'].includes(snapshot.diagramType) ? snapshot.diagramType : 'flowchart';
@@ -6644,9 +6673,39 @@ document.addEventListener('click', e=>{
   if(input){ input.value = swatch.dataset.color; }
 });
 
+/* ============ キャンバス（プレビューの地）の色 ============ */
+/* Mermaidの図はテーマごとに文字色が決まっており、default/neutral/forest は濃い文字、
+   dark だけ淡い文字になる。地の明暗が図と合っていないと文字が読めなくなるので、
+   既定では図のテーマに合わせ、任意の色も選べるようにする。
+   ここはプレビューの見え方だけの設定で、.svg / .html の保存物には含まれない。 */
+const CANVAS_BG = { light:'#FBFCFE', dark:'#1E1E1E' };
+const DARK_MERMAID_THEMES = ['dark'];
+
+function canvasBgColor(){
+  const m = state.canvasBg || 'auto';
+  if(m === 'custom') return state.canvasBgCustom || CANVAS_BG.light;
+  if(m === 'light' || m === 'dark') return CANVAS_BG[m];
+  return DARK_MERMAID_THEMES.includes(state.theme) ? CANVAS_BG.dark : CANVAS_BG.light;
+}
+function applyCanvasBg(){
+  document.documentElement.style.setProperty('--surface-canvas', canvasBgColor());
+  const custom = state.canvasBg === 'custom';
+  document.getElementById('canvasBgCustomWrap').style.display = custom ? '' : 'none';
+}
+
+document.getElementById('canvasBgSelect').addEventListener('change', e=>{
+  state.canvasBg = e.target.value;
+  applyCanvasBg();
+});
+document.getElementById('canvasBgColor').addEventListener('input', e=>{
+  state.canvasBgCustom = e.target.value;
+  if(state.canvasBg === 'custom') applyCanvasBg();
+});
+
 document.getElementById('themeSelect').addEventListener('change', e=>{
   state.theme = e.target.value;
   refreshAllColorPresets();
+  applyCanvasBg();     // 「図に合わせる」ときは地の明暗も切り替わる
   renderPreview();
 });
 
@@ -7012,6 +7071,7 @@ function flashBtn(id, text){
 }
 
 /* ============ 初期化 ============ */
+applyCanvasBg();
 switchDiagramType('flowchart');
 </script>
 <script src="../assets/tools-nav.js"></script>
