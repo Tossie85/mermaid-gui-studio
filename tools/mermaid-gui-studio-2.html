@@ -8,17 +8,17 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/favicon-16x16.png">
 <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
-<meta name="description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図・アーキテクチャ図・ガントチャートをGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
+<meta name="description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図・アーキテクチャ図・ガントチャート・円グラフをGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
 <link rel="canonical" href="https://tossie85.site/tools/mermaid-gui-studio-2.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="tossie85 lab">
 <meta property="og:title" content="Mermaid GUI Studio 2">
-<meta property="og:description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図・アーキテクチャ図・ガントチャートをGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
+<meta property="og:description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図・アーキテクチャ図・ガントチャート・円グラフをGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
 <meta property="og:url" content="https://tossie85.site/tools/mermaid-gui-studio-2.html">
 <meta property="og:image" content="https://tossie85.site/assets/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Mermaid GUI Studio 2">
-<meta name="twitter:description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図・アーキテクチャ図・ガントチャートをGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
+<meta name="twitter:description" content="Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図・アーキテクチャ図・ガントチャート・円グラフをGUIで組み立てられるツール。既存のMermaidコードをGUIに取り込めます。ブラウザ単体で動作し、外部サーバーへの通信は行いません。">
 <meta name="twitter:image" content="https://tossie85.site/assets/og-default.png">
 <style>
   :root{
@@ -603,6 +603,7 @@
         <option value="er">ER図</option>
         <option value="arch">アーキテクチャ図</option>
         <option value="gantt">ガントチャート</option>
+        <option value="pie">円グラフ</option>
       </select>
     </div>
 
@@ -717,6 +718,8 @@
           <span class="hint">アーキテクチャ図はMermaidに色指定の構文自体が無いため、クラス図と同じくフロントマターの <code>themeCSS</code> で色を出しています。その形（本ツールが出力したサービス・グループの色指定のみ）に限って取り込めます。</span></li>
         <li>ガントチャートの <code>milestone</code> / <code>excludes</code> / <code>axisFormat</code> / <code>todayMarker</code> / <code>YYYY-MM-DD</code> 以外の <code>dateFormat</code> / IDを省いたタスク<br>
           <span class="hint">ガントもMermaidに色指定の構文が無いため、フロントマターの <code>themeCSS</code> で色を出しています。その形（本ツールが出力したタスク・セクションの色指定のみ）に限って取り込めます。</span></li>
+        <li>円グラフの項目が0件のコード<br>
+          <span class="hint">円グラフの色だけは <code>themeCSS</code> ではなく <code>themeVariables</code> の <code>pie1</code>〜<code>pie12</code> で出しています（扇と凡例の両方を揃えるため）。その形に限って取り込めます。</span></li>
       </ul>
       <p class="hint" style="margin-top:12px;">
         逆に、<code>A --&gt; B --&gt; C</code> の連鎖、<code>A -- ラベル --&gt; B</code> の書き方、<code>---&gt;</code> のような長さ違いの矢印、<code>graph</code> 始まりの旧表記は、意味が同じなので正規の形に直して取り込みます。コメント行（<code>%%</code>）は保持できないため、取り込む前に確認を出します。
@@ -750,7 +753,7 @@
     </div>
     <div class="modal-body">
       <h3>Mermaid GUI Studio 2</h3>
-      <p>Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図・アーキテクチャ図・ガントチャートをGUIで組み立てられるツールです。既存のMermaidコードをGUIへ取り込む機能を備えています。ブラウザ単体で動作し、外部サーバーへの通信は行いません。</p>
+      <p>Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図・アーキテクチャ図・ガントチャート・円グラフをGUIで組み立てられるツールです。既存のMermaidコードをGUIへ取り込む機能を備えています。ブラウザ単体で動作し、外部サーバーへの通信は行いません。</p>
 
       <h3>使用ライブラリ</h3>
       <div class="credit-item">
@@ -850,6 +853,7 @@ function emptyStateDiagState(){ return { nodes:[], edges:[], composites:[], edit
 function emptyClassState(){ return { classes:[], relations:[], namespaces:[], editClassIdx:null, editRelationIdx:null, editNamespaceIdx:null }; }
 function emptyERState(){ return { entities:[], relations:[], editEntityIdx:null, editRelationIdx:null, activeEntityIdx:null, editAttrIdx:null, dbEngine:'postgresql' }; }
 function emptyArchState(){ return { groups:[], services:[], edges:[], editGroupIdx:null, editServiceIdx:null, editEdgeIdx:null }; }
+function emptyPieState(){ return { title:'割合', showData:false, items:[], editItemIdx:null }; }
 function emptyGanttState(){ return { title:'プロジェクト計画', tasks:[], sectionColors:{}, editTaskIdx:null }; }
 
 const state = {
@@ -864,6 +868,7 @@ const state = {
   erDiag: emptyERState(),
   archDiag: emptyArchState(),
   ganttDiag: emptyGanttState(),
+  pieDiag: emptyPieState(),
   nodeCounter: 1,
   edgeCounter: 1,
   subCounter: 1,
@@ -1043,6 +1048,20 @@ function sampleArchState(){
   });
 }
 
+function samplePieState(){
+  // 項目数を増やしたブラウザシェアの例。色は一部だけ指定して、自動色と混在させている
+  return Object.assign(emptyPieState(), {
+    title: 'ブラウザシェア',
+    items: [
+      { label:'Chrome', value:55, color:'#4A90D9' },
+      { label:'Safari', value:20, color:'#5AC8FA' },
+      { label:'Edge', value:12, color:null },
+      { label:'Firefox', value:8, color:null },
+      { label:'その他', value:5, color:'#B0BEC5' },
+    ],
+  });
+}
+
 function sampleGanttState(){
   // 企画〜リリースまで、状態（完了/進行中/重要）を織り交ぜた計画例
   return Object.assign(emptyGanttState(), {
@@ -1069,6 +1088,7 @@ const DIAGRAM_META = {
   er:        { stateKey:'erDiag',    empty:()=>Object.assign(emptyERState(), { dbEngine: state.erDiag.dbEngine }),
                sample:sampleERState, contentFields:['dbEngine','entities','relations'], resetCounters(){ state.entCounter=1; }, sampleCounters(){ state.entCounter=4; } },
   arch:      { stateKey:'archDiag',  empty:emptyArchState,      sample:sampleArchState,      contentFields:['groups','services','edges'], resetCounters(){ state.archGroupCounter=1; state.archServiceCounter=1; }, sampleCounters(){ state.archGroupCounter=2; state.archServiceCounter=6; } },
+  pie:       { stateKey:'pieDiag',   empty:emptyPieState,       sample:samplePieState,       contentFields:['title','showData','items'], resetCounters(){}, sampleCounters(){} },
   gantt:     { stateKey:'ganttDiag', empty:emptyGanttState,     sample:sampleGanttState,     contentFields:['title','tasks','sectionColors'], resetCounters(){ state.taskCounter=1; }, sampleCounters(){ state.taskCounter=7; } },
 };
 
@@ -1764,6 +1784,33 @@ function genArchCode(){
   return archStyleHeader(groups, services) + lines.join('\n');
 }
 
+/* 円グラフの色は themeCSS ではなく themeVariables の pie1..pie12 を使う。
+   こちらはMermaid自身の配色表を差し替えるので、扇と凡例の両方が同じ色になる
+   （CSSで扇だけ塗ると凡例と食い違う）。13個目以降はMermaid側が pie1 から
+   色を使い回す仕様なので、指定できるのも12個目までにしている。 */
+const PIE_COLOR_MAX = 12;
+
+function pieStyleHeader(items){
+  const lines = [];
+  items.forEach((it, i)=>{
+    if(i >= PIE_COLOR_MAX || !it.color) return;
+    lines.push(`    pie${i + 1}: "${it.color}"`);
+  });
+  if(!lines.length) return '';
+  return `---\nconfig:\n  themeVariables:\n${lines.join('\n')}\n---\n`;
+}
+
+function genPieCode(){
+  const { title, showData, items } = state.pieDiag;
+  // 項目が0件だとMermaidが不完全な円弧を描いてしまうので、その間は何も渡さない
+  if(items.length === 0) return '';
+  const lines = [`pie${showData ? ' showData' : ''} title ${title || '割合'}`];
+  items.forEach(it=>{
+    lines.push(`    ${quoteLabel(it.label)} : ${it.value}`);
+  });
+  return pieStyleHeader(items) + lines.join('\n');
+}
+
 const GANTT_DEFAULT_START = '2026-07-01';
 const GANTT_DATE_FORMAT = 'YYYY-MM-DD';
 
@@ -1821,6 +1868,7 @@ function regenerateCode(){
   else if(state.diagramType==='er') state.code = genERCode();
   else if(state.diagramType==='arch') state.code = genArchCode();
   else if(state.diagramType==='gantt') state.code = genGanttCode();
+  else if(state.diagramType==='pie') state.code = genPieCode();
   document.getElementById('codeArea').value = state.code;
   refreshGutter();
   renderPreview();
@@ -1867,7 +1915,7 @@ function scheduleRender(){
    「既知の接頭辞を外す」「末尾の連番 -N を1回だけ外す」で元IDへ一意に戻せる。
    シーケンス図だけはid属性を持たず、rect.actor の name 属性がIDになっている。 */
 /* クリック対象にする図形。CSSのカーソル指定（#preview 配下）と対で管理する */
-const PREVIEW_PICK_SELECTOR = 'g.node, g.statediagram-cluster, g.cluster, g.architecture-service, rect.node-bkg, rect.actor, g.actor-man, rect.task, text.taskText';
+const PREVIEW_PICK_SELECTOR = 'g.node, g.statediagram-cluster, g.cluster, g.architecture-service, rect.node-bkg, rect.actor, g.actor-man, rect.task, text.taskText, path.pieCircle';
 
 /* 接頭辞は図種ごとだけでなく、同じ図種の中でも種類ごとに異なる
    （例: フローチャートのノードは flowchart、サブグラフは接頭辞なし）。 */
@@ -1891,6 +1939,11 @@ function pickTargetsForType(type){
     case 'arch': return [
       { prefix:'service', listId:'archServiceList', list:()=>state.archDiag.services, pick(i){ state.archDiag.editServiceIdx=i; archFillServiceForm(state.archDiag.services[i]); } },
       { prefix:'group',   listId:'archGroupList',   list:()=>state.archDiag.groups,   pick(i){ state.archDiag.editGroupIdx=i;   archFillGroupForm(state.archDiag.groups[i]); } },
+    ];
+    case 'pie': return [
+      // 扇にはidが無いので、描画順（＝項目の並び順）で対応づける
+      { byOrder:'path.pieCircle', listId:'pieItemList', list:()=>state.pieDiag.items,
+        pick(i){ state.pieDiag.editItemIdx=i; pieFillItemForm(state.pieDiag.items[i]); } },
     ];
     case 'gantt': {
       // ガントのタスクは rect.task の id がそのままタスクID（接頭辞なし）。
@@ -2185,6 +2238,7 @@ function cancelBuilderEditing(type){
     case 'er':        erResetEntForm(); erResetAttrForm(); erResetRelForm(); break;
     case 'arch':      archResetGroupForm(); archResetServiceForm(); archResetEdgeForm(); break;
     case 'gantt':     ganttResetTaskForm(); break;
+    case 'pie':       pieResetItemForm(); break;
   }
   document.querySelectorAll('.item-row.picked').forEach(r=>r.classList.remove('picked'));
 }
@@ -2230,6 +2284,13 @@ document.getElementById('preview').addEventListener('click', ev=>{
     : ev.target.closest(PREVIEW_PICK_SELECTOR);
   if(nodeEl){
     for(const group of pickTargetsForType(type) || []){
+      // idを持たない図形（円グラフの扇）は描画順で何番目かを見る
+      if(group.byOrder){
+        if(!nodeEl.matches(group.byOrder)) continue;
+        const idx = [...svg.querySelectorAll(group.byOrder)].indexOf(nodeEl);
+        if(idx >= 0 && idx < group.list().length){ selectBuilderItem(group, idx); return; }
+        continue;
+      }
       const id = mermaidIdFromEl(nodeEl, svg.id, group);
       if(!id) continue;
       const idx = group.list().findIndex(item=>item.id===id);
@@ -4790,6 +4851,126 @@ function refreshGanttSectionColors(){
   });
 }
 
+/* ============ ビルダーUI: 円グラフ ============ */
+function renderPieBuilder(container){
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <h2>円グラフ ビルダー</h2>
+    <p class="hint">タイトルと項目（ラベル・数値）をフォームで追加します。並び順がそのまま扇の順序になります。</p>
+
+    <div class="card">
+      <div class="card-title">タイトル</div>
+      <div class="field" style="margin-bottom:8px;"><input type="text" id="pieTitle" aria-label="タイトル" placeholder="割合"></div>
+      <label class="toggle-edit"><input type="checkbox" id="pieShowData">数値を凡例に表示する</label>
+    </div>
+
+    <div class="card">
+      <div class="card-title">項目を追加</div>
+      <div class="row">
+        <div class="field"><label for="pieLabel">ラベル</label><input type="text" id="pieLabel" placeholder="例: 施策A"></div>
+        <div class="field"><label for="pieValue">数値</label><input type="text" id="pieValue" placeholder="例: 40"></div>
+      </div>
+      <label class="toggle-edit" style="margin-bottom:8px;"><input type="checkbox" id="pieColorEnable">色を指定する</label>
+      <div class="row" id="pieColorRow" style="display:none;">
+        <div class="field"><label for="pieColor">色</label><input type="color" id="pieColor" value="#4A90D9">${colorPresetsHtml('pieColor', 'fill')}</div>
+      </div>
+      <p class="hint" style="margin:0 0 10px;">色を指定できるのは先頭から12項目までです（Mermaidが13個目以降は先頭の色を使い回すため）。指定しない項目は自動色のままです。</p>
+      <button class="add-row-btn" id="pieAddItem">＋ 項目を追加</button>
+      <button class="add-row-btn" id="pieItemCancel" style="display:none; background:#8697AC; margin-top:6px;">編集をキャンセル</button>
+      <div class="item-list" id="pieItemList"></div>
+    </div>
+  `;
+  container.innerHTML = '';
+  container.appendChild(wrap);
+
+  document.getElementById('pieTitle').value = state.pieDiag.title;
+  document.getElementById('pieTitle').addEventListener('input', e=>{
+    state.pieDiag.title = e.target.value;
+    regenerateCode();
+  });
+  document.getElementById('pieShowData').checked = !!state.pieDiag.showData;
+  document.getElementById('pieShowData').addEventListener('change', e=>{
+    state.pieDiag.showData = e.target.checked;
+    regenerateCode();
+  });
+  document.getElementById('pieColorEnable').addEventListener('change', e=>{
+    document.getElementById('pieColorRow').style.display = e.target.checked ? 'flex' : 'none';
+  });
+
+  document.getElementById('pieAddItem').addEventListener('click', ()=>{
+    const label = document.getElementById('pieLabel').value.trim() || '項目';
+    const value = parseFloat(document.getElementById('pieValue').value) || 0;
+    const colorOn = document.getElementById('pieColorEnable').checked;
+    const color = colorOn ? document.getElementById('pieColor').value : null;
+
+    if(state.pieDiag.editItemIdx !== null){
+      state.pieDiag.items[state.pieDiag.editItemIdx] = { label, value, color };
+    }else{
+      state.pieDiag.items.push({ label, value, color });
+    }
+    pieResetItemForm();
+    refreshPieList();
+    regenerateCode();
+  });
+  document.getElementById('pieItemCancel').addEventListener('click', pieResetItemForm);
+
+  refreshPieList();
+}
+
+function pieFillItemForm(it){
+  document.getElementById('pieLabel').value = it.label;
+  document.getElementById('pieValue').value = it.value;
+  const hasColor = !!it.color;
+  document.getElementById('pieColorEnable').checked = hasColor;
+  document.getElementById('pieColorRow').style.display = hasColor ? 'flex' : 'none';
+  document.getElementById('pieColor').value = it.color || '#4A90D9';
+  document.getElementById('pieAddItem').textContent = '✓ 項目を更新';
+  document.getElementById('pieItemCancel').style.display = 'block';
+}
+function pieResetItemForm(){
+  const labelInput = document.getElementById('pieLabel');
+  if(!labelInput) return;   // 他の図種を表示中はフォームが無い
+  labelInput.value = '';
+  document.getElementById('pieValue').value = '';
+  document.getElementById('pieColorEnable').checked = false;
+  document.getElementById('pieColorRow').style.display = 'none';
+  state.pieDiag.editItemIdx = null;
+  document.getElementById('pieAddItem').textContent = '＋ 項目を追加';
+  document.getElementById('pieItemCancel').style.display = 'none';
+}
+
+function refreshPieList(){
+  const itemList = document.getElementById('pieItemList');
+  if(!itemList) return;
+  const total = state.pieDiag.items.reduce((a,it)=>a + (Number(it.value) || 0), 0);
+
+  itemList.innerHTML = state.pieDiag.items.length ? '' : '<div class="empty-note">まだ項目がありません</div>';
+  state.pieDiag.items.forEach((it,i)=>{
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    const swatch = it.color ? `<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${it.color};border:1px solid #999;flex-shrink:0;"></span>` : '';
+    // 13項目目以降は色を指定しても効かないので、そのことが分かるようにしておく
+    const overflow = (i >= PIE_COLOR_MAX && it.color) ? '<span class="key-badge fk">色は無効</span>' : '';
+    const pct = total > 0 ? `（${Math.round((Number(it.value) || 0) / total * 1000) / 10}%）` : '';
+    row.innerHTML = `${swatch}${overflow}<span class="item-text">${it.label} : ${it.value}${pct}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+    row.querySelector('.edit-btn').addEventListener('click', ()=>{
+      state.pieDiag.editItemIdx = i;
+      pieFillItemForm(state.pieDiag.items[i]);
+    });
+    row.querySelector('.del-btn').addEventListener('click', ()=>{
+      state.pieDiag.items.splice(i,1);
+      if(state.pieDiag.editItemIdx===i) pieResetItemForm();
+      refreshPieList(); regenerateCode();
+    });
+    itemList.appendChild(row);
+  });
+  // 並び順が扇の順序と色の割り当て順になるため、D&Dで入れ替えられるようにする
+  makeSortable(itemList, state.pieDiag.items, ()=>{
+    pieResetItemForm();
+    refreshPieList(); regenerateCode();
+  });
+}
+
 /* 図種に対応するビルダーを描く。図種を増やすときはここだけ足せば
    switchDiagramType とプロジェクト復元の両方に反映される */
 function renderBuilderFor(type, panel){
@@ -4799,6 +4980,7 @@ function renderBuilderFor(type, panel){
   else if(type==='er') renderERBuilder(panel);
   else if(type==='arch') renderArchBuilder(panel);
   else if(type==='gantt') renderGanttBuilder(panel);
+  else if(type==='pie') renderPieBuilder(panel);
   else renderFlowchartBuilder(panel);
 }
 
@@ -4841,6 +5023,7 @@ function buildStateSnapshot(){
     erDiag: state.erDiag,
     archDiag: state.archDiag,
     ganttDiag: state.ganttDiag,
+    pieDiag: state.pieDiag,
     nodeCounter: state.nodeCounter,
     subCounter: state.subCounter,
     partCounter: state.partCounter,
@@ -4861,6 +5044,7 @@ function buildStateSnapshot(){
   if(snap.erDiag){ snap.erDiag.editEntityIdx=null; snap.erDiag.editRelationIdx=null; snap.erDiag.activeEntityIdx=null; snap.erDiag.editAttrIdx=null; }
   if(snap.archDiag){ snap.archDiag.editGroupIdx=null; snap.archDiag.editServiceIdx=null; snap.archDiag.editEdgeIdx=null; }
   if(snap.ganttDiag){ snap.ganttDiag.editTaskIdx=null; }
+  if(snap.pieDiag){ snap.pieDiag.editItemIdx=null; }
   return snap;
 }
 
@@ -4962,12 +5146,20 @@ function restoreSnapshot(snapshot){
     if(!state.ganttDiag.sectionColors || typeof state.ganttDiag.sectionColors !== 'object') state.ganttDiag.sectionColors = {};
     state.ganttDiag.tasks.forEach(t=>{ if(t.color === undefined) t.color = null; });
   }
+  if(snapshot.pieDiag){
+    state.pieDiag = snapshot.pieDiag;
+    if(!state.pieDiag.title) state.pieDiag.title = '割合';
+    if(!Array.isArray(state.pieDiag.items)) state.pieDiag.items = [];
+    // 旧形式（色・showData の追加前／MGS無印）のプロジェクトファイルとの後方互換
+    state.pieDiag.showData = !!state.pieDiag.showData;
+    state.pieDiag.items.forEach(it=>{ if(it.color === undefined) it.color = null; });
+  }
   state.archGroupCounter = snapshot.archGroupCounter || state.archGroupCounter;
   state.archServiceCounter = snapshot.archServiceCounter || state.archServiceCounter;
   state.taskCounter = snapshot.taskCounter || state.taskCounter;
 
-  // MGS(無印)のプロジェクトファイルは他の図種も含むが、本ツールが扱えるのはこの7種のみ
-  const type = ['sequence','state','class','er','arch','gantt'].includes(snapshot.diagramType) ? snapshot.diagramType : 'flowchart';
+  // MGS(無印)のプロジェクトファイルは他の図種も含むが、本ツールが扱えるのはこの8種のみ
+  const type = ['sequence','state','class','er','arch','gantt','pie'].includes(snapshot.diagramType) ? snapshot.diagramType : 'flowchart';
   document.getElementById('diagramType').value = type;
   state.diagramType = type;
   state.manualMode = false;
@@ -5874,6 +6066,61 @@ function importGantt(lines, rep, colors){
   return gt;
 }
 
+/* 円グラフ。タイトル・showData・項目（ラベルと数値）を読む。 */
+const PIE_HEADER_RE = /^pie(\s+showData)?(?:\s+title\s+(.+))?$/i;
+const PIE_ITEM_RE = /^(?:"([^"]*)"|([^:]+?))\s*:\s*(-?\d+(?:\.\d+)?)$/;
+
+function importPie(lines, rep, colors){
+  const pd = emptyPieState();
+  let headerSeen = false;
+
+  lines.forEach((raw, i)=>{
+    const lineNo = i + 1;
+    const line = raw.trim();
+    if(!line) return;
+    if(line.startsWith('%%')){
+      if(line.startsWith('%%{')) blockLine(rep, lineNo, line, 'ディレクティブ（%%{init:…}）はビルダーで保持できません');
+      else dropLine(rep, lineNo, line, 'コメント行');
+      return;
+    }
+    if(!headerSeen){
+      const h = PIE_HEADER_RE.exec(line);
+      if(!h){ blockLine(rep, lineNo, line, '先頭が pie の宣言ではありません'); return; }
+      headerSeen = true;
+      pd.showData = !!h[1];
+      if(h[2]) pd.title = h[2].trim();
+      return;
+    }
+    const m = PIE_ITEM_RE.exec(line);
+    if(!m){ blockLine(rep, lineNo, line, '項目は「"ラベル" : 数値」の形だけ解釈できます'); return; }
+    const label = (m[1] !== undefined ? m[1] : m[2]).trim();
+    if(!label){ blockLine(rep, lineNo, line, 'ラベルが空です'); return; }
+    pd.items.push({ label, value: Number(m[3]), color:null });
+  });
+
+  if(!headerSeen) blockLine(rep, 1, '', 'pie の宣言が見つかりません');
+  if(headerSeen && !pd.items.length) blockLine(rep, lines.length, '', '項目が1つもありません');
+
+  // フロントマターから復元した色を並び順で割り当てる
+  if(colors){
+    colors.forEach((c, idx)=>{ if(pd.items[idx]) pd.items[idx].color = c; });
+  }
+  return pd;
+}
+
+/* 円グラフの色は themeVariables で出しているので、themeCSS とは別の形で読み戻す */
+function parsePieVarsHeader(code){
+  const m = /^---\r?\n(?:config:\r?\n {2}themeVariables:\r?\n((?: {4}pie\d+: "#[0-9A-Fa-f]{3,8}"\r?\n)+))---\r?\n([\s\S]*)$/.exec(code);
+  if(!m) return null;
+  const colors = new Map();
+  const re = / {4}pie(\d+): "(#[0-9A-Fa-f]{3,8})"/g;
+  let mm;
+  while((mm = re.exec(m[1]))) colors.set(Number(mm[1]) - 1, mm[2]);
+  if(!colors.size) return null;
+  const headerLines = code.slice(0, code.length - m[2].length).split('\n').length - 1;
+  return { colors, body: m[2], headerLines };
+}
+
 /* このツールが出力したクラス図のフロントマター（関係線の色）だけを読み戻す。
    themeCSS に自分の出力以外が混ざっていたら、保持できないので取り込まない。 */
 function parseThemeCssHeader(code){
@@ -5934,21 +6181,24 @@ function tryImportCode(rawCode){
   if(!code){ blockLine(rep, 1, '', 'コードが空です'); return { ok:false, rep }; }
   // Mermaidに色指定の構文が無い図種（クラス図の関係線、アーキテクチャ図）は
   // フロントマターの themeCSS で色を出している。自分の出力に限り読み戻す
-  let themeCss = null;
+  let themeCss = null, pieColors = null;
   if(/^---\r?\n/.test(code)){
+    // クラス図・アーキテクチャ図・ガントは themeCSS、円グラフは themeVariables で色を出している
     const header = parseThemeCssHeader(code);
-    if(!header){
+    const pieHeader = header ? null : parsePieVarsHeader(code);
+    if(!header && !pieHeader){
       blockLine(rep, 1, '---', 'フロントマター（--- で囲む設定）はビルダーで保持できません');
       return { ok:false, rep };
     }
-    themeCss = header.css;
+    const used = header || pieHeader;
+    if(header) themeCss = header.css; else pieColors = pieHeader.colors;
     // 取り除いた分を空行で埋め、報告する行番号を元のコードと揃える
-    code = '\n'.repeat(header.headerLines) + header.body;
+    code = '\n'.repeat(used.headerLines) + used.body;
   }
   const type = detectDiagramType(code);
-  const importers = { flowchart:importFlowchart, sequence:importSequence, state:importStateDiagram, class:importClassDiagram, er:importERDiagram, arch:importArchitecture, gantt:importGantt };
+  const importers = { flowchart:importFlowchart, sequence:importSequence, state:importStateDiagram, class:importClassDiagram, er:importERDiagram, arch:importArchitecture, gantt:importGantt, pie:importPie };
   if(!importers[type]){
-    blockLine(rep, 1, code.split('\n')[0], 'このツールが取り込めるのは flowchart / graph、sequenceDiagram、stateDiagram、classDiagram、erDiagram、architecture-beta、gantt だけです');
+    blockLine(rep, 1, code.split('\n')[0], 'このツールが取り込めるのは flowchart / graph、sequenceDiagram、stateDiagram、classDiagram、erDiagram、architecture-beta、gantt、pie だけです');
     return { ok:false, rep };
   }
   let colors = null;
@@ -5960,6 +6210,14 @@ function tryImportCode(rawCode){
       blockLine(rep, 1, '---', 'フロントマター（--- で囲む設定）はビルダーで保持できません');
       return { ok:false, rep };
     }
+  }
+  if(pieColors){
+    // themeVariables の pie1.. は円グラフ以外では意味を持たない
+    if(type !== 'pie'){
+      blockLine(rep, 1, '---', 'フロントマター（--- で囲む設定）はビルダーで保持できません');
+      return { ok:false, rep };
+    }
+    colors = pieColors;
   }
   const lines = code.split('\n');
   const data = importers[type](lines, rep, colors);
@@ -6001,6 +6259,8 @@ function applyImport(type, data){
   }else if(type === 'gantt'){
     state.ganttDiag = data;
     state.taskCounter = nextCounter(data.tasks.map(t=>t.id), 't');
+  }else if(type === 'pie'){
+    state.pieDiag = data;
   }else{
     state.sequence = data;
     state.partCounter = nextCounter(data.participants.map(p=>p.id), 'P');
@@ -6030,6 +6290,7 @@ function detectDiagramType(code){
   if(firstLine.startsWith('erdiagram')) return 'er';
   if(firstLine.startsWith('architecture-beta')) return 'arch';
   if(firstLine.startsWith('gantt')) return 'gantt';
+  if(firstLine.startsWith('pie')) return 'pie';
   return null;
 }
 
