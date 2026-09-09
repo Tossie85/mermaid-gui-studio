@@ -1,0 +1,14 @@
+<!--
+  Marketplace 用アイコン（icon.png の元）。
+  ストア一覧では 16px 程度まで縮むので、アクティビティバー用 icon.svg の
+  「フローチャート部品で組んだ M」ではなく、太い M のレターマーク1本にしている。
+  地はブランドブルー濃（#0B6E96）、字は白。
+
+  再生成: この SVG を 128x128 で PNG 化して icon.png に置く（WSL に rsvg 等が無いので
+  ブラウザの canvas でラスタライズした）。
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="28" fill="#0B6E96"/>
+  <path d="M30 100 V36 L64 76 L98 36 V100" fill="none" stroke="#FFFFFF"
+        stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
