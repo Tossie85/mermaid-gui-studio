@@ -1,0 +1,83 @@
+{
+  "name": "mermaid-gui-studio",
+  "displayName": "Mermaid GUI Studio",
+  "description": "Mermaidの図をGUIで組み立て、既存のMermaidコードを取り込めるエディタ。",
+  "version": "0.2.0",
+  "publisher": "tossie85",
+  "license": "MIT",
+  "icon": "resources/icon.png",
+  "homepage": "https://tossie85.site/tools/mermaid-gui-studio-2.html",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Tossie85/tossie85.site.git",
+    "directory": "vscode-extensions/mermaid"
+  },
+  "bugs": {
+    "url": "https://github.com/Tossie85/tossie85.site/issues"
+  },
+  "keywords": [
+    "mermaid",
+    "diagram",
+    "flowchart",
+    "sequence diagram",
+    "gui"
+  ],
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "main": "./src/extension.js",
+  "activationEvents": [
+    "onCommand:mermaidGuiStudio.open",
+    "onView:mermaidGuiStudio.launcher"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "mermaidGuiStudio.open",
+        "title": "Mermaid GUI Studio を開く",
+        "category": "Mermaid GUI Studio",
+        "icon": "$(add)"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "mermaidGuiStudio",
+          "title": "Mermaid GUI Studio",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "mermaidGuiStudio": [
+        {
+          "id": "mermaidGuiStudio.launcher",
+          "name": "図を作る"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "mermaidGuiStudio.launcher",
+        "contents": "フローチャート・シーケンス図・状態遷移図・クラス図・ER図・アーキテクチャ図・ガントチャート・円グラフを、GUIで組み立てられます。\n既存のMermaidコードを取り込んで続きを編集することもできます。\n[エディタで開く](command:mermaidGuiStudio.open)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "mermaidGuiStudio.open",
+          "when": "view == mermaidGuiStudio.launcher",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "node build/make-webview.mjs",
+    "vscode:prepublish": "node build/make-webview.mjs"
+  }
+}
