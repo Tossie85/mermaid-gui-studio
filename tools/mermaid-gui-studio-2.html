@@ -978,8 +978,8 @@ const Host = {
   assetUrl(path){ return path; },
   /* 通知。await すると閉じるまで待てる */
   alert(message, title){ return openDialog(message, { title: title || 'お知らせ', okOnly:true }); },
-  /* 確認。OKなら true */
-  confirm(message, title){ return openDialog(message, { title: title || '確認' }); },
+  /* 確認。OKなら true。okLabel でOKボタンの文言を「変更する」などに差し替えられる */
+  confirm(message, title, okLabel){ return openDialog(message, { title: title || '確認', okLabel }); },
 };
 
 /* Host.alert / Host.confirm の実体。ブラウザ既定のダイアログを使わず、
@@ -992,8 +992,10 @@ function openDialog(message, opts){
   document.getElementById('dialogBody').textContent = message;
   const cancelBtn = document.getElementById('dialogCancel');
   cancelBtn.style.display = o.okOnly ? 'none' : '';
+  const okBtn = document.getElementById('dialogOk');
+  okBtn.textContent = o.okLabel || 'OK';
   overlay.classList.add('open');
-  document.getElementById('dialogOk').focus();
+  okBtn.focus();
   return new Promise(resolve=>{ dialogResolve = resolve; });
 }
 function closeDialog(result){
@@ -1806,6 +1808,8 @@ function genSequenceCode(){
       lines.push(`${pad()}${m.from}${m.arrow}${m.to}: ${m.text}`);
     }
   });
+  // end を足す前の組み立て途中でもプレビューを出せるよう、閉じ忘れているブロックはここで閉じる
+  while(depth > 0){ depth--; lines.push(`${pad()}end`); }
   if(participants.length===0 && messages.length===0){
     lines.push('    %% 左側から参加者とメッセージを追加してください');
   }
@@ -3217,12 +3221,20 @@ function renderSequenceBuilder(container){
   });
   document.getElementById('sqNoteCancel').addEventListener('click', sqResetNoteForm);
 
-  document.getElementById('sqAddBlock').addEventListener('click', ()=>{
+  document.getElementById('sqAddBlock').addEventListener('click', async ()=>{
     const blockType = document.getElementById('sqBlockType').value;
     const label = document.getElementById('sqBlockLabel').value.trim();
     const block = { kind:'block-start', blockType, label };
-    if(state.sequence.editBlockIdx !== null){
-      state.sequence.messages[state.sequence.editBlockIdx] = block;
+    const editIdx = state.sequence.editBlockIdx;
+    if(editIdx !== null){
+      // 例: else を含む alt を loop に変えると else が行き場を失う。消える項目を見せてから確定する
+      const before = state.sequence.messages[editIdx];
+      const ok = await sqCommitMessages(ms=>{ ms[editIdx] = block; }, {
+        title:'ブロックの種別を変更します',
+        lead:`ブロック開始「${sequenceItemLabel(before)}」を「${sequenceItemLabel(block)}」に変更します。`,
+        okLabel:'変更する',
+      });
+      if(!ok) return;
     }else{
       state.sequence.messages.push(block);
     }
@@ -3231,12 +3243,38 @@ function renderSequenceBuilder(container){
   });
   document.getElementById('sqBlockCancel').addEventListener('click', sqResetBlockForm);
 
-  document.getElementById('sqAddDiv').addEventListener('click', ()=>{
+  document.getElementById('sqAddDiv').addEventListener('click', async ()=>{
     const keyword = document.getElementById('sqDivType').value;
     const label = document.getElementById('sqDivLabel').value.trim();
     const div = { kind:'block-div', keyword, label };
     if(state.sequence.editDivIdx !== null){
-      state.sequence.messages[state.sequence.editDivIdx] = div;
+      const idx = state.sequence.editDivIdx;
+      // 区切りだけ変えると外側ブロックと対応しなくなる。削除せず、ブロック側を合わせて直す
+      const plan = sqDivTypeChangePlan(state.sequence.messages, idx, keyword);
+      const convert = (plan && plan !== 'orphan') ? plan : null;
+      if(convert){
+        const outer = state.sequence.messages[convert.blockIdx];
+        let msg = `区切りを「${sequenceItemLabel(div)}」に変更します。\n\n`
+          + `この区切りは外側の「${sequenceItemLabel(outer)}」ブロックと対応しないため、`
+          + `外側のブロックを「${DIV_BLOCK_TYPE[keyword]}」に変更します。`;
+        if(convert.others.length){
+          msg += `\n同じブロック内の次の区切りも「${keyword}」に合わせます。\n`
+            + convert.others.map(i=>`　・${sequenceItemLabel(state.sequence.messages[i])}`).join('\n');
+        }
+        if(!await Host.confirm(msg, 'ブロックの種別も変更します', '変更する')) return;
+      }
+      const ok = await sqCommitMessages(ms=>{
+        if(convert){
+          ms[convert.blockIdx] = Object.assign({}, ms[convert.blockIdx], { blockType: DIV_BLOCK_TYPE[keyword] });
+          convert.others.forEach(i=>{ ms[i] = Object.assign({}, ms[i], { keyword }); });
+        }
+        ms[idx] = div;
+      }, {
+        title:'区切りを変更します',
+        lead:`区切りを「${sequenceItemLabel(div)}」に変更します。`,
+        okLabel:'変更する',
+      });
+      if(!ok) return;
     }else{
       // 対応するブロックがあれば、その end の直前（＝ブロック内）へ挿入。なければ末尾へ。
       const endIdx = findDividerInsertIndex(state.sequence.messages, keyword);
@@ -3523,6 +3561,95 @@ function findDividerInsertIndex(messages, keyword){
   return -1;
 }
 
+/* そのままではMermaidが受け付けない区切り・end を探す。
+   ・どのブロックにも入っていない区切り／end
+   ・外側ブロックの種別と対応しない区切り（alt の中の and、loop の中の else など）
+   閉じ忘れのブロック開始は genSequenceCode() が end を補うので、ここでは対象にしない。
+   戻り値は該当するメッセージの添字の配列（昇順）。 */
+function invalidSequenceBlockIndexes(messages){
+  const bad = [];
+  const stack = [];
+  messages.forEach((m, i)=>{
+    if(m.kind === 'block-start'){
+      stack.push(m.blockType);
+    }else if(m.kind === 'block-div'){
+      if(!stack.length || DIV_BLOCK_TYPE[m.keyword] !== stack[stack.length-1]) bad.push(i);
+    }else if(m.kind === 'block-end'){
+      if(stack.length) stack.pop();
+      else bad.push(i);
+    }
+  });
+  return bad;
+}
+
+/* 確認ダイアログに項目を並べるときの表記。メッセージ一覧の見た目と揃える */
+function sequenceItemLabel(m){
+  if(m.kind === 'block-start') return `${m.blockType}${m.label ? ' ' + m.label : ''}`;
+  if(m.kind === 'block-div') return `${m.keyword}${m.label ? ' ' + m.label : ''}`;
+  if(m.kind === 'block-end') return 'end';
+  if(m.kind === 'note'){
+    const target = (m.pos === 'over' && m.to && m.to !== m.from) ? `${m.from},${m.to}` : m.from;
+    return `Note ${m.pos} ${target}: ${m.text}`;
+  }
+  return `${m.from}${m.arrow}${m.to}: ${m.text}`;
+}
+
+/* messages への変更を、いきなり適用せず試作配列で試してから確定する。
+   変更後に対応の取れない区切り・end が残る場合は、消える項目を挙げて確認ダイアログを出し、
+   了承されたときだけ、それらを取り除いたうえで確定する（ブロック内のメッセージは残す）。
+   戻り値は Promise<boolean>。キャンセルされたら false で、状態は一切変わらない。 */
+async function sqCommitMessages(mutate, opts){
+  const o = opts || {};
+  const trial = state.sequence.messages.slice();
+  mutate(trial);
+  const bad = invalidSequenceBlockIndexes(trial);
+  if(bad.length){
+    const list = bad.map(i=>`　・${sequenceItemLabel(trial[i])}`).join('\n');
+    const ok = await Host.confirm(
+      `${o.lead}\n\n`
+      + `この操作をすると、次の項目がMermaidの文法に合わなくなります。\n`
+      + `そのまま残すとプレビューがエラーになるため、まとめて削除します。\n\n${list}\n\n`
+      + `ブロックの中のメッセージ・ノートは削除されません。`,
+      o.title || '確認', o.okLabel || 'OK');
+    if(!ok) return false;
+    for(let k = bad.length - 1; k >= 0; k--) trial.splice(bad[k], 1);
+  }
+  // 並べ替え(makeSortable)が掴んでいる配列と同じ実体を保つため、参照は差し替えず中身を入れ替える
+  state.sequence.messages.splice(0, state.sequence.messages.length, ...trial);
+  return true;
+}
+
+/* 区切りの種別を変えると外側ブロックと対応しなくなる場合に、
+   外側ブロックの種別と、同じブロック内の他の区切りを新しい種別へ合わせる計画を返す。
+   ・もともと対応が取れている        → null（変換不要）
+   ・どのブロックにも入っていない区切り → 'orphan'（変換では直せない） */
+function sqDivTypeChangePlan(messages, divIdx, keyword){
+  const want = DIV_BLOCK_TYPE[keyword];
+  if(!want) return 'orphan';
+  // divIdx を囲んでいるブロック開始を、後ろ向きに探す
+  let depth = 0, blockIdx = -1;
+  for(let i = divIdx - 1; i >= 0; i--){
+    const m = messages[i];
+    if(m.kind === 'block-end') depth++;
+    else if(m.kind === 'block-start'){
+      if(depth === 0){ blockIdx = i; break; }
+      depth--;
+    }
+  }
+  if(blockIdx === -1) return 'orphan';
+  if(messages[blockIdx].blockType === want) return null;
+  // そのブロックの直下にある他の区切りも、種別を揃えないと今度はそちらが合わなくなる
+  const others = [];
+  let d = 0;
+  for(let i = blockIdx + 1; i < messages.length; i++){
+    const m = messages[i];
+    if(m.kind === 'block-start') d++;
+    else if(m.kind === 'block-end'){ if(d === 0) break; d--; }
+    else if(m.kind === 'block-div' && d === 0 && i !== divIdx) others.push(i);
+  }
+  return { blockIdx, others };
+}
+
 function refreshSequenceLists(){
   const partList = document.getElementById('sqPartList');
   const msgList = document.getElementById('sqMsgList');
@@ -3606,11 +3733,17 @@ function refreshSequenceLists(){
         sqFillMsgForm(state.sequence.messages[i]);
       });
     }
-    row.querySelector('.del-btn').addEventListener('click', ()=>{
-      state.sequence.messages.splice(i,1);
-      if(state.sequence.editMsgIdx===i) sqResetMsgForm();
-      if(state.sequence.editNoteIdx===i) sqResetNoteForm();
-      if(state.sequence.editBlockIdx===i || state.sequence.editDivIdx===i) sqResetBlockForm();
+    row.querySelector('.del-btn').addEventListener('click', async ()=>{
+      // 例: ブロック開始だけを消すと、中の else と end が行き場を失う。消える項目を見せてから確定する
+      const target = state.sequence.messages[i];
+      const ok = await sqCommitMessages(ms=>{ ms.splice(i,1); }, {
+        title:'項目を削除します',
+        lead:`「${sequenceItemLabel(target)}」を削除します。`,
+        okLabel:'削除する',
+      });
+      if(!ok) return;
+      // 削除で添字がずれるため、編集中のフォームはまとめて解除する
+      sqResetMsgForm(); sqResetNoteForm(); sqResetBlockForm();
       refreshSequenceLists(); regenerateCode();
     });
     msgList.appendChild(row);
