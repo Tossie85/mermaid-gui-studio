@@ -2,7 +2,7 @@
   "name": "mermaid-gui-studio",
   "displayName": "Mermaid GUI Studio",
   "description": "Mermaidの図をGUIで組み立て、既存のMermaidコードを取り込めるエディタ。",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "publisher": "tossie85",
   "license": "MIT",
   "icon": "resources/icon.png",
