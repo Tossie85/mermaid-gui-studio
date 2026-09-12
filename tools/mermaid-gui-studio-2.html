@@ -467,6 +467,8 @@
   .item-row button:hover{ background:var(--danger-tint); }
   .item-row button.edit-btn{ color:var(--accent-dim); font-size:13px; }
   .item-row button.edit-btn:hover{ background:var(--accent-tint); }
+  /* ブロック開始の行だけに出る「ブロックごと削除」。× (その行だけ) と見分けが付くよう小さめにする */
+  .item-row button.del-block-btn{ font-size:12px; }
   .item-row.dragging{ opacity:0.4; }
   .item-row.drag-over{ box-shadow: inset 0 2px 0 var(--accent-dim); }
   /* ブロック構造が崩れる移動を差し戻したときの合図 */
@@ -3140,7 +3142,7 @@ function renderSequenceBuilder(container){
 
     <div class="card">
       <div class="card-title">メッセージ・ノート一覧</div>
-      <p class="hint">⠿ をドラッグすると並べ替えできます。else/区切りを後から追加した場合も、ドラッグでブロック内の正しい位置へ移動できます。</p>
+      <p class="hint">⠿ をドラッグすると並べ替えできます。else/区切りを後から追加した場合も、ドラッグでブロック内の正しい位置へ移動できます。<br>ブロック開始と end の行にある 🗑 は、そのブロックを中のメッセージごとまとめて削除します（× はその行だけ）。</p>
       <div class="item-list" id="sqMsgList"></div>
     </div>
   `;
@@ -3619,6 +3621,36 @@ async function sqCommitMessages(mutate, opts){
   return true;
 }
 
+/* idx の項目を直接囲んでいるブロック開始の添字を返す（end の行なら対応する開始）。
+   入れ子は深さを数えて読み飛ばす。囲むブロックが無ければ -1。 */
+function sequenceBlockStartIndex(messages, idx){
+  let depth = 0;
+  for(let i = idx - 1; i >= 0; i--){
+    const m = messages[i];
+    if(m.kind === 'block-end') depth++;
+    else if(m.kind === 'block-start'){
+      if(depth === 0) return i;
+      depth--;
+    }
+  }
+  return -1;
+}
+
+/* ブロック開始の添字から、対応する end までの範囲を [start, end]（end を含む）で返す。
+   入れ子は深さを数えて読み飛ばす。end が無いブロックは配列の末尾までを範囲とする。 */
+function sequenceBlockRange(messages, startIdx){
+  let depth = 0;
+  for(let i = startIdx + 1; i < messages.length; i++){
+    const m = messages[i];
+    if(m.kind === 'block-start') depth++;
+    else if(m.kind === 'block-end'){
+      if(depth === 0) return { start:startIdx, end:i };
+      depth--;
+    }
+  }
+  return { start:startIdx, end: messages.length - 1 };
+}
+
 /* 区切りの種別を変えると外側ブロックと対応しなくなる場合に、
    外側ブロックの種別と、同じブロック内の他の区切りを新しい種別へ合わせる計画を返す。
    ・もともと対応が取れている        → null（変換不要）
@@ -3626,16 +3658,7 @@ async function sqCommitMessages(mutate, opts){
 function sqDivTypeChangePlan(messages, divIdx, keyword){
   const want = DIV_BLOCK_TYPE[keyword];
   if(!want) return 'orphan';
-  // divIdx を囲んでいるブロック開始を、後ろ向きに探す
-  let depth = 0, blockIdx = -1;
-  for(let i = divIdx - 1; i >= 0; i--){
-    const m = messages[i];
-    if(m.kind === 'block-end') depth++;
-    else if(m.kind === 'block-start'){
-      if(depth === 0){ blockIdx = i; break; }
-      depth--;
-    }
-  }
+  const blockIdx = sequenceBlockStartIndex(messages, divIdx);
   if(blockIdx === -1) return 'orphan';
   if(messages[blockIdx].blockType === want) return null;
   // そのブロックの直下にある他の区切りも、種別を揃えないと今度はそちらが合わなくなる
@@ -3648,6 +3671,32 @@ function sqDivTypeChangePlan(messages, divIdx, keyword){
     else if(m.kind === 'block-div' && d === 0 && i !== divIdx) others.push(i);
   }
   return { blockIdx, others };
+}
+
+/* ブロック開始から end までを、中のメッセージ・ノート・入れ子ブロックごと削除する。
+   startIdx はブロック開始の添字。消える項目を並べて確認してから実行する。 */
+async function sqDeleteWholeBlock(startIdx){
+  const messages = state.sequence.messages;
+  const block = messages[startIdx];
+  if(!block || block.kind !== 'block-start') return;
+  const { start, end } = sequenceBlockRange(messages, startIdx);
+  const items = messages.slice(start, end + 1);
+  const MAX_LIST = 12;                        // 長いブロックでダイアログが伸びすぎないように
+  const list = items.slice(0, MAX_LIST).map(m=>`　・${sequenceItemLabel(m)}`).join('\n')
+    + (items.length > MAX_LIST ? `\n　…ほか ${items.length - MAX_LIST} 件` : '');
+  const ok = await Host.confirm(
+    `ブロック「${sequenceItemLabel(block)}」を中身ごと削除します。\n\n`
+    + `次の ${items.length} 件が削除されます。\n\n${list}\n\n`
+    + `（この操作は元に戻せません）`,
+    'ブロックごと削除', '削除する');
+  if(!ok) return;
+  if(!await sqCommitMessages(ms=>{ ms.splice(start, end - start + 1); }, {
+    title:'ブロックごと削除', okLabel:'削除する',
+    lead:`ブロック「${sequenceItemLabel(block)}」を中身ごと削除します。`,
+  })) return;
+  // 削除で添字がずれるため、編集中のフォームはまとめて解除する
+  sqResetMsgForm(); sqResetNoteForm(); sqResetBlockForm();
+  refreshSequenceLists(); regenerateCode();
 }
 
 function refreshSequenceLists(){
@@ -3700,12 +3749,16 @@ function refreshSequenceLists(){
     row.style.marginLeft = (indent * 16) + 'px';
 
     if(m.kind === 'block-start'){
-      row.innerHTML = `<span class="item-text">🔁 ${m.blockType}${m.label ? ' ' + m.label : ''}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
+      row.innerHTML = `<span class="item-text">🔁 ${m.blockType}${m.label ? ' ' + m.label : ''}</span>`
+        + `<button class="edit-btn" data-i="${i}" title="このブロック開始を編集">✎</button>`
+        + `<button class="del-block-btn" data-i="${i}" title="ブロックごと削除（中のメッセージも消えます）">🗑</button>`
+        + `<button class="del-btn" data-i="${i}" title="このブロック開始の行だけ削除">×</button>`;
       row.querySelector('.edit-btn').addEventListener('click', ()=>{
         sqResetMsgForm(); sqResetNoteForm(); sqResetBlockForm();
         state.sequence.editBlockIdx = i;
         sqFillBlockForm(state.sequence.messages[i]);
       });
+      row.querySelector('.del-block-btn').addEventListener('click', ()=>sqDeleteWholeBlock(i));
       depth++;
     }else if(m.kind === 'block-div'){
       row.innerHTML = `<span class="item-text">↔ ${m.keyword}${m.label ? ' ' + m.label : ''}</span><button class="edit-btn" data-i="${i}">✎</button><button class="del-btn" data-i="${i}">×</button>`;
@@ -3715,7 +3768,12 @@ function refreshSequenceLists(){
         sqFillBlockForm(state.sequence.messages[i]);
       });
     }else if(m.kind === 'block-end'){
-      row.innerHTML = `<span class="item-text">⬛ end</span><button class="del-btn" data-i="${i}">×</button>`;
+      // end の行からも、対応するブロック開始まで遡ってまとめて消せるようにする
+      const openIdx = sequenceBlockStartIndex(state.sequence.messages, i);
+      row.innerHTML = `<span class="item-text">⬛ end</span>`
+        + (openIdx === -1 ? '' : `<button class="del-block-btn" data-i="${i}" title="ブロックごと削除（中のメッセージも消えます）">🗑</button>`)
+        + `<button class="del-btn" data-i="${i}" title="この end の行だけ削除">×</button>`;
+      if(openIdx !== -1) row.querySelector('.del-block-btn').addEventListener('click', ()=>sqDeleteWholeBlock(openIdx));
       depth = Math.max(0, depth-1);
     }else if(m.kind === 'note'){
       const target = (m.pos === 'over' && m.to && m.to !== m.from) ? `${m.from},${m.to}` : m.from;
