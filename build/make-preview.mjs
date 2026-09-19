@@ -17,8 +17,12 @@ const OUT_DIR = resolve(repoRoot, 'tools', '_webview_preview');
 const NONCE = 'testnonce';
 const MERMAID_URL = '../../assets/vendor/mermaid.min.js';
 
+// 拡張ホストと同じく package.json の version を渡す（ℹ️ のダイアログに出る）
+const VERSION = JSON.parse(await readFile(resolve(here, '..', 'package.json'), 'utf8')).version || '';
+
 const STUB = `<script nonce="${NONCE}">
 window.__mgsMermaidUrl = ${JSON.stringify(MERMAID_URL)};
+window.__mgsAppVersion = ${JSON.stringify(VERSION)};
 window.acquireVsCodeApi = function(){
   window.__posted = [];
   return { postMessage(m){ window.__posted.push(m); } };
