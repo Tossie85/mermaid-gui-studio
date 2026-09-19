@@ -854,7 +854,7 @@
       <button class="modal-close" id="btnCloseCredits">×</button>
     </div>
     <div class="modal-body">
-      <h3>Mermaid GUI Studio 2</h3>
+      <h3>Mermaid GUI Studio 2 <span class="credit-version" id="creditsAppVersion"></span></h3>
       <p>Mermaidのフローチャート・シーケンス図・状態遷移図・クラス図・ER図・アーキテクチャ図・ガントチャート・円グラフをGUIで組み立てられるツールです。既存のMermaidコードをGUIへ取り込む機能を備えています。ブラウザ単体で動作し、外部サーバーへの通信は行いません。</p>
 
       <h3>使用ライブラリ</h3>
@@ -978,6 +978,9 @@ const Host = {
   },
   /* 同梱アセットのURL。拡張では asWebviewUri で解決したURLに差し替える */
   assetUrl(path){ return path; },
+  /* 配布物のバージョン。Web版は常に更新されるので持たない。
+     VS Code 拡張版だけが package.json の version を入れ、ℹ️ のダイアログに出す */
+  appVersion: null,
   /* 通知。await すると閉じるまで待てる */
   alert(message, title){ return openDialog(message, { title: title || 'お知らせ', okOnly:true }); },
   /* 確認。OKなら true。okLabel でOKボタンの文言を「変更する」などに差し替えられる */
@@ -7448,6 +7451,9 @@ document.getElementById('btnDownloadProject').addEventListener('click', ()=>{
   exportProjectMd();
 });
 document.getElementById('btnCredits').addEventListener('click', ()=>{
+  // Host の差し替え（拡張版）はこのスクリプトより後に走るので、開くたびに読み直す。
+  // Web版は appVersion を持たないので、バージョンの欄は空のままになる
+  document.getElementById('creditsAppVersion').textContent = Host.appVersion ? `v${Host.appVersion}` : '';
   document.getElementById('creditsOverlay').classList.add('open');
 });
 document.getElementById('btnCloseCredits').addEventListener('click', ()=>{

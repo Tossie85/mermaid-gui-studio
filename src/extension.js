@@ -69,11 +69,20 @@ function buildHtml(webview, extensionUri) {
   html = html.split('__NONCE__').join(nonce);
   html = html.split('__CSP_SOURCE__').join(webview.cspSource);
   html = html.split('__MERMAID_URI__').join(mermaidUri.toString());
+  // ℹ️ のダイアログに出す拡張のバージョン。publisher 名に依存しないよう package.json を直接読む
+  let version = '';
+  try {
+    const pkgPath = vscode.Uri.joinPath(extensionUri, 'package.json').fsPath;
+    version = JSON.parse(fs.readFileSync(pkgPath, 'utf8')).version || '';
+  } catch (_) {
+    // 取れなくてもツールは動くので、バージョン表示を諦めるだけにする
+  }
   // .html 保存で mermaid 本体を読み直すため、URLをWebview側へ渡しておく。
   // 変数名は上の一括置換のプレースホルダと重ならない名前にしてある
   html = html.replace(
     '</head>',
-    `<script nonce="${nonce}">window.__mgsMermaidUrl = ${JSON.stringify(mermaidUri.toString())};</script>\n</head>`
+    `<script nonce="${nonce}">window.__mgsMermaidUrl = ${JSON.stringify(mermaidUri.toString())};`
+      + `window.__mgsAppVersion = ${JSON.stringify(version)};</script>\n</head>`
   );
   return html;
 }

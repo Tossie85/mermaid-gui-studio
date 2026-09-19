@@ -171,6 +171,8 @@ const VSCODE_HOST = `
   // 変数名にプレースホルダ（__MERMAID_URI__）と同じ文字を使うと、
   // 拡張側の一括置換でこの行まで書き換わって構文エラーになるので避けている
   Host.assetUrl = ()=> window.__mgsMermaidUrl;
+  // ℹ️ のダイアログに出す拡張のバージョン（拡張ホストが <head> で渡している）
+  Host.appVersion = window.__mgsAppVersion || null;
 })();
 </script>
 `;
