@@ -39,4 +39,4 @@ Mermaid コードを読み込めます。
 
 ## ライセンス
 
-[MIT](LICENSE)
+[MIT License](https://opensource.org/licenses/MIT)（同梱の `LICENSE` を参照）
