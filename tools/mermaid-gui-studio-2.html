@@ -719,6 +719,7 @@
     <button class="btn btn-sm" id="btnCopyMd">Markdownとしてコピー</button>
     <button class="btn btn-sm" id="btnDownloadMd">.md 保存</button>
     <button class="btn btn-sm" id="btnDownloadSvg">.svg 保存</button>
+    <button class="btn btn-sm" id="btnDownloadPng">.png 保存</button>
     <button class="btn btn-sm btn-accent" id="btnDownloadHtml">.html 保存</button>
     <button class="btn btn-sm" id="btnDownloadProject">🗂️ プロジェクト保存</button>
     <button class="btn btn-sm btn-ghost" id="btnHelp" title="保存・読み込み機能の説明">❓</button>
@@ -751,6 +752,10 @@
       <div class="credit-item" style="margin-top:8px;">
         <div class="credit-name">.svg 保存</div>
         <div class="credit-detail">現在プレビュー表示されている図を、画像（SVGファイル）として保存します。資料やスライドへの貼り付け用です。</div>
+      </div>
+      <div class="credit-item" style="margin-top:8px;">
+        <div class="credit-name">.png 保存</div>
+        <div class="credit-detail">同じ図を画像（PNGファイル）として保存します。SVGを貼れない場所（SNS・チャット・Wikiなど）へそのまま持っていけます。文字がにじまないよう画面の<strong>2倍の大きさ</strong>で書き出し、大きすぎてキャンバスの上限に当たる図では倍率を自動で下げます。</div>
       </div>
       <div class="credit-item" style="margin-top:8px;">
         <div class="credit-name">.html 保存</div>
@@ -957,9 +962,12 @@ mermaid.initialize({ startOnLoad:false, theme:'default', securityLevel:'loose', 
    Webviewでは alert / confirm が機能せず、<a download> も禁止されているため、
    これらを直接呼ばずに必ず Host 経由にすること。 */
 const Host = {
-  /* テキストをファイルとして保存する */
-  saveFile(filename, mime, content){
-    const blob = new Blob([content], { type: mime });
+  /* ファイルとして保存する。content は文字列。
+     PNG のようなバイナリは base64 の文字列にして opt = { encoding:'base64' } を添える
+     （Webview へは文字列しか渡せないため、Web版も同じ受け口に揃える）。 */
+  saveFile(filename, mime, content, opt){
+    const body = (opt && opt.encoding === 'base64') ? base64ToBytes(content) : content;
+    const blob = new Blob([body], { type: mime });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = filename;
@@ -5788,6 +5796,23 @@ function utf8ToBase64(str){
   bytes.forEach(b => binary += String.fromCharCode(b));
   return btoa(binary);
 }
+/* base64 → バイト列。PNG のようなバイナリを保存するときに使う */
+function base64ToBytes(b64){
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for(let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+/* バイト列 → base64。btoa に一度に渡しすぎるとスタックが溢れるので小分けにする
+   （SVGは数十万バイトになることがある） */
+function bytesToBase64(bytes){
+  let bin = '';
+  const CHUNK = 0x8000;
+  for(let i = 0; i < bytes.length; i += CHUNK){
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(bin);
+}
 function base64ToUtf8(b64){
   const binary = atob(b64);
   const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
@@ -7706,14 +7731,75 @@ document.getElementById('btnDownloadMd').addEventListener('click', ()=>{
   const md = '```mermaid\n' + document.getElementById('codeArea').value + '\n```\n';
   Host.saveFile('diagram.md', 'text/markdown', md);
 });
-document.getElementById('btnDownloadSvg').addEventListener('click', ()=>{
+/* 保存用のSVGを作る。表示中のものを複製し、クリック用に重ねている透明な図形を外す。
+   図が無ければ知らせて null を返す。 */
+function exportSvgEl(){
   const svgEl = document.querySelector('#preview svg');
-  if(!svgEl){ Host.alert('先に図を作成してください。'); return; }
-  // クリック用に重ねている透明線は保存物に含めない
+  if(!svgEl){ Host.alert('先に図を作成してください。'); return null; }
   const clean = svgEl.cloneNode(true);
   clean.querySelectorAll('.' + PREVIEW_HIT_CLASS).forEach(el=>el.remove());
+  return clean;
+}
+
+/* PNG の倍率。等倍だと文字がにじむので、貼り付け先で縮小される前提で2倍にする。 */
+const PNG_SCALE = 2;
+/* キャンバスの面積の上限（ブラウザ側の制限はおよそ2.68億画素）。
+   大きな図で上限に当たると、何も描かれない真っ白なPNGになるため手前で倍率を下げる。 */
+const PNG_MAX_PIXELS = 2.4e8;
+
+/* 表示中の図をPNG（base64）にする。
+   SVGを <img> に読ませて <canvas> に描く方式。外部の画像を参照していないので
+   キャンバスは汚染されず、そのまま toDataURL が使える。
+   Mermaid は図の大きさを viewBox に持ち、width は 100% なので、寸法は viewBox から取る。
+   ノードのラベルは foreignObject（HTML）だが、外部を参照していないため画像化しても残る。 */
+function svgToPngBase64(svgEl){
+  return new Promise((resolve, reject)=>{
+    const vb = (svgEl.getAttribute('viewBox') || '').split(/[\s,]+/).map(Number);
+    let w = (vb.length === 4 && vb[2] > 0) ? vb[2] : parseFloat(svgEl.getAttribute('width'));
+    let h = (vb.length === 4 && vb[3] > 0) ? vb[3] : parseFloat(svgEl.getAttribute('height'));
+    if(!(w > 0 && h > 0)){ reject(new Error('図の大きさが取れませんでした。')); return; }
+    w = Math.round(w); h = Math.round(h);
+    // 画面では width="100%" で伸び縮みさせているが、画像にするときは実寸を書く
+    svgEl.setAttribute('width', w);
+    svgEl.setAttribute('height', h);
+    svgEl.removeAttribute('style');
+    let scale = PNG_SCALE;
+    while(scale > 1 && w * scale * h * scale > PNG_MAX_PIXELS) scale -= 0.5;
+    const text = '<?xml version="1.0" encoding="UTF-8"?>\n' + new XMLSerializer().serializeToString(svgEl);
+    const img = new Image();
+    img.onload = ()=>{
+      try{
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(w * scale);
+        canvas.height = Math.round(h * scale);
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#FFFFFF';          // 地が透明にならないよう白を敷く
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve({ base64: canvas.toDataURL('image/png').split(',')[1], w: canvas.width, h: canvas.height });
+      }catch(err){ reject(err); }
+    };
+    img.onerror = ()=> reject(new Error('図を画像に変換できませんでした。'));
+    // Webview の CSP は blob: を許していないので data: で渡す
+    img.src = 'data:image/svg+xml;base64,' + bytesToBase64(new TextEncoder().encode(text));
+  });
+}
+
+document.getElementById('btnDownloadSvg').addEventListener('click', ()=>{
+  const clean = exportSvgEl();
+  if(!clean) return;
   const svgText = new XMLSerializer().serializeToString(clean);
   Host.saveFile('diagram.svg', 'image/svg+xml', '<?xml version="1.0" encoding="UTF-8"?>\n' + svgText);
+});
+document.getElementById('btnDownloadPng').addEventListener('click', async ()=>{
+  const clean = exportSvgEl();
+  if(!clean) return;
+  try{
+    const png = await svgToPngBase64(clean);
+    Host.saveFile('diagram.png', 'image/png', png.base64, { encoding:'base64' });
+  }catch(err){
+    Host.alert(String((err && err.message) || err));
+  }
 });
 document.getElementById('btnDownloadHtml').addEventListener('click', async ()=>{
   const code = document.getElementById('codeArea').value;

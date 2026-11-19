@@ -165,7 +165,9 @@ const VSCODE_HOST = `
     });
   }
 
-  Host.saveFile = (filename, mime, content)=> call('saveFile', { filename, content });
+  // PNG のようなバイナリは base64 の文字列で渡す（Webview からは文字列しか送れない）
+  Host.saveFile = (filename, mime, content, opt)=>
+    call('saveFile', { filename, content, encoding: (opt && opt.encoding) || 'utf8' });
   Host.openFile = ()=> call('openFile');
   // .html 保存で mermaid 本体を読み直すため、Webview から取得できるURLを返す。
   // 変数名にプレースホルダ（__MERMAID_URI__）と同じ文字を使うと、
