@@ -9,16 +9,16 @@
  * 差し替え対象が1つでも見つからなければ、生成せずに異常終了する。
  * MGS2 側の改修でパターンが外れたことに気づかないまま、壊れた拡張を配るのを防ぐため。
  *
- * 実行: node vscode-extensions/mermaid/build/make-webview.mjs
+ * 実行: node build/make-webview.mjs（npm run build）
  */
 import { readFile, writeFile, mkdir, copyFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(here, '..', '..', '..');
+const repoRoot = resolve(here, '..');
 const SRC_HTML = resolve(repoRoot, 'tools/mermaid-gui-studio-2.html');
-const SRC_MERMAID = resolve(repoRoot, 'assets/vendor/mermaid.min.js');
+const SRC_MERMAID = resolve(repoRoot, 'vendor/mermaid.min.js');
 const OUT_DIR = resolve(here, '..', 'media');
 
 /** 期待した差し替えが起きたかを必ず確かめる。0件でも複数件でも異常として止める。 */

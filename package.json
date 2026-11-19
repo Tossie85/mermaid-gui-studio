@@ -9,11 +9,10 @@
   "homepage": "https://tossie85.site/tools/mermaid-gui-studio-2.html",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Tossie85/tossie85.site.git",
-    "directory": "vscode-extensions/mermaid"
+    "url": "https://github.com/Tossie85/mermaid-gui-studio.git"
   },
   "bugs": {
-    "url": "https://github.com/Tossie85/tossie85.site/issues"
+    "url": "https://github.com/Tossie85/mermaid-gui-studio/issues"
   },
   "keywords": [
     "mermaid",
@@ -78,6 +77,8 @@
   },
   "scripts": {
     "build": "node build/make-webview.mjs",
+    "preview": "node build/make-webview.mjs && node build/make-preview.mjs",
+    "test": "node build/make-webview.mjs && node build/check-build.mjs",
     "vscode:prepublish": "node build/make-webview.mjs"
   }
 }

@@ -37,6 +37,24 @@ Mermaid コードを読み込めます。
   図そのものの配色（Mermaid のテーマ）は、保存物の見た目が変わらないよう利用者の選択のままにしています。
 - **キャンバスの色を選べる** — プレビューの地の明暗を図に合わせて調整できます（保存物には含まれません）。
 
+## 開発
+
+依存パッケージはありません。クローンすればそのまま動きます。
+
+```
+npm run build     # media/ に Webview 用の HTML と mermaid を生成する
+npm test          # 生成物が拡張として成立しているかを12件の観点で検める
+npm run preview   # VS Code なしでブラウザから見られるコピーを作る
+```
+
+Web版と同じ `tools/mermaid-gui-studio-2.html` から、Webview 用の `media/index.html` を
+組み立てています。`media/` は生成物なのでリポジトリには持たず、`.vsix` を作るときに
+毎回作り直します。図の描画に使う `vendor/mermaid.min.js` は
+[Mermaid](https://github.com/mermaid-js/mermaid)（MIT）の配布物をそのまま同梱したものです。
+
+ツール本体（`tools/mermaid-gui-studio-2.html`）がこのリポジトリの原本で、
+サイト <https://tossie85.site/tools/mermaid-gui-studio-2.html> で配信しているのはその複製です。
+
 ## ライセンス
 
 [MIT License](https://opensource.org/licenses/MIT)（同梱の `LICENSE` を参照）
