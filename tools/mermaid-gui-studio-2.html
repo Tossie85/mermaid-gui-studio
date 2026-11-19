@@ -1032,7 +1032,7 @@ function emptyClassState(){ return { classes:[], relations:[], namespaces:[], ed
 function emptyERState(){ return { entities:[], relations:[], editEntityIdx:null, editRelationIdx:null, activeEntityIdx:null, editAttrIdx:null, dbEngine:'postgresql' }; }
 function emptyArchState(){ return { groups:[], services:[], edges:[], editGroupIdx:null, editServiceIdx:null, editEdgeIdx:null }; }
 function emptyPieState(){ return { title:'割合', showData:false, items:[], editItemIdx:null }; }
-function emptyGanttState(){ return { title:'プロジェクト計画', tasks:[], sectionColors:{}, editTaskIdx:null }; }
+function emptyGanttState(){ return { title:'プロジェクト計画', tasks:[], sectionColors:{}, axisFormat:'', tickNum:'', tickUnit:'day', excludeWeekends:false, excludeDates:'', editTaskIdx:null }; }
 
 const state = {
   diagramType: 'flowchart',
@@ -1463,6 +1463,18 @@ const SEQ_DIVIDERS = [
 ];
 // 区切りキーワードと対応するブロック種別（else→alt など）
 const DIV_BLOCK_TYPE = { else:'alt', and:'par', option:'critical' };
+// 目盛りの間隔の単位（tickInterval）
+const GANTT_TICK_UNITS = [
+  { v:'day', label:'日' },
+  { v:'week', label:'週' },
+  { v:'month', label:'月' },
+  { v:'hour', label:'時間' },
+  { v:'minute', label:'分' },
+];
+// 軸の日付表示（axisFormat）のよく使う形
+const GANTT_AXIS_PRESETS = ['%m/%d', '%Y-%m-%d', '%m月%d日', '%d', '%b %d', '%H:%M'];
+// 除外（excludes）に書ける曜日
+const GANTT_WEEKDAYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
 // ガントチャートのタスクの状態
 const GANTT_STATUS = [
   { v:'', label:'通常' },
@@ -2198,9 +2210,34 @@ function ganttStyleHeader(tasks, sectionColors){
   return `---\nconfig:\n  themeCSS: "${rules.join(' ').replace(/"/g,'')}"\n---\n`;
 }
 
+/* 除外（excludes）の値を1行分に組み立てる。週末と個別の日付を並べる */
+function ganttExcludesValue(g){
+  const parts = [];
+  if(g.excludeWeekends) parts.push('weekends');
+  String(g.excludeDates || '').split(',').map(x=> x.trim()).filter(Boolean).forEach(x=> parts.push(x));
+  return parts.join(', ');
+}
+
+/* 状態 → 軸と休みのフォーム（取り込みや復元のあとに呼ぶ） */
+function ganttFillAxisForm(){
+  const g = state.ganttDiag;
+  const el = (id)=> document.getElementById(id);
+  if(!el('ganttAxisFormat')) return;
+  el('ganttAxisFormat').value = g.axisFormat || '';
+  el('ganttTickNum').value = g.tickNum || '';
+  el('ganttTickUnit').value = g.tickUnit || 'day';
+  el('ganttExWeekends').checked = !!g.excludeWeekends;
+  el('ganttExDates').value = g.excludeDates || '';
+}
+
 function genGanttCode(){
   const { title, tasks } = state.ganttDiag;
   const lines = ['gantt', `    title ${title || 'プロジェクト計画'}`, `    dateFormat  ${GANTT_DATE_FORMAT}`];
+  const g = state.ganttDiag;
+  if(g.axisFormat && g.axisFormat.trim()) lines.push('    axisFormat  ' + g.axisFormat.trim());
+  if(/^\d+$/.test(String(g.tickNum || ''))) lines.push('    tickInterval  ' + g.tickNum + (g.tickUnit || 'day'));
+  const ex = ganttExcludesValue(g);
+  if(ex) lines.push('    excludes ' + ex);
   // section はタスクの並びが変わったところで出す。同じ名前でも離れていれば別の帯になる
   let lastSection = null;
   tasks.forEach(t=>{
@@ -5309,6 +5346,27 @@ function renderGanttBuilder(container){
     </div>
 
     <div class="card">
+      <div class="card-title">軸と休みの設定</div>
+      <div class="row">
+        <div class="field"><label for="ganttAxisFormat">軸の日付表示(任意)</label>
+          <input type="text" id="ganttAxisFormat" list="ganttAxisPresets" placeholder="例: %m/%d">
+          <datalist id="ganttAxisPresets">${GANTT_AXIS_PRESETS.map(v=>`<option value="${v}">`).join('')}</datalist>
+        </div>
+        <div class="field"><label for="ganttTickNum">目盛りの間隔(任意)</label>
+          <div style="display:flex; gap:6px;">
+            <input type="number" id="ganttTickNum" min="1" placeholder="1" style="flex:1 1 60px; min-width:0;">
+            <select id="ganttTickUnit" style="flex:1 1 90px; min-width:0;">${GANTT_TICK_UNITS.map(u=>`<option value="${u.v}">${u.label}</option>`).join('')}</select>
+          </div>
+        </div>
+      </div>
+      <label class="check-line" style="margin-top:8px;"><input type="checkbox" id="ganttExWeekends"> 土日を工期から外す</label>
+      <div class="field" style="margin-top:6px;"><label for="ganttExDates">休みにする日(任意)</label>
+        <input type="text" id="ganttExDates" placeholder="例: 2026-01-01, 2026-01-02">
+      </div>
+      <p class="hint">日付は ${GANTT_DATE_FORMAT} 形式で、複数あればカンマで区切ります（monday などの曜日名も書けます）。外した日はタスクの期間に数えません。</p>
+    </div>
+
+    <div class="card">
       <div class="card-title">タスクを追加</div>
       <div class="row">
         <div class="field"><label for="ganttTaskName">タスク名</label><input type="text" id="ganttTaskName" placeholder="例: 要件定義"></div>
@@ -5351,6 +5409,22 @@ function renderGanttBuilder(container){
   document.getElementById('ganttTitle').addEventListener('input', e=>{
     state.ganttDiag.title = e.target.value;
     regenerateCode();
+  });
+
+  ganttFillAxisForm();
+  const ganttAxisRead = ()=>{
+    const g = state.ganttDiag;
+    g.axisFormat = document.getElementById('ganttAxisFormat').value.trim();
+    const num = document.getElementById('ganttTickNum').value.trim();
+    g.tickNum = /^\d+$/.test(num) ? num : '';
+    g.tickUnit = document.getElementById('ganttTickUnit').value;
+    g.excludeWeekends = document.getElementById('ganttExWeekends').checked;
+    g.excludeDates = document.getElementById('ganttExDates').value.trim();
+    regenerateCode();
+  };
+  ['ganttAxisFormat','ganttTickNum','ganttTickUnit','ganttExWeekends','ganttExDates'].forEach(id=>{
+    document.getElementById(id).addEventListener('input', ganttAxisRead);
+    document.getElementById(id).addEventListener('change', ganttAxisRead);
   });
 
   document.getElementById('ganttStartDate').value = todayISO();
@@ -6727,7 +6801,32 @@ function importGantt(lines, rep, colors){
     const sec = /^section\s+(.+)$/i.exec(line);
     if(sec){ section = sec[1].trim(); return; }
 
-    if(/^(excludes|includes|axisFormat|tickInterval|todayMarker|weekday|displayMode|inclusiveEndDates|topAxis)\b/i.test(line)){
+    const af = /^axisFormat\s+(.+)$/i.exec(line);
+    if(af){ gt.axisFormat = af[1].trim(); return; }
+
+    const ti = /^tickInterval\s+(\d+)\s*(millisecond|second|minute|hour|day|week|month)s?$/i.exec(line);
+    if(ti){
+      const unit = ti[2].toLowerCase();
+      if(!GANTT_TICK_UNITS.some(u=> u.v === unit)){
+        blockLine(rep, lineNo, line, `目盛りの単位「${unit}」はビルダーの選択肢にありません`);
+        return;
+      }
+      gt.tickNum = ti[1]; gt.tickUnit = unit;
+      return;
+    }
+    if(/^tickInterval\b/i.test(line)){ blockLine(rep, lineNo, line, 'tickInterval は「数 + 単位（例: 1week）」の形だけ解釈できます'); return; }
+
+    const ex = /^excludes\s+(.+)$/i.exec(line);
+    if(ex){
+      const items = ex[1].split(',').map(x=> x.trim()).filter(Boolean);
+      const bad = items.filter(x=> !/^weekends$/i.test(x) && !GANTT_WEEKDAYS.includes(x.toLowerCase()) && !GANTT_DATE_RE.test(x));
+      if(bad.length){ blockLine(rep, lineNo, line, `除外「${bad.join(', ')}」は weekends / 曜日名 / ${GANTT_DATE_FORMAT} の日付だけ解釈できます`); return; }
+      gt.excludeWeekends = items.some(x=> /^weekends$/i.test(x));
+      gt.excludeDates = items.filter(x=> !/^weekends$/i.test(x)).join(', ');
+      return;
+    }
+
+    if(/^(includes|todayMarker|weekday|displayMode|inclusiveEndDates|topAxis)\b/i.test(line)){
       blockLine(rep, lineNo, line, `${line.split(/\s+/)[0]} はビルダーで保持できません`);
       return;
     }
