@@ -518,6 +518,8 @@
   /* シーケンス図の loop / alt ブロック（SEQ_BLOCK_SELECTORと対） */
   #preview line.loopLine{ cursor:pointer; pointer-events:stroke; }
   #preview polygon.labelBox, #preview text.labelText, #preview text.loopText{ cursor:pointer; }
+  /* rect（背景の塗り）。塗りの上をクリックできるようにする */
+  #preview rect.rect{ cursor:pointer; }
   .key-badge{
     display:inline-block; font-size:9.5px; font-weight:700; letter-spacing:0.3px;
     padding:1px 5px; border-radius:3px; margin-right:4px; flex-shrink:0;
@@ -1024,7 +1026,7 @@ document.addEventListener('keydown', e=>{
 /* ============ 状態管理 ============ */
 /* ============ 各図の「空の状態」ファクトリ（初期化・クリアで共用） ============ */
 function emptyFlowchartState(){ return { direction:'TD', nodes:[], edges:[], subgraphs:[], editNodeIdx:null, editEdgeIdx:null, editSubIdx:null }; }
-function emptySequenceState(){ return { participants:[], messages:[], editPartIdx:null, editMsgIdx:null, editNoteIdx:null, editBlockIdx:null, editDivIdx:null }; }
+function emptySequenceState(){ return { participants:[], messages:[], autonumber:{ on:false, start:'', step:'' }, editPartIdx:null, editMsgIdx:null, editNoteIdx:null, editBlockIdx:null, editDivIdx:null }; }
 function emptyStateDiagState(){ return { nodes:[], edges:[], composites:[], editNodeIdx:null, editEdgeIdx:null, editCompositeIdx:null }; }
 function emptyClassState(){ return { classes:[], relations:[], namespaces:[], editClassIdx:null, editRelationIdx:null, editNamespaceIdx:null }; }
 function emptyERState(){ return { entities:[], relations:[], editEntityIdx:null, editRelationIdx:null, activeEntityIdx:null, editAttrIdx:null, dbEngine:'postgresql' }; }
@@ -1451,6 +1453,7 @@ const SEQ_BLOCKS = [
   { v:'par', label:'par（並行処理）' },
   { v:'critical', label:'critical（重要処理）' },
   { v:'break', label:'break（中断）' },
+  { v:'rect', label:'rect（背景を塗る）' },
 ];
 // ブロックの区切り（else/and など）
 const SEQ_DIVIDERS = [
@@ -1787,9 +1790,49 @@ function sequenceStyleHeader(participants){
   return `---\nconfig:\n  themeCSS: "${rules.join(' ').replace(/"/g,'')}"\n---\n`;
 }
 
+/* rect の塗りを Mermaid の書き方にする。#rrggbb と 0〜1 の濃さから rgb()/rgba() を作る */
+function seqRectFill(m){
+  const src = String((m && m.color) || '');
+  const hex = /^#?[0-9a-fA-F]{6}$/.test(src) ? src.replace('#','') : '1e88e5';
+  const r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b = parseInt(hex.slice(4,6),16);
+  const a = Number(m && m.alpha);
+  if(!Number.isFinite(a) || a >= 1) return 'rgb(' + r + ', ' + g + ', ' + b + ')';
+  return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + a + ')';
+}
+
+/* rect の色指定を取り込む。rgb() / rgba() / #rrggbb だけを受ける */
+function parseSeqRectFill(text){
+  const t = String(text || '').trim();
+  let m = /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*(?:,\s*([\d.]+)\s*)?\)$/i.exec(t);
+  if(m){
+    const r = Number(m[1]), g = Number(m[2]), b = Number(m[3]);
+    if([r,g,b].some(v=> v > 255)) return null;
+    const a = m[4] === undefined ? 1 : Number(m[4]);
+    if(!Number.isFinite(a) || a < 0 || a > 1) return null;
+    const hex = '#' + [r,g,b].map(v=> v.toString(16).padStart(2,'0')).join('');
+    return { hex:hex, alpha:a };
+  }
+  m = /^#([0-9a-fA-F]{6})$/.exec(t);
+  if(m) return { hex:'#' + m[1].toLowerCase(), alpha:1 };
+  return null;
+}
+
+/* autonumber の行を組み立てる。付けない設定なら空文字 */
+function seqAutonumberLine(auto){
+  if(!auto || !auto.on) return '';
+  const num = (v)=> /^\d+$/.test(String(v == null ? '' : v)) ? String(v) : '';
+  const start = num(auto.start), step = num(auto.step);
+  if(start && step) return 'autonumber ' + start + ' ' + step;
+  if(start) return 'autonumber ' + start;
+  if(step) return 'autonumber 1 ' + step;   // 増分だけでは Mermaid が受けないので開始を補う
+  return 'autonumber';
+}
+
 function genSequenceCode(){
   const { participants, messages } = state.sequence;
   const lines = ['sequenceDiagram'];
+  const autoLine = seqAutonumberLine(state.sequence.autonumber);
+  if(autoLine) lines.push('    ' + autoLine);
   participants.forEach(p=>{
     lines.push(`    ${p.kind === 'actor' ? 'actor' : 'participant'} ${p.id} as ${p.label}`);
   });
@@ -1799,7 +1842,8 @@ function genSequenceCode(){
   messages.forEach((m, i)=>{
     if(skip.has(i)) return;
     if(m.kind === 'block-start'){
-      lines.push(`${pad()}${m.blockType}${m.label ? ' ' + m.label : ''}`);
+      const head = m.blockType === 'rect' ? 'rect ' + seqRectFill(m) : m.blockType + (m.label ? ' ' + m.label : '');
+      lines.push(pad() + head);
       depth++;
     }else if(m.kind === 'block-div'){
       lines.push(`${pad(Math.max(0, depth-1))}${m.keyword}${m.label ? ' ' + m.label : ''}`);
@@ -2402,7 +2446,7 @@ function nearestEdgeAtPoint(ev, svg, type){
 }
 
 /* シーケンス図のブロック関連要素。CSSのカーソル指定と対で管理する */
-const SEQ_BLOCK_SELECTOR = 'line.loopLine, polygon.labelBox, text.labelText, text.loopText';
+const SEQ_BLOCK_SELECTOR = 'line.loopLine, polygon.labelBox, text.labelText, text.loopText, rect.rect';
 
 /* シーケンス図の loop / alt などのブロックは、開始した順ではなく
    end に到達した順に描画される（入れ子の場合は内側が先）。
@@ -2410,9 +2454,20 @@ const SEQ_BLOCK_SELECTOR = 'line.loopLine, polygon.labelBox, text.labelText, tex
 function sequenceBlocksInDrawOrder(){
   const stack = [], drawn = [];
   state.sequence.messages.forEach((m,i)=>{
-    if(m.kind==='block-start') stack.push({ startIdx:i, divIdxs:[] });
+    // rect は枠線とタグを持たず <rect class="rect"> として描かれるので、ここでは数えない
+    if(m.kind==='block-start') stack.push({ startIdx:i, divIdxs:[], isRect:m.blockType==='rect' });
     else if(m.kind==='block-div'){ if(stack.length) stack[stack.length-1].divIdxs.push(i); }
-    else if(m.kind==='block-end'){ const b = stack.pop(); if(b) drawn.push(b); }
+    else if(m.kind==='block-end'){ const b = stack.pop(); if(b && !b.isRect) drawn.push(b); }
+  });
+  return drawn;
+}
+
+/* rect のブロックも end に到達した順に描かれる。<rect class="rect"> と1対1で並ぶ */
+function sequenceRectBlocksInDrawOrder(){
+  const stack = [], drawn = [];
+  state.sequence.messages.forEach((m,i)=>{
+    if(m.kind==='block-start') stack.push({ startIdx:i, isRect:m.blockType==='rect' });
+    else if(m.kind==='block-end'){ const b = stack.pop(); if(b && b.isRect) drawn.push(b.startIdx); }
   });
   return drawn;
 }
@@ -2430,6 +2485,13 @@ function sequenceLoopLineOwners(drawn){
 
 /* クリックされたブロック関連要素が messages の何番目かを返す。特定できなければ -1。 */
 function sequenceBlockIndexFromEl(el, svg){
+  // rect は枠線を持たないので、<rect class="rect"> の並び順だけで持ち主が決まる
+  if(el.matches('rect.rect')){
+    const rects = [...svg.querySelectorAll('rect.rect')];
+    const order = sequenceRectBlocksInDrawOrder();
+    const pos = rects.indexOf(el);
+    return (pos >= 0 && rects.length === order.length) ? order[pos] : -1;
+  }
   const drawn = sequenceBlocksInDrawOrder();
   if(!drawn.length) return -1;
   const lines = [...svg.querySelectorAll('line.loopLine')];
@@ -3067,6 +3129,21 @@ function renderSequenceBuilder(container){
     <p class="hint">参加者を追加してから、メッセージのやり取りを追加してください。</p>
 
     <div class="card">
+      <div class="card-title">図の設定</div>
+      <div class="row">
+        <div class="field"><label for="sqAutoNum">通し番号(autonumber)</label>
+          <select id="sqAutoNum">
+            <option value="off">付けない</option>
+            <option value="on">付ける</option>
+          </select>
+        </div>
+        <div class="field" id="sqAutoNumStartField" style="display:none;"><label for="sqAutoNumStart">開始番号(任意)</label><input type="number" id="sqAutoNumStart" min="1" placeholder="1"></div>
+        <div class="field" id="sqAutoNumStepField" style="display:none;"><label for="sqAutoNumStep">増分(任意)</label><input type="number" id="sqAutoNumStep" min="1" placeholder="1"></div>
+      </div>
+      <p class="hint">メッセージに 1, 2, 3 … と番号を振ります。番号はノートやブロックには付きません。</p>
+    </div>
+
+    <div class="card">
       <div class="card-title">参加者を追加</div>
       <div class="row">
         <div class="field"><label for="sqPartId">ID</label><input type="text" id="sqPartId"></div>
@@ -3128,7 +3205,17 @@ function renderSequenceBuilder(container){
         <div class="field"><label for="sqBlockType">種別</label>
           <select id="sqBlockType">${SEQ_BLOCKS.map(b=>`<option value="${b.v}">${b.label}</option>`).join('')}</select>
         </div>
-        <div class="field"><label for="sqBlockLabel">ラベル(任意)</label><input type="text" id="sqBlockLabel" placeholder="例: 条件が真の間"></div>
+        <div class="field" id="sqBlockLabelField"><label for="sqBlockLabel">ラベル(任意)</label><input type="text" id="sqBlockLabel" placeholder="例: 条件が真の間"></div>
+        <div class="field" id="sqBlockColorField" style="display:none;"><label for="sqBlockColor">背景色</label><input type="color" id="sqBlockColor" value="#1e88e5"></div>
+        <div class="field" id="sqBlockAlphaField" style="display:none;"><label for="sqBlockAlpha">濃さ</label>
+          <select id="sqBlockAlpha">
+            <option value="0.08">ごく薄い</option>
+            <option value="0.15">薄い</option>
+            <option value="0.3">中くらい</option>
+            <option value="0.5">濃い</option>
+            <option value="1">べた塗り</option>
+          </select>
+        </div>
       </div>
       <button class="add-row-btn" id="sqAddBlock">＋ ブロック開始を追加</button>
       <button class="add-row-btn" id="sqBlockCancel" style="display:none; background:var(--surface-cancel); margin-top:6px;">編集をキャンセル</button>
@@ -3226,10 +3313,33 @@ function renderSequenceBuilder(container){
   });
   document.getElementById('sqNoteCancel').addEventListener('click', sqResetNoteForm);
 
+  document.getElementById('sqBlockType').addEventListener('change', sqSyncBlockFields);
+  sqSyncBlockFields();
+
+  const sqAutoNumRead = ()=>{
+    const on = document.getElementById('sqAutoNum').value === 'on';
+    const num = (v)=> /^\d+$/.test(v) ? v : '';
+    state.sequence.autonumber = {
+      on: on,
+      start: num(document.getElementById('sqAutoNumStart').value.trim()),
+      step: num(document.getElementById('sqAutoNumStep').value.trim()),
+    };
+    sqSyncAutoNumFields();
+    regenerateCode();
+  };
+  ['sqAutoNum','sqAutoNumStart','sqAutoNumStep'].forEach(id=>{
+    document.getElementById(id).addEventListener('change', sqAutoNumRead);
+  });
+  sqFillAutoNumForm();
+
   document.getElementById('sqAddBlock').addEventListener('click', async ()=>{
     const blockType = document.getElementById('sqBlockType').value;
     const label = document.getElementById('sqBlockLabel').value.trim();
-    const block = { kind:'block-start', blockType, label };
+    const block = blockType === 'rect'
+      ? { kind:'block-start', blockType:blockType, label:'',
+          color: document.getElementById('sqBlockColor').value,
+          alpha: Number(document.getElementById('sqBlockAlpha').value) }
+      : { kind:'block-start', blockType:blockType, label:label };
     const editIdx = state.sequence.editBlockIdx;
     if(editIdx !== null){
       // 例: else を含む alt を loop に変えると else が行き場を失う。消える項目を見せてから確定する
@@ -3352,10 +3462,43 @@ function sqResetNoteForm(){
   document.getElementById('sqAddNote').textContent = '＋ ノートを追加';
   document.getElementById('sqNoteCancel').style.display = 'none';
 }
+/* rect のときだけ色の欄を出す。ラベルは rect では使えない */
+function sqSyncBlockFields(){
+  const isRect = document.getElementById('sqBlockType').value === 'rect';
+  document.getElementById('sqBlockLabelField').style.display = isRect ? 'none' : '';
+  document.getElementById('sqBlockColorField').style.display = isRect ? '' : 'none';
+  document.getElementById('sqBlockAlphaField').style.display = isRect ? '' : 'none';
+}
+
+/* 通し番号の開始・増分は「付ける」ときだけ出す */
+function sqSyncAutoNumFields(){
+  const on = document.getElementById('sqAutoNum').value === 'on';
+  document.getElementById('sqAutoNumStartField').style.display = on ? '' : 'none';
+  document.getElementById('sqAutoNumStepField').style.display = on ? '' : 'none';
+}
+
+/* 状態 → 図の設定フォーム（取り込みや復元のあとに呼ぶ） */
+function sqFillAutoNumForm(){
+  const auto = state.sequence.autonumber || { on:false, start:'', step:'' };
+  const sel = document.getElementById('sqAutoNum');
+  if(!sel) return;
+  sel.value = auto.on ? 'on' : 'off';
+  document.getElementById('sqAutoNumStart').value = auto.start || '';
+  document.getElementById('sqAutoNumStep').value = auto.step || '';
+  sqSyncAutoNumFields();
+}
+
 function sqFillBlockForm(b){
   if(b.kind === 'block-start'){
     document.getElementById('sqBlockType').value = b.blockType;
     document.getElementById('sqBlockLabel').value = b.label || '';
+    if(b.blockType === 'rect'){
+      document.getElementById('sqBlockColor').value = /^#[0-9a-fA-F]{6}$/.test(b.color || '') ? b.color : '#1e88e5';
+      const alpha = String(b.alpha == null ? 0.15 : b.alpha);
+      const alphaSel = document.getElementById('sqBlockAlpha');
+      alphaSel.value = [...alphaSel.options].some(o=> o.value === alpha) ? alpha : '0.15';
+    }
+    sqSyncBlockFields();
     document.getElementById('sqAddBlock').textContent = '✓ ブロック開始を更新';
     document.getElementById('sqBlockCancel').style.display = 'block';
   }else{
@@ -3367,6 +3510,7 @@ function sqFillBlockForm(b){
 }
 function sqResetBlockForm(){
   document.getElementById('sqBlockLabel').value='';
+  sqSyncBlockFields();
   document.getElementById('sqDivLabel').value='';
   state.sequence.editBlockIdx = null;
   state.sequence.editDivIdx = null;
@@ -3589,7 +3733,10 @@ function invalidSequenceBlockIndexes(messages){
 
 /* 確認ダイアログに項目を並べるときの表記。メッセージ一覧の見た目と揃える */
 function sequenceItemLabel(m){
-  if(m.kind === 'block-start') return `${m.blockType}${m.label ? ' ' + m.label : ''}`;
+  if(m.kind === 'block-start'){
+    if(m.blockType === 'rect') return 'rect ' + seqRectFill(m);
+    return m.blockType + (m.label ? ' ' + m.label : '');
+  }
   if(m.kind === 'block-div') return `${m.keyword}${m.label ? ' ' + m.label : ''}`;
   if(m.kind === 'block-end') return 'end';
   if(m.kind === 'note'){
@@ -3752,7 +3899,10 @@ function refreshSequenceLists(){
     row.style.marginLeft = (indent * 16) + 'px';
 
     if(m.kind === 'block-start'){
-      row.innerHTML = `<span class="item-text">🔁 ${m.blockType}${m.label ? ' ' + m.label : ''}</span>`
+      const headText = m.blockType === 'rect'
+        ? '🎨 rect <span style="display:inline-block;width:10px;height:10px;vertical-align:middle;border:1px solid var(--border);background:' + seqRectFill(m) + ';"></span>'
+        : '🔁 ' + m.blockType + (m.label ? ' ' + m.label : '');
+      row.innerHTML = `<span class="item-text">${headText}</span>`
         + `<button class="edit-btn" data-i="${i}" title="このブロック開始を編集">✎</button>`
         + `<button class="del-block-btn" data-i="${i}" title="ブロックごと削除（中のメッセージも消えます）">🗑</button>`
         + `<button class="del-btn" data-i="${i}" title="このブロック開始の行だけ削除">×</button>`;
@@ -5977,10 +6127,22 @@ function importSequence(lines, rep, colors){
       headerSeen = true;
       return;
     }
-    if(/^autonumber\b/i.test(line)){ blockLine(rep, lineNo, line, 'autonumber はビルダーで保持できません'); return; }
+    if(/^autonumber\b/i.test(line)){
+      const am = /^autonumber(?:\s+(off|\d+))?(?:\s+(\d+))?$/i.exec(line);
+      if(!am){ blockLine(rep, lineNo, line, 'autonumber の書き方に対応していません'); return; }
+      if(am[1] && /^off$/i.test(am[1])) sq.autonumber = { on:false, start:'', step:'' };
+      else sq.autonumber = { on:true, start:am[1] || '', step:am[2] || '' };
+      return;
+    }
     if(/^(activate|deactivate)\b/i.test(line)){ blockLine(rep, lineNo, line, 'activate / deactivate はビルダーで保持できません'); return; }
     if(/^box\b/i.test(line)){ blockLine(rep, lineNo, line, 'box（参加者のグループ化）はビルダーで保持できません'); return; }
-    if(/^rect\b/i.test(line)){ blockLine(rep, lineNo, line, 'rect（背景の塗り）はビルダーで保持できません'); return; }
+    if(/^rect\b/i.test(line)){
+      const fill = parseSeqRectFill(line.replace(/^rect\b/i, ''));
+      if(!fill){ blockLine(rep, lineNo, line, 'rect の色は rgb(…) / rgba(…) / #rrggbb だけ取り込めます'); return; }
+      stack.push('rect');
+      sq.messages.push({ kind:'block-start', blockType:'rect', label:'', color:fill.hex, alpha:fill.alpha });
+      return;
+    }
     if(/^links?\b/i.test(line)){ blockLine(rep, lineNo, line, 'link / links はビルダーで保持できません'); return; }
 
     const pm = /^(participant|actor)\s+(.+)$/i.exec(line);
