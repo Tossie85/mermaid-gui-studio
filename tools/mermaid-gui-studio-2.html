@@ -133,7 +133,7 @@
 
   .field-group{display:flex; flex-direction:column; gap:3px;}
   .field-group label{font-size:10px; color:var(--text-on-dark-dim); text-transform:uppercase; letter-spacing:0.8px; font-weight:600;}
-  select, .btn, input[type=text]{
+  select, .btn, input[type=text], input[type=number]{
     font-family:var(--font-sans);
     font-size:13px;
   }
@@ -393,7 +393,7 @@
     display:block; font-size:10px; color:var(--text-dim); margin-bottom:3px;
     text-transform:uppercase; letter-spacing:.5px; font-weight:600;
   }
-  .field input[type=text], .field select{
+  .field input[type=text], .field input[type=number], .field select{
     width:100%;
     padding:6px 8px;
     border:1px solid var(--border-strong);
@@ -402,7 +402,7 @@
     color:var(--text-main);
     font-size:12.5px;
   }
-  .field input[type=text]:focus, .field select:focus{ outline:2px solid var(--accent); outline-offset:0; border-color:var(--accent); }
+  .field input[type=text]:focus, .field input[type=number]:focus, .field select:focus{ outline:2px solid var(--accent); outline-offset:0; border-color:var(--accent); }
   .field textarea, .field input[type=date]{
     width:100%;
     padding:6px 8px;
@@ -3184,16 +3184,16 @@ function renderSequenceBuilder(container){
     <div class="card">
       <div class="card-title">図の設定</div>
       <div class="row">
-        <div class="field"><label for="sqAutoNum">通し番号(autonumber)</label>
+        <div class="field" style="flex:1.2;"><label for="sqAutoNum">通し番号</label>
           <select id="sqAutoNum">
             <option value="off">付けない</option>
             <option value="on">付ける</option>
           </select>
         </div>
-        <div class="field" id="sqAutoNumStartField" style="display:none;"><label for="sqAutoNumStart">開始番号(任意)</label><input type="number" id="sqAutoNumStart" min="1" placeholder="1"></div>
-        <div class="field" id="sqAutoNumStepField" style="display:none;"><label for="sqAutoNumStep">増分(任意)</label><input type="number" id="sqAutoNumStep" min="1" placeholder="1"></div>
+        <div class="field" id="sqAutoNumStartField" style="display:none;"><label for="sqAutoNumStart">開始番号</label><input type="number" id="sqAutoNumStart" min="1" placeholder="1"></div>
+        <div class="field" id="sqAutoNumStepField" style="display:none;"><label for="sqAutoNumStep">増分</label><input type="number" id="sqAutoNumStep" min="1" placeholder="1"></div>
       </div>
-      <p class="hint">メッセージに 1, 2, 3 … と番号を振ります。番号はノートやブロックには付きません。</p>
+      <p class="hint">メッセージに 1, 2, 3 … と番号を振ります（<code>autonumber</code>）。開始番号と増分は省略できます。番号はノートやブロックには付きません。</p>
     </div>
 
     <div class="card">
@@ -5392,11 +5392,11 @@ function renderGanttBuilder(container){
     <div class="card">
       <div class="card-title">軸と休みの設定</div>
       <div class="row">
-        <div class="field"><label for="ganttAxisFormat">軸の日付表示(任意)</label>
+        <div class="field"><label for="ganttAxisFormat">軸の日付表示</label>
           <input type="text" id="ganttAxisFormat" list="ganttAxisPresets" placeholder="例: %m/%d">
           <datalist id="ganttAxisPresets">${GANTT_AXIS_PRESETS.map(v=>`<option value="${v}">`).join('')}</datalist>
         </div>
-        <div class="field"><label for="ganttTickNum">目盛りの間隔(任意)</label>
+        <div class="field"><label for="ganttTickNum">目盛りの間隔</label>
           <div style="display:flex; gap:6px;">
             <input type="number" id="ganttTickNum" min="1" placeholder="1" style="flex:1 1 60px; min-width:0;">
             <select id="ganttTickUnit" style="flex:1 1 90px; min-width:0;">${GANTT_TICK_UNITS.map(u=>`<option value="${u.v}">${u.label}</option>`).join('')}</select>
@@ -5407,7 +5407,7 @@ function renderGanttBuilder(container){
       <div class="field" style="margin-top:6px;"><label for="ganttExDates">休みにする日(任意)</label>
         <input type="text" id="ganttExDates" placeholder="例: 2026-01-01, 2026-01-02">
       </div>
-      <p class="hint">日付は ${GANTT_DATE_FORMAT} 形式で、複数あればカンマで区切ります（monday などの曜日名も書けます）。外した日はタスクの期間に数えません。</p>
+      <p class="hint">軸の日付表示（<code>axisFormat</code>）と目盛りの間隔（<code>tickInterval</code>）は省略できます。<br>休みにする日は ${GANTT_DATE_FORMAT} 形式で、複数あればカンマで区切ります（monday などの曜日名も書けます）。外した日はタスクの期間に数えません。</p>
     </div>
 
     <div class="card">
